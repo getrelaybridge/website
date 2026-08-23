@@ -1,0 +1,20 @@
+{
+  "name": "relaybridge-website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "astro": "7.2.4",
+    "typescript": "6.0.3"
+  }
+}

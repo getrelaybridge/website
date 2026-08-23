@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
+import CallToAction from '../components/CallToAction.astro';
+---
+
+<BaseLayout title="How RelayBridge works" description="Understand how RelayBridge accepts local SMTP, queues mail durably, and submits it to Microsoft 365 with OAuth and TLS.">
+  <PageHero eyebrow="Architecture" title="A local bridge between" accent="two generations of email." description="Your existing devices keep using the SMTP they understand. RelayBridge handles the modern Microsoft identity and transport requirements they cannot." />
+
+  <section class="section section-white">
+    <div class="container architecture-large">
+      <div class="visual-label visual-label-dark">SIMPLE MAIL PATH</div>
+      <ArchitectureDiagram />
+    </div>
+    <div class="container flow-summary">
+      <div><span>01</span><h2>Submit</h2><p>Legacy devices send ordinary SMTP on the trusted local network.</p></div>
+      <div><span>02</span><h2>Queue</h2><p>RelayBridge restricts intake, preserves the message, and persists it locally.</p></div>
+      <div><span>03</span><h2>Authenticate</h2><p>A local certificate identifies RelayBridge to Microsoft Entra.</p></div>
+      <div><span>04</span><h2>Transfer</h2><p>Exchange Online SMTP accepts the message over TLS using XOAUTH2.</p></div>
+    </div>
+  </section>
+
+  <section class="section technical-section">
+    <div class="container docs-layout">
+      <aside class="section-aside">
+        <p class="eyebrow"><span></span> Administrator view</p>
+        <p>Technical flow</p>
+      </aside>
+      <div class="prose technical-prose">
+        <h2>The technical path</h2>
+        <p class="prose-lede">RelayBridge separates a deliberately constrained local SMTP boundary from the modern Microsoft 365 submission boundary.</p>
+        <div class="technical-rows">
+          <article><span>INBOUND</span><div><h3>Legacy SMTP intake</h3><p>A configured device connects to RelayBridge from an explicitly trusted private-network address. Device-level restrictions define what it may submit. Inbound STARTTLS is not currently available, so this boundary must remain on a trusted network.</p></div></article>
+          <article><span>LOCAL</span><div><h3>Durable spool and queue</h3><p>The raw MIME payload is written locally, while SQLite retains queue metadata. RelayBridge reports local acceptance only after the durable persistence boundary is reached. Temporary failures are retried, including after an unexpected restart.</p></div></article>
+          <article><span>IDENTITY</span><div><h3>Certificate-based OAuth</h3><p>RelayBridge uses a dedicated Entra application and a locally held certificate private key to obtain an Exchange resource token. There is no permanent client secret in the design.</p></div></article>
+          <article><span>OUTBOUND</span><div><h3>Exchange Online SMTP</h3><p>RelayBridge connects to Microsoft 365 SMTP using mandatory TLS and XOAUTH2. Microsoft Graph is not used as the mail-delivery transport. Success means Microsoft 365 returned the final successful SMTP response—not that the message reached an inbox.</p></div></article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section message-integrity section-white">
+    <div class="container two-column-copy">
+      <div><p class="eyebrow"><span></span> Message integrity</p><h2>The message stays<br /><em>the message.</em></h2></div>
+      <div><p class="section-lede">RelayBridge preserves the raw MIME message rather than reconstructing it through a separate mail API. Headers, structure, attachments, and content move through the queue as the original SMTP submission.</p><p class="small-note">Microsoft 365 may still apply its own normal transport, policy, and filtering behavior after SMTP acceptance.</p></div>
+    </div>
+  </section>
+
+  <CallToAction eyebrow="Trust the details" title="Read the public security architecture." description="See the identity model, permission scope, queue boundary, current limitations, and explicit non-goals." primaryHref="/security/" primaryLabel="Security model" secondaryHref="https://github.com/getrelaybridge" secondaryLabel="View on GitHub" />
+</BaseLayout>

@@ -1,0 +1,25 @@
+<div class="architecture" aria-label="Mail flows from local legacy devices through RelayBridge on your network, then securely to Microsoft 365">
+  <div class="architecture-sources">
+    <div class="source-node"><span aria-hidden="true">▤</span><b>Printer</b></div>
+    <div class="source-node"><span aria-hidden="true">⌁</span><b>Scanner</b></div>
+    <div class="source-node"><span aria-hidden="true">›_</span><b>Legacy app</b></div>
+  </div>
+  <div class="flow-connector">
+    <span>Local SMTP</span>
+    <i aria-hidden="true"></i>
+  </div>
+  <div class="relay-node">
+    <div class="relay-mark" aria-hidden="true"><i></i><i></i></div>
+    <strong>RelayBridge</strong>
+    <span>Runs on your network</span>
+  </div>
+  <div class="flow-connector flow-secure">
+    <span>OAuth + TLS</span>
+    <i aria-hidden="true"></i>
+  </div>
+  <div class="m365-node">
+    <span class="cloud-glyph" aria-hidden="true">◇</span>
+    <strong>Microsoft 365</strong>
+    <span>Exchange Online</span>
+  </div>
+</div>

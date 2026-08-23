@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found — RelayBridge" description="The requested RelayBridge page could not be found.">
+  <section class="not-found section-dark">
+    <div class="container not-found-inner">
+      <span class="error-code">404 / ROUTE NOT FOUND</span>
+      <div class="broken-bridge" aria-hidden="true"><i></i><b>×</b><i></i></div>
+      <h1>That route didn’t make it<br /><em>across the bridge.</em></h1>
+      <p>The page may have moved, or the address may be incomplete.</p>
+      <a class="button button-accent" href="/">Back to RelayBridge <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</BaseLayout>

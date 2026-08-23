@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+
+const topics = [
+  ['01', 'Getting started', 'Install, configure, and verify a RelayBridge instance.', 'In preparation'],
+  ['02', 'Microsoft 365 setup', 'Create and scope the Microsoft identity used for SMTP submission.', 'In preparation'],
+  ['03', 'Adding a device', 'Authorize a printer, scanner, appliance, or legacy application.', 'In preparation'],
+  ['04', 'Printer SMTP settings', 'Map common device fields to the local RelayBridge listener.', 'In preparation'],
+  ['05', 'Security', 'Understand the data path, identity, authorization, and current limitations.', 'Available', '/security/'],
+  ['06', 'Troubleshooting', 'Diagnose local submission, queue, OAuth, and Microsoft SMTP issues.', 'In preparation'],
+  ['07', 'Upgrading', 'Move between RelayBridge versions while preserving safe local state.', 'In preparation'],
+];
+---
+
+<BaseLayout title="RelayBridge documentation" description="RelayBridge documentation for Microsoft 365 setup, legacy SMTP devices, security, troubleshooting, and upgrades.">
+  <PageHero eyebrow="Documentation" title="Clear guidance for" accent="a careful deployment." description="The operational documentation is being prepared alongside v1.0 so that public instructions match the final installer, setup flow, and security boundaries." />
+
+  <section class="docs-status">
+    <div class="container docs-status-inner"><span></span><p><strong>Documentation status</strong> Product setup guides are being prepared for v1.0. The public security architecture is available now.</p></div>
+  </section>
+
+  <section class="section section-white">
+    <div class="container">
+      <div class="section-intro section-intro-row docs-intro">
+        <div><p class="eyebrow"><span></span> Documentation index</p><h2>Start with the boundary<br /><em>you need to understand.</em></h2></div>
+        <p class="section-lede">We are deliberately not publishing speculative installation steps before packaging and native Microsoft setup are frozen.</p>
+      </div>
+      <div class="docs-grid">
+        {topics.map(([number, title, description, status, href]) => (
+          <article>
+            <div><span class="topic-number">{number}</span><span class:list={['topic-status', status === 'Available' && 'is-available']}>{status}</span></div>
+            <h3>{title}</h3>
+            <p>{description}</p>
+            {href ? <a class="text-link" href={href}>Read now <span aria-hidden="true">→</span></a> : <span class="topic-pending">Coming with v1.0</span>}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section docs-bottom">
+    <div class="container two-column-copy">
+      <div><p class="eyebrow"><span></span> Follow development</p><h2>Need the latest<br /><em>project status?</em></h2></div>
+      <div><p class="section-lede">GitHub is the current source for public development activity. Public builds and full deployment guides are not available yet.</p><a class="button button-ink" href="https://github.com/getrelaybridge">Visit GitHub <span aria-hidden="true">→</span></a></div>
+    </div>
+  </section>
+</BaseLayout>

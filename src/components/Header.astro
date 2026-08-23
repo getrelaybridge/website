@@ -1,0 +1,36 @@
+---
+const pathname = Astro.url.pathname;
+const navItems = [
+  { href: '/how-it-works/', label: 'How it works' },
+  { href: '/security/', label: 'Security' },
+  { href: '/docs/', label: 'Docs' },
+];
+---
+
+<header class="site-header">
+  <div class="container nav-shell">
+    <a class="wordmark" href="/" aria-label="RelayBridge home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+      <span>RelayBridge</span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <details class="mobile-nav">
+        <summary>Menu</summary>
+        <div class="mobile-nav-panel">
+          {navItems.map((item) => (
+            <a href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>{item.label}</a>
+          ))}
+          <a href="https://github.com/getrelaybridge">GitHub</a>
+          <a href="/download/" aria-current={pathname === '/download/' ? 'page' : undefined}>Download</a>
+        </div>
+      </details>
+      <div class="desktop-nav">
+        {navItems.map((item) => (
+          <a href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>{item.label}</a>
+        ))}
+        <a href="https://github.com/getrelaybridge">GitHub</a>
+        <a class="button button-small button-dark" href="/download/" aria-current={pathname === '/download/' ? 'page' : undefined}>Download</a>
+      </div>
+    </nav>
+  </div>
+</header>

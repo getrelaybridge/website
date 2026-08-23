@@ -1,0 +1,155 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
+---
+
+<BaseLayout
+  title="RelayBridge — Modern Microsoft 365 email for legacy devices"
+  description="RelayBridge is an open-source, local SMTP-to-Microsoft-365 bridge for printers, scanners, and legacy applications."
+>
+  <section class="hero section-dark">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow eyebrow-light"><span></span> Open-source <i>•</i> Local-first <i>•</i> Microsoft 365</p>
+        <h1>Modern Microsoft 365 email <em>for legacy devices.</em></h1>
+        <p class="hero-lede">RelayBridge lets printers, scanners, and legacy applications send through Microsoft 365 using modern authentication—without routing your mail through another relay provider.</p>
+        <div class="button-row">
+          <a class="button button-accent" href="/how-it-works/">Explore RelayBridge <span aria-hidden="true">→</span></a>
+          <a class="button button-ghost" href="https://github.com/getrelaybridge">View on GitHub</a>
+        </div>
+        <p class="status-line"><span></span> Under active development · v1.0 is being prepared</p>
+      </div>
+      <div class="hero-visual">
+        <div class="visual-label">MAIL PATH / LOCAL-FIRST</div>
+        <ArchitectureDiagram />
+      </div>
+    </div>
+  </section>
+
+  <section class="trust-strip" aria-label="RelayBridge qualities">
+    <div class="container trust-items">
+      <span>Runs locally</span>
+      <span>Open source</span>
+      <span>Certificate identity</span>
+      <span>Durable queue</span>
+      <span>No relay cloud</span>
+    </div>
+  </section>
+
+  <section class="section section-problem">
+    <div class="container split-heading">
+      <p class="eyebrow"><span></span> The compatibility gap</p>
+      <div>
+        <h2>Your printer speaks SMTP.<br /><em>Microsoft 365 expects modern authentication.</em></h2>
+        <p class="section-lede">Many reliable devices and applications cannot implement modern Microsoft authentication. RelayBridge gives them a local SMTP endpoint while handling the modern connection to Microsoft 365—because replacing working hardware or using another hosted relay should not be the only choices.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-white section-bordered">
+    <div class="container">
+      <div class="section-intro">
+        <p class="eyebrow"><span></span> How it works</p>
+        <h2>A short local hop.<br /><em>A modern Microsoft connection.</em></h2>
+      </div>
+      <ol class="steps-grid">
+        <li>
+          <span class="step-number">01</span>
+          <div class="step-icon" aria-hidden="true">SMTP</div>
+          <h3>Device submits locally</h3>
+          <p>A printer, scanner, or application sends ordinary SMTP to RelayBridge on the trusted local network.</p>
+        </li>
+        <li>
+          <span class="step-number">02</span>
+          <div class="step-icon step-icon-accent" aria-hidden="true">QUEUE</div>
+          <h3>RelayBridge protects and queues</h3>
+          <p>RelayBridge restricts the device, accepts the message safely, and persists it in a durable local queue.</p>
+        </li>
+        <li>
+          <span class="step-number">03</span>
+          <div class="step-icon" aria-hidden="true">OAuth</div>
+          <h3>Microsoft 365 accepts it</h3>
+          <p>RelayBridge uses its certificate identity, TLS, and OAuth to submit the original message to Exchange Online.</p>
+        </li>
+      </ol>
+      <a class="text-link" href="/how-it-works/">See the complete mail path <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <section class="section benefits-section">
+    <div class="container">
+      <div class="section-intro section-intro-row">
+        <div>
+          <p class="eyebrow"><span></span> Why RelayBridge</p>
+          <h2>Built around control,<br /><em>not another cloud.</em></h2>
+        </div>
+        <p class="section-lede">A focused bridge for a specific infrastructure problem, with the mail path and security model kept visible.</p>
+      </div>
+      <div class="feature-grid">
+        <article><span class="feature-code">LOCAL</span><h3>Runs locally</h3><p>Your mail does not pass through a RelayBridge-operated cloud service.</p></article>
+        <article><span class="feature-code">SOURCE</span><h3>Open source</h3><p>Inspect the implementation and public security model yourself.</p></article>
+        <article><span class="feature-code">IDENTITY</span><h3>Certificate authentication</h3><p>Certificate-based OAuth replaces password-based Microsoft authentication.</p></article>
+        <article><span class="feature-code">SCOPE</span><h3>Scoped permissions</h3><p>Exchange Application RBAC is designed to restrict RelayBridge to an authorized sender.</p></article>
+        <article><span class="feature-code">QUEUE</span><h3>Durable delivery queue</h3><p>Accepted messages are queued locally and temporary failures are retried.</p></article>
+        <article><span class="feature-code">LEGACY</span><h3>Made for existing equipment</h3><p>Devices can continue using ordinary SMTP on a trusted local network.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section local-section">
+    <div class="container local-grid">
+      <div>
+        <p class="eyebrow eyebrow-light"><span></span> Local-first by design</p>
+        <h2>Your relay.<br />Your network.<br /><em>Your mail.</em></h2>
+      </div>
+      <div class="local-copy">
+        <p class="local-lede">Messages go from your device to your RelayBridge instance and then directly to Microsoft 365.</p>
+        <div class="local-points">
+          <div><span aria-hidden="true">×</span><p><strong>No RelayBridge account</strong>No product account is required for the mail path.</p></div>
+          <div><span aria-hidden="true">×</span><p><strong>No RelayBridge cloud mailbox</strong>RelayBridge does not receive or hold your mail in a hosted mailbox.</p></div>
+          <div><span aria-hidden="true">×</span><p><strong>No hosted relay dependency</strong>Delivery does not require a third-party SMTP relay subscription.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section open-source-section" itemscope itemtype="https://schema.org/SoftwareSourceCode">
+    <meta itemprop="name" content="RelayBridge" />
+    <meta itemprop="codeRepository" content="https://github.com/getrelaybridge" />
+    <meta itemprop="license" content="https://opensource.org/license/mit" />
+    <meta itemprop="description" content="Open-source local SMTP-to-Microsoft-365 modernization bridge for legacy devices and applications." />
+    <div class="container open-source-grid">
+      <div class="code-card" aria-hidden="true">
+        <div class="code-card-bar"><span></span><span></span><span></span><b>relaybridge / security-model</b></div>
+        <pre><code><span>01</span>  mail_path: local → microsoft_365
+<span>02</span>  product_cloud: none
+<span>03</span>  microsoft_identity: certificate
+<span>04</span>  client_secret: none
+<span>05</span>  source: public
+<span>06</span>  release_status: preparing_v1</code></pre>
+      </div>
+      <div>
+        <p class="eyebrow"><span></span> Open source</p>
+        <h2>Security you<br /><em>can inspect.</em></h2>
+        <p class="section-lede">RelayBridge is intended to be publicly auditable. Read the architecture, inspect the source as it becomes available, and follow development in the open.</p>
+        <div class="button-row">
+          <a class="button button-ink" href="https://github.com/getrelaybridge">Explore on GitHub <span aria-hidden="true">→</span></a>
+          <a class="text-link" href="/security/">Read the security model</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section final-cta section-dark">
+    <div class="container final-cta-inner">
+      <div>
+        <p class="eyebrow eyebrow-light"><span></span> Preparing v1.0</p>
+        <h2>RelayBridge is being prepared<br />for its first public release.</h2>
+      </div>
+      <div class="button-row">
+        <a class="button button-accent" href="https://github.com/getrelaybridge">Follow on GitHub <span aria-hidden="true">→</span></a>
+        <a class="button button-ghost" href="/security/">Read the security model</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

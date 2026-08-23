@@ -1,0 +1,27 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description: string;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
+}
+
+const props = Astro.props;
+---
+
+<section class="section compact-cta section-dark">
+  <div class="container compact-cta-grid">
+    <div>
+      {props.eyebrow && <p class="eyebrow eyebrow-light"><span></span>{props.eyebrow}</p>}
+      <h2>{props.title}</h2>
+      <p>{props.description}</p>
+    </div>
+    <div class="button-row">
+      <a class="button button-accent" href={props.primaryHref}>{props.primaryLabel} <span aria-hidden="true">→</span></a>
+      {props.secondaryHref && props.secondaryLabel && <a class="button button-ghost" href={props.secondaryHref}>{props.secondaryLabel}</a>}
+    </div>
+  </div>
+</section>

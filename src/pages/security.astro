@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import CallToAction from '../components/CallToAction.astro';
+
+const securitySections = [
+  ['Local data path', 'A message moves from the submitting device to the administrator-controlled RelayBridge instance, then directly to Microsoft 365. RelayBridge does not operate an intermediary cloud relay.'],
+  ['Microsoft identity', 'The architecture uses a dedicated Entra application, a certificate-based client credential, an Exchange resource OAuth token, XOAUTH2, and mandatory outbound TLS. It does not use a permanent client secret.'],
+  ['Certificate and private key', 'The certificate private key remains local to the RelayBridge system. Microsoft receives the public certificate material needed to verify application identity—not the private key. Administrators remain responsible for securing and rotating local key material.'],
+  ['Microsoft authorization', 'Exchange Application RBAC is used with Application SMTP.SendAsApp, scoped to the configured sender. The goal is sender-specific SMTP authorization rather than broad tenant mailbox access; the effective boundary still depends on correct Exchange configuration.'],
+  ['Device intake restrictions', 'A device is allowed to submit only under configured restrictions. Because inbound STARTTLS is not currently available, authenticated device intake requires an explicitly trusted private-network address in the current design.'],
+  ['Queue and durability', 'The message payload and its queue metadata are retained locally. RelayBridge considers a message locally accepted only after the durable persistence boundary. Temporary failures retry, and queued work can recover after an unexpected restart.'],
+  ['Management interface', 'Normal local management is designed to remain loopback-only in the current architecture. RelayBridge does not claim LAN web management or a cloud management plane.'],
+  ['Secret handling', 'The long-running service is designed not to retain Microsoft administrator passwords or delegated administrator tokens. Native Microsoft setup behavior is under final development and security validation for v1.0.'],
+];
+---
+
+<BaseLayout title="RelayBridge security architecture" description="A precise public security model for RelayBridge, including local data flow, certificate identity, Exchange permissions, durability, and current limitations.">
+  <PageHero eyebrow="Security architecture" title="Trust starts with" accent="a visible boundary." description="RelayBridge is designed so administrators can understand where mail goes, which identity it uses, what is stored locally, and which limitations still matter." />
+
+  <section class="security-summary">
+    <div class="container security-summary-grid">
+      <div><span>MAIL PATH</span><strong>Device → RelayBridge → Microsoft 365</strong></div>
+      <div><span>IDENTITY</span><strong>Local certificate, no client secret</strong></div>
+      <div><span>PRODUCT CLOUD</span><strong>None in the delivery path</strong></div>
+    </div>
+  </section>
+
+  <section class="section section-white">
+    <div class="container docs-layout">
+      <aside class="security-nav section-aside">
+        <p class="eyebrow"><span></span> On this page</p>
+        <nav aria-label="Security page sections">
+          <a href="#philosophy">Philosophy</a>
+          <a href="#controls">Architecture and controls</a>
+          <a href="#setup">Privileged setup</a>
+          <a href="#limitations">Known limitations</a>
+          <a href="#does-not">What RelayBridge does not do</a>
+          <a href="#disclosure">Responsible disclosure</a>
+        </nav>
+      </aside>
+      <div class="prose security-prose">
+        <section id="philosophy">
+          <p class="eyebrow"><span></span> Security philosophy</p>
+          <h2>Minimize hidden trust.</h2>
+          <p class="prose-lede">RelayBridge exists to modernize a narrow boundary without creating a new hosted mail dependency. The security model favors local control, inspectable source, constrained Microsoft authorization, durable state, and accurate delivery semantics.</p>
+          <div class="principle-grid">
+            <div><b>01</b><h3>Keep the path direct</h3><p>Mail moves from infrastructure you control to Microsoft 365.</p></div>
+            <div><b>02</b><h3>Use modern identity</h3><p>Certificates and OAuth replace a stored Microsoft password or client secret.</p></div>
+            <div><b>03</b><h3>Say what success means</h3><p>SMTP acceptance by Microsoft 365 is not a claim of inbox placement.</p></div>
+          </div>
+        </section>
+
+        <section id="controls">
+          <p class="eyebrow"><span></span> Architecture and controls</p>
+          <h2>Public security model</h2>
+          <div class="security-rows">
+            {securitySections.map(([heading, body], index) => (
+              <article><span>{String(index + 1).padStart(2, '0')}</span><div><h3>{heading}</h3><p>{body}</p></div></article>
+            ))}
+          </div>
+        </section>
+
+        <section id="setup">
+          <p class="eyebrow"><span></span> Privileged setup</p>
+          <h2>Temporary privilege, not a runtime credential.</h2>
+          <div class="callout callout-development"><span>DEVELOPMENT STATUS</span><p>Native Microsoft setup is under final development and security validation for v1.0.</p></div>
+          <p>The planned model uses temporary Microsoft administrator authentication only during setup. The long-running RelayBridge service is not intended to retain Microsoft administrator credentials or delegated administrator tokens. Final public setup documentation will be published after the implementation and privilege boundaries are frozen.</p>
+        </section>
+
+        <section id="limitations">
+          <p class="eyebrow"><span></span> Known limitations</p>
+          <h2>Current boundaries to plan for</h2>
+          <div class="limitation-list">
+            <article><span>01</span><div><h3>No inbound STARTTLS today</h3><p>Printer-to-RelayBridge SMTP is not currently TLS protected. Device intake must be placed on an explicitly trusted private network. RelayBridge-to-Microsoft 365 remains TLS protected.</p></div></article>
+            <article><span>02</span><div><h3>Platform support is not frozen</h3><p>RelayBridge is being developed primarily for Windows. The final compatibility matrix and packaging are not yet published.</p></div></article>
+            <article><span>03</span><div><h3>Microsoft acceptance is not inbox delivery</h3><p>A successful final SMTP response establishes acceptance by Microsoft 365. Filtering, policy, routing, and inbox placement happen after that boundary.</p></div></article>
+          </div>
+        </section>
+
+        <section id="does-not" class="does-not-section">
+          <p class="eyebrow"><span></span> Explicit non-goals</p>
+          <h2>RelayBridge does not</h2>
+          <ul class="check-list x-list">
+            <li>operate a cloud mail relay;</li>
+            <li>store Microsoft administrator passwords;</li>
+            <li>use a permanent client secret;</li>
+            <li>upload the certificate private key to Microsoft;</li>
+            <li>use Microsoft Graph as the mail-delivery transport;</li>
+            <li>intentionally request broad Graph mail permissions for normal SMTP delivery; or</li>
+            <li>claim an SMTP 250 response means inbox delivery.</li>
+          </ul>
+        </section>
+
+        <section id="disclosure">
+          <p class="eyebrow"><span></span> Responsible disclosure</p>
+          <h2>Report security concerns privately.</h2>
+          <p>Please do not publish suspected vulnerabilities in an open issue. Until a dedicated security contact is confirmed, use the general project contact: <a class="text-link" href="mailto:info@getrelaybridge.com">info@getrelaybridge.com</a>.</p>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <CallToAction eyebrow="Open development" title="Inspect the project as it develops." description="RelayBridge is preparing for v1.0. Follow the organization for source, releases, and documentation updates." primaryHref="https://github.com/getrelaybridge" primaryLabel="View on GitHub" secondaryHref="/docs/" secondaryLabel="Documentation" />
+</BaseLayout>
