@@ -17,14 +17,19 @@ const topics = [
   <PageHero eyebrow="Documentation" title="Clear guidance for" accent="a careful deployment." description="The operational documentation is being prepared alongside v1.0 so that public instructions match the final installer, setup flow, and security boundaries." />
 
   <section class="docs-status">
-    <div class="container docs-status-inner"><span></span><p><strong>Documentation status</strong> Product setup guides are being prepared for v1.0. The public security architecture is available now.</p></div>
+    <div class="container docs-status-inner"><span></span><p><strong>Documentation status</strong> Problem-solving guides and the public security architecture are available now. Product setup documentation is still being prepared for v1.0.</p></div>
   </section>
 
   <section class="section section-white">
     <div class="container">
+      <a class="docs-guides-promo" href="/guides/">
+        <span>GUIDES · AVAILABLE NOW</span>
+        <div><h2>Microsoft 365 SMTP problem-solving guides</h2><p>Read practical explanations for legacy printers, scan-to-email workflows, and applications that cannot use modern authentication directly.</p></div>
+        <b aria-hidden="true">→</b>
+      </a>
       <div class="section-intro section-intro-row docs-intro">
-        <div><p class="eyebrow"><span></span> Documentation index</p><h2>Start with the boundary<br /><em>you need to understand.</em></h2></div>
-        <p class="section-lede">We are deliberately not publishing speculative installation steps before packaging and native Microsoft setup are frozen.</p>
+        <div><p class="eyebrow"><span></span> Product documentation</p><h2>Installation guidance<br /><em>is still in preparation.</em></h2></div>
+        <p class="section-lede">Unlike the explanatory guides above, these topics will describe RelayBridge installation and configuration. We are not publishing speculative steps before packaging and native Microsoft setup are frozen.</p>
       </div>
       <div class="docs-grid">
         {topics.map(([number, title, description, status, href]) => (
@@ -32,7 +37,7 @@ const topics = [
             <div><span class="topic-number">{number}</span><span class:list={['topic-status', status === 'Available' && 'is-available']}>{status}</span></div>
             <h3>{title}</h3>
             <p>{description}</p>
-            {href ? <a class="text-link" href={href}>Read now <span aria-hidden="true">→</span></a> : <span class="topic-pending">Coming with v1.0</span>}
+            {href ? <a class="text-link" href={href}>Read now <span aria-hidden="true">→</span></a> : <span class="topic-pending">In preparation</span>}
           </article>
         ))}
       </div>

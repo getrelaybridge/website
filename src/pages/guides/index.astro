@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import CallToAction from '../../components/CallToAction.astro';
+
+const guides = [
+  {
+    number: '01',
+    title: 'Microsoft 365 SMTP for legacy printers',
+    description: 'Why older printers and multifunction devices struggle with OAuth, what Exchange Online expects, and where a local bridge fits.',
+    href: '/guides/microsoft-365-smtp-relay-legacy-printers/',
+    label: 'Printers and MFPs',
+  },
+  {
+    number: '02',
+    title: 'Scan to email with modern authentication',
+    description: 'A practical look at the scan-to-email path when the scanner can speak SMTP but cannot authenticate to Microsoft 365 itself.',
+    href: '/guides/scan-to-email-microsoft-365/',
+    label: 'Scan to email',
+  },
+  {
+    number: '03',
+    title: 'Exchange Online SMTP OAuth for legacy applications',
+    description: 'How SMTP AUTH, OAuth, XOAUTH2, application identity, and scoped Exchange authorization fit together for older software.',
+    href: '/guides/exchange-online-smtp-oauth-legacy-apps/',
+    label: 'Legacy applications',
+  },
+];
+---
+
+<BaseLayout title="Guides — RelayBridge" description="Practical guides for Microsoft 365 SMTP, legacy printers, scanners, multifunction devices, and applications that cannot use modern authentication directly.">
+  <PageHero eyebrow="Problem-solving guides" title="Microsoft 365 SMTP guides for legacy devices" description="Practical explanations for connecting printers, scanners, multifunction devices, and legacy applications to modern Microsoft 365 mail infrastructure." />
+
+  <section class="section section-white">
+    <div class="container">
+      <div class="section-intro section-intro-row guides-intro">
+        <div>
+          <p class="eyebrow"><span></span> Three starting points</p>
+          <h2>Start with the problem<br /><em>in front of you.</em></h2>
+        </div>
+        <p class="section-lede">These guides explain the compatibility boundary and the available solution categories. They are not product installation instructions; RelayBridge remains pre-release.</p>
+      </div>
+      <div class="guide-card-grid">
+        {guides.map((guide) => (
+          <article class="guide-card">
+            <div class="guide-card-meta"><span>{guide.number}</span><span>{guide.label}</span></div>
+            <h2>{guide.title}</h2>
+            <p>{guide.description}</p>
+            <a class="text-link" href={guide.href}>Read guide <span aria-hidden="true">→</span></a>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section guides-context">
+    <div class="container two-column-copy">
+      <div><p class="eyebrow"><span></span> Scope</p><h2>Useful now.<br /><em>Not setup documentation.</em></h2></div>
+      <div><p class="section-lede">The guides describe current Microsoft 365 behavior and RelayBridge’s intended v1.0 boundaries. Final installation, provisioning, and device-configuration documentation will be published only after the release flow is frozen.</p><a class="button button-ink" href="/docs/">Documentation status <span aria-hidden="true">→</span></a></div>
+    </div>
+  </section>
+
+  <CallToAction eyebrow="Current implementation" title="See the local bridge architecture." description="RelayBridge accepts SMTP from explicitly configured local devices, queues durably, and delivers directly to Exchange Online using OAuth and TLS." primaryHref="/how-it-works/" primaryLabel="How it works" secondaryHref="/security/" secondaryLabel="Security" />
+</BaseLayout>

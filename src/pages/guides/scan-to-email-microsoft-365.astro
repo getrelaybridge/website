@@ -1,0 +1,120 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#why-difficult', label: 'Why scan to email is difficult' },
+  { href: '#old-model', label: 'The old SMTP model' },
+  { href: '#modern-model', label: 'Modern Microsoft authentication' },
+  { href: '#firmware', label: 'Why firmware matters' },
+  { href: '#architecture', label: 'Local-bridge architecture' },
+  { href: '#message-flow', label: 'Message flow' },
+  { href: '#security', label: 'Security considerations' },
+  { href: '#changes', label: 'What RelayBridge changes' },
+  { href: '#limitations', label: 'Current limitations' },
+  { href: '#faq', label: 'Frequently asked questions' },
+  { href: '#references', label: 'Microsoft references' },
+];
+---
+
+<GuideLayout title="Scan to Email with Microsoft 365 Modern Authentication | RelayBridge" description="Understand the scan-to-email authentication problem in Microsoft 365 and how legacy scanners can use a local SMTP bridge while modern authentication is handled upstream." eyebrow="Guide · Scan to email" heading="How scan-to-email works with Microsoft 365 modern authentication" summary="The scanner only needs to create and submit a message. A local bridge can take responsibility for durable queuing, modern Microsoft authentication, and encrypted upstream delivery." toc={toc}>
+  <section id="why-difficult">
+    <p class="guide-kicker">Start with the boundary</p>
+    <p class="guide-lede">Scan-to-email is a chain of separate operations: capture a document, construct an email, submit it to an SMTP service, authenticate upstream, and let Microsoft 365 process delivery. The failure point is often between the scanner’s legacy SMTP client and Exchange Online’s modern identity requirements.</p>
+    <h2>Why scan-to-email becomes difficult</h2>
+    <p>Many scanners and multifunction printers were built when a mailbox username and password were enough for outbound SMTP. The device may still scan perfectly and generate a valid MIME attachment, yet be unable to obtain an OAuth token, present it through XOAUTH2, or negotiate a current TLS version.</p>
+    <p>The visible symptom is usually blunt—an authentication error, connection failure, or generic “send failed” message. Diagnosing it requires separating document creation, local network reachability, SMTP dialogue, authentication, upstream acceptance, and final delivery.</p>
+  </section>
+
+  <section id="old-model">
+    <h2>The old SMTP model</h2>
+    <p>A typical legacy configuration asks for an SMTP server, port, sender address, and perhaps a username and password. Some devices support STARTTLS; others support only older protocol versions or no encryption at all. The device treats the mail server as a stable endpoint and repeats the same stored credentials for every submission.</p>
+    <p>That simplicity is useful inside a narrow, controlled network, but it does not supply the token lifecycle and application identity expected by a modern cloud service. “Supports scan to email” therefore says little about whether the device can connect directly to Microsoft 365 today.</p>
+  </section>
+
+  <section id="modern-model">
+    <h2>The modern Microsoft authentication model</h2>
+    <p>Microsoft documents OAuth support for SMTP in Exchange Online. In the app-only model relevant to a background service, a Microsoft Entra application can use the OAuth 2.0 client credentials flow to obtain an access token for Exchange. The SMTP client then sends that token using SASL XOAUTH2 rather than submitting a mailbox password.</p>
+    <p>For authenticated client SMTP submission, Microsoft documents the <code>smtp.office365.com</code> endpoint, port 587 as the recommended port, and TLS 1.2 or later. Exchange settings still govern whether SMTP AUTH is available, and authorization must permit the intended sender. OAuth modernizes authentication; it does not remove Exchange mail-flow policy or sender authorization.</p>
+  </section>
+
+  <section id="firmware">
+    <h2>Why firmware support matters</h2>
+    <p>A scanner cannot acquire and use an OAuth token merely because its SMTP settings page has an “authentication” checkbox. Native support requires a compatible flow, correct resource and scope handling, token renewal, XOAUTH2 formatting, and suitable TLS. Those functions must exist in the device firmware or in another system acting on its behalf.</p>
+    <p>When evaluating a device, check the exact model, firmware release, authentication methods, TLS versions, certificate validation behavior, and vendor documentation. Avoid assuming that a newer model in the same family represents the one installed on site.</p>
+  </section>
+
+  <section id="architecture">
+    <h2>The local-bridge architecture</h2>
+    <p>A local bridge gives the scanner a nearby SMTP endpoint that matches its limited client capabilities. The bridge validates the submitting device against local policy, accepts the message only after reaching its durability boundary, and handles the Microsoft-facing connection separately.</p>
+    <div class="guide-flow guide-flow-vertical" aria-label="Scan-to-email flow from scanner through RelayBridge to Exchange Online">
+      <div><span>01</span><strong>Scanner or MFP</strong><small>Local SMTP</small></div>
+      <i aria-hidden="true">↓</i>
+      <div><span>02</span><strong>RelayBridge</strong><small>Durable local queue</small></div>
+      <i aria-hidden="true">↓</i>
+      <div><span>03</span><strong>Exchange Online</strong><small>OAuth + XOAUTH2 + TLS</small></div>
+    </div>
+    <p>This architecture is a compatibility boundary, not a claim that the local device has gained OAuth support. It also does not imply encryption on the scanner-to-bridge hop: RelayBridge inbound STARTTLS is not currently available.</p>
+  </section>
+
+  <section id="message-flow">
+    <h2>Message flow</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>The device creates the message</h3><p>The scanner captures the document, creates the attachment and message headers, and opens an SMTP session to the configured local endpoint.</p></div></li>
+      <li><span>02</span><div><h3>The bridge applies the local intake boundary</h3><p>The submission must match explicitly configured device and sender restrictions. The bridge persists accepted mail and queue metadata locally before treating the message as durably accepted.</p></div></li>
+      <li><span>03</span><div><h3>The bridge authenticates upstream</h3><p>RelayBridge’s intended Microsoft 365 model uses certificate-based application identity to obtain an Exchange token, then XOAUTH2 over a TLS-protected SMTP connection.</p></div></li>
+      <li><span>04</span><div><h3>Exchange Online returns an SMTP result</h3><p>Temporary failures remain queued for retry. A successful final SMTP 250 response means Microsoft accepted the message at the SMTP boundary; it is not proof of inbox placement.</p></div></li>
+      <li><span>05</span><div><h3>Microsoft 365 continues processing</h3><p>Filtering, transport rules, routing, moderation, quarantine decisions, and recipient delivery happen after acceptance. Exchange message trace can show later service events.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="security">
+    <h2>Security considerations</h2>
+    <p>The local bridge should be treated as mail infrastructure, not as an unrestricted LAN utility. Only explicitly configured devices should be able to submit. The listener should be reachable only from the intended trusted private network segment, and host access, local queue storage, logs, certificate private keys, and configuration all require administrative protection.</p>
+    <div class="guide-callout guide-callout-boundary">
+      <span>CURRENT TRANSPORT BOUNDARY</span>
+      <p><strong>Inbound:</strong> device-to-RelayBridge STARTTLS is not available today. <strong>Outbound:</strong> RelayBridge-to-Exchange Online uses modern authenticated SMTP with TLS.</p>
+    </div>
+    <p>That local unencrypted hop may be acceptable in a deliberately designed private network; it should not be generalized as safe for any LAN. Review the <a href="/security/">current Microsoft 365 security model</a> before evaluating the architecture.</p>
+  </section>
+
+  <section id="changes">
+    <h2>What RelayBridge changes</h2>
+    <p>RelayBridge is intended to change the upstream authentication and delivery boundary. It accepts local SMTP from allowed devices, queues messages durably, obtains Microsoft tokens using certificate-based application identity, and submits to Exchange Online using OAuth, XOAUTH2, and TLS. Scoped Exchange Application RBAC is designed to constrain the authorized sender.</p>
+    <h3>What RelayBridge does not change</h3>
+    <p>It does not upgrade scanner firmware, encrypt the current local intake hop, operate a hosted relay, bypass Microsoft filtering, or guarantee inbox placement. It does not remove the need to configure Exchange authorization correctly or to secure the network and host on which it runs. The broader <a href="/how-it-works/">RelayBridge architecture</a> explains these responsibilities.</p>
+  </section>
+
+  <section id="limitations">
+    <h2>Current limitations and release status</h2>
+    <p>RelayBridge is still under active development. No public v1.0 installer or finalized deployment guide is available. Native Microsoft provisioning remains under final security validation, and device-specific compatibility claims have not been published.</p>
+    <p>The application is being developed toward an open-source public release, but its source repository is not public today. The <a href="/download/">release-status page</a> is the authoritative place to check public availability.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="guide-faq">
+      <details open><summary>Why did scan to email stop working after Microsoft 365 changes?</summary><p>The device may still be attempting an authentication or TLS method that the configured Microsoft path no longer accepts. Check the exact failure, Exchange SMTP AUTH settings, device firmware capabilities, network egress, and current Microsoft requirements.</p></details>
+      <details><summary>Does a scanner need OAuth support to send through Microsoft 365?</summary><p>It needs a compatible supported path, but OAuth does not have to run on the scanner itself if a properly controlled local bridge performs modern authenticated delivery upstream.</p></details>
+      <details><summary>Is SMTP AUTH the same as basic authentication?</summary><p>No. SMTP AUTH is the SMTP authentication framework. Exchange Online supports modern authentication with OAuth through it, while older clients may implement only username-and-password methods.</p></details>
+      <details><summary>Is the scanner-to-RelayBridge connection encrypted?</summary><p>Not in the current RelayBridge design. Inbound STARTTLS is not available, so local intake must be restricted to explicitly trusted devices and a private network where that boundary is acceptable.</p></details>
+      <details><summary>What happens if Exchange Online is temporarily unavailable?</summary><p>RelayBridge is designed to retain accepted messages in its durable local queue and retry temporary failures. Final retry behavior will be documented with the public release.</p></details>
+      <details><summary>Does an SMTP 250 response mean the scan reached the inbox?</summary><p>No. It means Exchange Online accepted the message at the SMTP boundary. Filtering, quarantine, transport rules, routing, and delivery still follow. Use message trace to investigate those stages.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>Official Microsoft references</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn — How to set up a multifunction device or application to send email using Microsoft 365 or Office 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn — Enable or disable authenticated client SMTP submission in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn — Authenticate an IMAP, POP or SMTP connection using OAuth</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/monitoring/trace-an-email-message/message-trace-modern-eac">Microsoft Learn — Message trace in the Exchange admin center in Exchange Online</a></li>
+    </ul>
+  </section>
+
+  <section class="related-guides" aria-labelledby="related-guides-heading">
+    <p class="guide-kicker">Related guides</p>
+    <h2 id="related-guides-heading">Understand the adjacent boundary</h2>
+    <div><a href="/guides/microsoft-365-smtp-relay-legacy-printers/"><strong>Microsoft 365 SMTP for legacy printers</strong><span>Compare native support, mail-flow options, replacement, and a local bridge.</span></a><a href="/guides/exchange-online-smtp-oauth-legacy-apps/"><strong>SMTP OAuth for legacy applications</strong><span>See how client credentials, certificates, XOAUTH2, and App RBAC fit together.</span></a></div>
+  </section>
+</GuideLayout>

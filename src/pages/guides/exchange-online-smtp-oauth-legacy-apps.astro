@@ -1,0 +1,121 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#compatibility', label: 'Application compatibility' },
+  { href: '#smtp-auth', label: 'SMTP AUTH vs authentication' },
+  { href: '#oauth-xoauth2', label: 'OAuth and XOAUTH2' },
+  { href: '#certificate-identity', label: 'Certificate identity' },
+  { href: '#legacy-limits', label: 'Why legacy apps struggle' },
+  { href: '#separation', label: 'Separate intake and delivery' },
+  { href: '#authorization', label: 'Scoped authorization' },
+  { href: '#delivery', label: 'Delivery semantics' },
+  { href: '#relaybridge', label: 'RelayBridge architecture' },
+  { href: '#limitations', label: 'Current limitations' },
+  { href: '#faq', label: 'Frequently asked questions' },
+  { href: '#references', label: 'Microsoft references' },
+];
+---
+
+<GuideLayout title="Exchange Online SMTP OAuth for Legacy Applications | RelayBridge" description="Learn how Exchange Online SMTP OAuth works, why legacy applications may not support it directly, and how a local SMTP compatibility bridge can separate legacy intake from modern delivery." eyebrow="Guide · Legacy applications" heading="Using Exchange Online SMTP OAuth with legacy applications" summary="Older software can remain capable of generating SMTP mail while lacking the identity, token, and TLS machinery needed for direct modern-authenticated submission to Exchange Online." toc={toc}>
+  <section id="compatibility">
+    <p class="guide-kicker">Protocol and identity are separate</p>
+    <p class="guide-lede">A legacy application may produce valid SMTP messages for years without understanding OAuth. Modernizing that path means deciding where token acquisition, application identity, Exchange authorization, TLS, retry, and durable queueing should live.</p>
+    <h2>The application compatibility problem</h2>
+    <p>Line-of-business systems, monitoring tools, reporting servers, appliances, and scheduled jobs often expose a fixed SMTP client: enter a host, port, sender, and optional credentials. Their business function may still be essential, but their mail module may be frozen to older authentication methods.</p>
+    <p>Exchange Online supports SMTP submission scenarios, but the client must meet the requirements of the selected method. When software cannot be updated to do so directly, administrators can either change the mail-flow approach, replace or modify the application, or introduce a compatibility boundary.</p>
+  </section>
+
+  <section id="smtp-auth">
+    <h2>SMTP AUTH versus authentication method</h2>
+    <p>SMTP AUTH is not synonymous with basic authentication. It is the SMTP extension through which a client authenticates. A client might implement a password-based mechanism, or it might use OAuth and present a bearer token through XOAUTH2.</p>
+    <p>Microsoft documents SMTP AUTH as typically using TCP port 587 in Exchange Online and supporting modern authentication through OAuth. Exchange provides organization-wide and per-mailbox controls for the protocol. An application’s checkbox labeled “SMTP authentication” does not reveal which mechanism it implements, so administrators need the product’s protocol documentation or an observed SMTP capability exchange.</p>
+  </section>
+
+  <section id="oauth-xoauth2">
+    <h2>OAuth and XOAUTH2 at a high level</h2>
+    <p>OAuth answers how the client obtains authority to access a protected resource. For an unattended service, Microsoft supports a client credentials flow in which an application acts as itself rather than as an interactively signed-in user. The requested access token is for the Exchange resource.</p>
+    <p>XOAUTH2 answers how that token is carried inside the SMTP authentication conversation. Microsoft’s documented SASL format combines the sender identity and bearer token, encodes them, and submits the result with <code>AUTH XOAUTH2</code>. The token is not a drop-in replacement for the password field unless the SMTP library explicitly supports this mechanism and token renewal.</p>
+    <div class="guide-callout"><span>USEFUL DISTINCTION</span><p>OAuth is the authorization framework and token flow. XOAUTH2 is the SMTP authentication mechanism that presents the resulting bearer token.</p></div>
+  </section>
+
+  <section id="certificate-identity">
+    <h2>Certificate-based application identity</h2>
+    <p>Microsoft Entra confidential clients can authenticate with a certificate instead of a shared client secret. The application holds the private key and uses it to sign a client assertion; Microsoft Entra has the associated public certificate material needed to verify that assertion. The private key is not uploaded to Microsoft.</p>
+    <p>This removes a permanent shared secret from the service configuration, but it does not eliminate credential management. The private key must remain protected locally, certificate lifetime and rotation must be managed, and access to the identity must be limited to the service that needs it.</p>
+  </section>
+
+  <section id="legacy-limits">
+    <h2>Why legacy applications may not support OAuth directly</h2>
+    <p>Direct support requires more than the ability to issue SMTP commands. The application needs an OAuth-capable identity library or equivalent implementation, certificate or other credential handling, correct token endpoint and resource selection, token caching and renewal, XOAUTH2 support in its SMTP stack, and current TLS behavior.</p>
+    <p>Some applications can be extended with a supported mail plug-in or upgraded release. Others have hard-coded fields and an unmaintained SMTP library. In the latter case, placing modern authentication outside the legacy process can be less disruptive than modifying a stable business application—but it creates a separate infrastructure component whose security and availability must be operated deliberately.</p>
+  </section>
+
+  <section id="separation">
+    <h2>Separating local SMTP intake from modern delivery</h2>
+    <p>A compatibility bridge terminates the legacy application’s local SMTP session and starts a new, independently authenticated upstream session. That separation allows the local application to retain its narrow mail interface while the bridge owns token acquisition, TLS, queueing, retries, and the Exchange response.</p>
+    <div class="guide-flow" aria-label="Legacy application to Exchange Online message flow">
+      <div><span>01</span><strong>Legacy application</strong><small>Local SMTP</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>02</span><strong>Compatibility bridge</strong><small>Identity + queue</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>03</span><strong>Exchange Online</strong><small>XOAUTH2 + TLS</small></div>
+    </div>
+    <p>The bridge should not be an open relay. Local intake needs explicit source and sender restrictions, and the service must not advertise the local hop as encrypted when it is not.</p>
+  </section>
+
+  <section id="authorization">
+    <h2>Scoped Exchange authorization</h2>
+    <p>Application identity proves which software is requesting a token; Exchange authorization determines what that application may do. Microsoft’s SMTP App RBAC onboarding documentation describes assigning the <code>Application SMTP.SendAsApp</code> role to an Exchange service principal with a resource scope that identifies the permitted mailbox set.</p>
+    <p>The current App RBAC path is important to distinguish from older application-permission onboarding. Microsoft’s SMTP App RBAC guidance says the RBAC configuration does not require adding the unscoped <code>SMTP.SendAsApp</code> permission claim to the Entra application. The Exchange role assignment and its resource scope form the intended authorization boundary.</p>
+    <p>RelayBridge is designed around this scoped model for the configured sender. The effective limit still depends on correct tenant configuration and must be verified as part of provisioning; a certificate by itself does not grant mailbox access.</p>
+  </section>
+
+  <section id="delivery">
+    <h2>Delivery semantics</h2>
+    <p>SMTP has multiple success boundaries. RelayBridge is designed to accept a local message only after durable persistence, then retry temporary upstream failures. When Exchange Online returns a successful final SMTP 250 response, Microsoft has accepted responsibility for the message at its SMTP boundary.</p>
+    <p>That response does not promise inbox placement. Exchange Online may still apply transport rules, filtering, routing, moderation, quarantine, or downstream delivery attempts. A recipient may never see or read the message. Microsoft’s message-trace tooling exists to follow later service events such as received, rejected, deferred, and delivered states.</p>
+  </section>
+
+  <section id="relaybridge">
+    <h2>RelayBridge architecture</h2>
+    <p>RelayBridge v1.0 targets Microsoft 365 / Exchange Online. It is designed to accept SMTP from explicitly configured local applications and devices, maintain a durable local queue, and deliver directly to Exchange Online over TLS using OAuth and XOAUTH2. Its Microsoft identity uses a certificate-based client credential, with scoped Exchange Application RBAC intended to constrain sender authorization.</p>
+    <p>RelayBridge does not operate a cloud SMTP relay. The message path remains inside administrator-controlled infrastructure until the direct Microsoft 365 connection. The <a href="/how-it-works/">architecture overview</a> covers the components, while the <a href="/security/">current Microsoft 365 security model</a> records the trust boundaries and non-goals.</p>
+  </section>
+
+  <section id="limitations">
+    <h2>Current limitations and pre-release status</h2>
+    <p>Inbound STARTTLS from a legacy application to RelayBridge is not currently available. Local submissions must come from explicitly configured sources on a trusted private network where the unencrypted hop is acceptable. RelayBridge-to-Exchange Online delivery remains protected with TLS.</p>
+    <p>There is no public v1.0 installer, finalized setup guide, or public application repository today. Native Microsoft provisioning remains under final security validation. RelayBridge is being developed toward an open-source public release, and application source will be published with that release. Check <a href="/download/">release status</a> for availability; this guide is conceptual and is not a deployment procedure.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="guide-faq">
+      <details open><summary>Does Exchange Online support SMTP OAuth for unattended applications?</summary><p>Yes. Microsoft documents the OAuth 2.0 client credentials flow for SMTP and the use of XOAUTH2 to authenticate the SMTP connection with the resulting application token.</p></details>
+      <details><summary>Is XOAUTH2 a different mail transport?</summary><p>No. The transport remains SMTP. XOAUTH2 is the SASL authentication mechanism used to present an OAuth bearer token during the SMTP session.</p></details>
+      <details><summary>Why use a certificate instead of a client secret?</summary><p>A certificate lets the application prove its identity with a signed assertion without storing a permanent shared secret. It still requires strong private-key protection, controlled access, expiration monitoring, and rotation.</p></details>
+      <details><summary>Does certificate authentication automatically authorize a sender?</summary><p>No. The certificate supports application authentication to Microsoft Entra. Exchange authorization is a separate boundary; RelayBridge is designed to use a scoped <code>Application SMTP.SendAsApp</code> App RBAC assignment for the configured sender.</p></details>
+      <details><summary>Can the legacy application submit without TLS to RelayBridge?</summary><p>That is the current local intake model, but only for explicitly configured sources on a trusted private network. Inbound STARTTLS is not available, so an arbitrary or shared LAN is not an acceptable default assumption.</p></details>
+      <details><summary>Does Microsoft SMTP 250 prove delivery?</summary><p>It proves acceptance at the Exchange Online SMTP boundary. It does not prove inbox placement, avoidance of filtering or quarantine, downstream delivery, or that anyone read the message.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>Official Microsoft references</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn — Authenticate an IMAP, POP or SMTP connection using OAuth</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/smtp-app-rbac-onboarding">Microsoft Learn — Configure SMTP onboarding to App RBAC</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/permissions-exo/application-rbac">Microsoft Learn — Role Based Access Control for Applications in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/entra/identity-platform/certificate-credentials">Microsoft Learn — Microsoft identity platform application authentication certificate credentials</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn — Enable or disable authenticated client SMTP submission in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/monitoring/trace-an-email-message/message-trace-modern-eac">Microsoft Learn — Message trace in the Exchange admin center in Exchange Online</a></li>
+    </ul>
+  </section>
+
+  <section class="related-guides" aria-labelledby="related-guides-heading">
+    <p class="guide-kicker">Related guides</p>
+    <h2 id="related-guides-heading">Apply the model to devices</h2>
+    <div><a href="/guides/microsoft-365-smtp-relay-legacy-printers/"><strong>Microsoft 365 SMTP for legacy printers</strong><span>Evaluate device capabilities and the available solution categories.</span></a><a href="/guides/scan-to-email-microsoft-365/"><strong>Scan to email with Microsoft 365</strong><span>Follow the message from scanner intake through Microsoft processing.</span></a></div>
+  </section>
+</GuideLayout>

@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import CallToAction from './CallToAction.astro';
+
+interface TocItem {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  eyebrow: string;
+  heading: string;
+  summary: string;
+  toc: TocItem[];
+}
+
+const { title, description, eyebrow, heading, summary, toc } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <PageHero eyebrow={eyebrow} title={heading} description={summary} />
+
+  <section class="guide-status" aria-label="Release status">
+    <div class="container guide-status-inner">
+      <span aria-hidden="true"></span>
+      <p><strong>Pre-release note</strong> RelayBridge is under active development. No public v1.0 build or finalized setup guide is available yet. <a href="/download/">Check release status</a>.</p>
+    </div>
+  </section>
+
+  <section class="section section-white">
+    <div class="container guide-layout">
+      <aside class="guide-toc section-aside">
+        <p class="eyebrow"><span></span> On this page</p>
+        <nav aria-label="Guide sections">
+          {toc.map((item) => <a href={item.href}>{item.label}</a>)}
+        </nav>
+        <a class="guide-back-link" href="/guides/">← All guides</a>
+      </aside>
+      <article class="guide-prose">
+        <slot />
+      </article>
+    </div>
+  </section>
+
+  <CallToAction eyebrow="Understand the boundary" title="Review the architecture before release." description="See how RelayBridge separates local SMTP intake from modern Microsoft 365 delivery, and review the current security model and limitations." primaryHref="/how-it-works/" primaryLabel="How it works" secondaryHref="/security/" secondaryLabel="Security" />
+</BaseLayout>

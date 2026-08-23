@@ -1,0 +1,116 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#compatibility-problem', label: 'The compatibility problem' },
+  { href: '#modern-authentication', label: 'Modern authentication' },
+  { href: '#microsoft-expects', label: 'What Microsoft 365 expects' },
+  { href: '#approaches', label: 'Common approaches' },
+  { href: '#local-bridge', label: 'The local bridge' },
+  { href: '#relaybridge', label: 'RelayBridge approach' },
+  { href: '#security', label: 'Security boundaries' },
+  { href: '#limitations', label: 'Current limitations' },
+  { href: '#faq', label: 'Frequently asked questions' },
+  { href: '#references', label: 'Microsoft references' },
+];
+---
+
+<GuideLayout title="Microsoft 365 SMTP for Legacy Printers | RelayBridge" description="Learn why older printers and multifunction devices struggle with Microsoft 365 modern authentication, what SMTP OAuth requires, and how a local SMTP bridge can close the compatibility gap." eyebrow="Guide · Printers and MFPs" heading="Microsoft 365 SMTP for legacy printers and multifunction devices" summary="A working printer can still be unable to send through Exchange Online. The usual problem is not SMTP itself; it is the authentication and transport capability around SMTP." toc={toc}>
+  <section id="compatibility-problem">
+    <p class="guide-kicker">The short version</p>
+    <p class="guide-lede">Many printers and MFPs can compose a message and submit it over SMTP, but their firmware was designed for a username-and-password era. Microsoft 365 can accept authenticated SMTP with OAuth, while an older device may have no way to obtain a token or present it through XOAUTH2.</p>
+    <h2>The compatibility problem</h2>
+    <p>Scan-to-email often outlives the authentication model built into the device. An administrator may have a reliable printer with a simple SMTP settings page—server, port, sender, username, and password—but no OAuth client, certificate identity, token acquisition flow, or modern TLS implementation.</p>
+    <p>That creates two separate questions: can the device produce valid SMTP mail, and can it meet the current requirements of the upstream Microsoft 365 service? A device can succeed at the first and fail at the second.</p>
+  </section>
+
+  <section id="modern-authentication">
+    <h2>Why older printers struggle with modern authentication</h2>
+    <p>OAuth is more than a different password field. A client must be registered or represented in Microsoft Entra, obtain an access token for the correct Exchange resource, refresh or reacquire tokens when needed, and encode the token in the SMTP authentication exchange. Microsoft documents SASL XOAUTH2 as the mechanism used to carry that access token on an SMTP connection.</p>
+    <p>Printer firmware may expose “SMTP authentication” yet support only basic username-and-password authentication. That label describes the SMTP feature, not the authentication method inside it. Firmware age, vendor support, TLS capability, and the available configuration surface all matter.</p>
+  </section>
+
+  <section id="microsoft-expects">
+    <h2>What Microsoft 365 expects</h2>
+    <p>For authenticated client SMTP submission, Microsoft documents <code>smtp.office365.com</code>, recommends TCP port 587, requires TLS 1.2 or later, and recommends modern authentication with OAuth. SMTP AUTH also has organization and mailbox controls, so the required Exchange configuration must intentionally allow the chosen submission path.</p>
+    <div class="guide-callout">
+      <span>IMPORTANT DISTINCTION</span>
+      <p>Microsoft 365 supporting OAuth for SMTP does not mean every SMTP-speaking printer supports OAuth. The upstream service and the device are separate capabilities.</p>
+    </div>
+    <p>Microsoft also documents other mail-flow categories for devices and applications, including connector-based SMTP relay and direct send. Each has different requirements and limits. The right option depends on recipients, sender identity, network egress, licensing, sending volume, and the controls your organization can operate.</p>
+  </section>
+
+  <section id="approaches">
+    <h2>Common approaches administrators consider</h2>
+    <div class="guide-option-list">
+      <article><h3>Update firmware or use native OAuth</h3><p>If the device vendor provides maintained firmware with Microsoft-compatible OAuth and current TLS, native support removes the compatibility layer. Validate the exact model and firmware; a generic “SMTP” feature is not enough.</p></article>
+      <article><h3>Use a Microsoft-supported mail-flow alternative</h3><p>Connector-based relay, direct send, and other Microsoft services cover different scenarios. Review Microsoft’s current requirements rather than treating all “Office 365 relay” configurations as interchangeable.</p></article>
+      <article><h3>Place a bridge on the trusted local network</h3><p>A local SMTP bridge can accept the simpler protocol the device already speaks, then perform modern authentication and encrypted delivery upstream. The bridge becomes an infrastructure component that must be constrained, monitored, patched, and backed by a durable queue.</p></article>
+      <article><h3>Replace the device</h3><p>Replacement may be appropriate when firmware, TLS, or vendor support is no longer defensible. It is not automatically required merely because the device cannot perform OAuth itself; the whole risk and operating model should drive that decision.</p></article>
+    </div>
+  </section>
+
+  <section id="local-bridge">
+    <h2>How a local SMTP bridge closes the gap</h2>
+    <p>The bridge separates two protocol boundaries. On the local side, the printer submits an ordinary SMTP message to an explicitly configured service. On the upstream side, the bridge obtains a Microsoft access token, opens a TLS-protected connection to Exchange Online, authenticates with XOAUTH2, and submits the message.</p>
+    <div class="guide-flow" aria-label="Printer to Microsoft 365 message flow">
+      <div><span>01</span><strong>Printer or MFP</strong><small>Local SMTP</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>02</span><strong>Local bridge</strong><small>Queue + policy</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>03</span><strong>Exchange Online</strong><small>OAuth + TLS</small></div>
+    </div>
+    <p>This does not make the printer OAuth-aware. It moves the modern-authentication responsibility to software that can implement it correctly while leaving the device’s narrow SMTP function in place.</p>
+  </section>
+
+  <section id="relaybridge">
+    <h2>How RelayBridge approaches the problem</h2>
+    <p>RelayBridge’s v1.0 target is a local-first compatibility bridge for Microsoft 365 / Exchange Online. It is designed to accept mail only from explicitly configured local devices, persist accepted messages in a durable local queue, and deliver directly to Exchange Online using outbound TLS, OAuth, and XOAUTH2.</p>
+    <p>The planned Microsoft identity is certificate-based rather than a permanent client secret. Exchange Application RBAC is intended to scope the <code>Application SMTP.SendAsApp</code> role to the configured sender boundary. RelayBridge does not operate a hosted SMTP relay, so mail is not routed through a RelayBridge-controlled cloud delivery service. See the full <a href="/how-it-works/">message flow</a> for the architectural boundary.</p>
+  </section>
+
+  <section id="security">
+    <h2>Security boundaries</h2>
+    <p>The two sides of the bridge do not currently have identical transport protection:</p>
+    <ul>
+      <li><strong>RelayBridge → Exchange Online:</strong> modern authenticated SMTP over TLS.</li>
+      <li><strong>Printer → RelayBridge:</strong> inbound STARTTLS is not currently available.</li>
+    </ul>
+    <p>Local SMTP intake must therefore be deployed only with explicit device restrictions on an administrator-controlled, trusted private network where that unencrypted hop is acceptable. It should not be described as safe on an arbitrary shared LAN. Network placement, address controls, sender restrictions, host security, and access to the local queue all form part of the boundary. The current <a href="/security/">Microsoft 365 security model</a> documents these limitations in more detail.</p>
+  </section>
+
+  <section id="limitations">
+    <h2>Current RelayBridge limitations</h2>
+    <p>RelayBridge is pre-release. There is no public v1.0 installer and no finalized public setup guide. Native Microsoft provisioning remains under final security validation, and the final platform compatibility matrix is not published. The application source is being developed toward an open-source public release and will be published with that release; it is not available to inspect today.</p>
+    <p>No vendor-wide printer compatibility is claimed. Administrators will need to validate that a specific device can reach the local listener and produce the required message envelope and content. Follow the <a href="/download/">release-status page</a> rather than treating this article as deployment instructions.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="guide-faq">
+      <details open><summary>Why can an older printer have trouble sending through Microsoft 365?</summary><p>It may support SMTP but lack current TLS, OAuth token acquisition, or XOAUTH2. The printer’s message-generation feature can still work even though its upstream authentication method no longer fits the service.</p></details>
+      <details><summary>Does Exchange Online SMTP support OAuth?</summary><p>Yes. Microsoft documents OAuth for SMTP and the SASL XOAUTH2 format used to present an access token. Whether a specific printer implements those capabilities is a separate question.</p></details>
+      <details><summary>Can every printer implement OAuth?</summary><p>No. OAuth support depends on firmware and vendor design. Some devices cannot run the required flow or expose no way to configure it.</p></details>
+      <details><summary>Do I necessarily need to replace a working printer?</summary><p>Not solely because it lacks OAuth. Native firmware, a suitable Microsoft mail-flow option, or a controlled local bridge may be viable. Replacement can still be the right security or support decision for an obsolete device.</p></details>
+      <details><summary>Can SMTP remain local between the printer and a bridge?</summary><p>Yes, as an architecture pattern, but the local hop must be deliberately constrained. RelayBridge does not currently provide inbound STARTTLS, so its intake belongs on an explicitly trusted private network with configured device restrictions.</p></details>
+      <details><summary>Does RelayBridge operate a hosted SMTP relay?</summary><p>No. The intended path is from the local device to the administrator-controlled RelayBridge instance and then directly to Exchange Online.</p></details>
+      <details><summary>What does Microsoft SMTP 250 mean?</summary><p>A successful final SMTP 250 response means Exchange Online accepted the message at the SMTP boundary. It does not guarantee inbox delivery, filtering outcome, quarantine avoidance, downstream routing, or that a recipient read it. Exchange message trace is the appropriate next place to investigate later handling.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>Official Microsoft references</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn — How to set up a multifunction device or application to send email using Microsoft 365 or Office 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn — Enable or disable authenticated client SMTP submission in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn — Authenticate an IMAP, POP or SMTP connection using OAuth</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/monitoring/trace-an-email-message/message-trace-modern-eac">Microsoft Learn — Message trace in the Exchange admin center in Exchange Online</a></li>
+    </ul>
+  </section>
+
+  <section class="related-guides" aria-labelledby="related-guides-heading">
+    <p class="guide-kicker">Related guides</p>
+    <h2 id="related-guides-heading">Continue with the workflow</h2>
+    <div><a href="/guides/scan-to-email-microsoft-365/"><strong>Scan to email with Microsoft 365</strong><span>Follow the complete scanner-to-recipient path.</span></a><a href="/guides/exchange-online-smtp-oauth-legacy-apps/"><strong>SMTP OAuth for legacy applications</strong><span>Go deeper on app identity, XOAUTH2, and Exchange authorization.</span></a></div>
+  </section>
+</GuideLayout>
