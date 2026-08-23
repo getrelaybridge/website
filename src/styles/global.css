@@ -132,7 +132,7 @@ p, h1, h2, h3 { margin-top: 0; }
 .code-card { overflow: hidden; border: 1px solid #aebdba; border-radius: 14px; background: #0c252f; box-shadow: 0 28px 60px rgba(8,32,40,.14); }
 .code-card-bar { height: 48px; display: flex; align-items: center; gap: 7px; padding: 0 17px; border-bottom: 1px solid rgba(255,255,255,.12); }
 .code-card-bar > span { width: 7px; height: 7px; border-radius: 50%; background: #536c71; }
-.code-card-bar b { margin-left: 9px; color: #718b8f; font: 9px/1 var(--mono); font-weight: 500; }
+.code-card-bar b { margin-left: 9px; color: #738d91; font: 9px/1 var(--mono); font-weight: 500; }
 .code-card pre { margin: 0; padding: 31px 22px; color: #9fc1bf; overflow-x: auto; font: 12px/2.2 var(--mono); }
 .code-card code span { color: #48676c; user-select: none; }
 
