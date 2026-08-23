@@ -373,6 +373,8 @@ h2 em { color: #788e91; font-style: normal; font-weight: 450; }
 }
 
 @media (max-width: 980px) {
+  .nav-shell { gap: 18px; }
+  .desktop-nav { gap: 18px; font-size: 13px; }
   .hero-grid { grid-template-columns: 1fr; }
   .hero-visual { max-width: 680px; }
   .architecture { grid-template-columns: 118px 1fr 145px 1fr 135px; }

@@ -3,8 +3,11 @@ const pathname = Astro.url.pathname;
 const navItems = [
   { href: '/how-it-works/', label: 'How it works' },
   { href: '/security/', label: 'Security' },
+  { href: '/guides/', label: 'Guides' },
   { href: '/docs/', label: 'Docs' },
 ];
+
+const isCurrent = (href: string) => pathname === href || pathname.startsWith(href);
 ---
 
 <header class="site-header">
@@ -18,7 +21,7 @@ const navItems = [
         <summary>Menu</summary>
         <div class="mobile-nav-panel">
           {navItems.map((item) => (
-            <a href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>{item.label}</a>
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
           ))}
           <a href="https://github.com/getrelaybridge">GitHub</a>
           <a href="/download/" aria-current={pathname === '/download/' ? 'page' : undefined}>Release status</a>
@@ -26,7 +29,7 @@ const navItems = [
       </details>
       <div class="desktop-nav">
         {navItems.map((item) => (
-          <a href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>{item.label}</a>
+          <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
         ))}
         <a href="https://github.com/getrelaybridge">GitHub</a>
         <a class="button button-small button-dark" href="/download/" aria-current={pathname === '/download/' ? 'page' : undefined}>Release status</a>
