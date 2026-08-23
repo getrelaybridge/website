@@ -1,6 +1,6 @@
 # RelayBridge website
 
-The public website for [RelayBridge](https://getrelaybridge.com), an open-source, local SMTP-to-Microsoft-365 modernization bridge for legacy devices and applications.
+The public website for [RelayBridge](https://getrelaybridge.com), an open-source project for modern email delivery from legacy SMTP devices and applications. RelayBridge starts with Microsoft 365 / Exchange Online as its current v1.0 target.
 
 This repository contains the static public website only. It does not depend on, import, or contain RelayBridge application source or private configuration.
 

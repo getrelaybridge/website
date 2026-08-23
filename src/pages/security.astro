@@ -16,7 +16,7 @@ const securitySections = [
 ---
 
 <BaseLayout title="RelayBridge security architecture" description="A precise public security model for RelayBridge, including local data flow, certificate identity, Exchange permissions, durability, and current limitations.">
-  <PageHero eyebrow="Security architecture" title="Trust starts with" accent="a visible boundary." description="RelayBridge is designed so administrators can understand where mail goes, which identity it uses, what is stored locally, and which limitations still matter." />
+  <PageHero eyebrow="Current Microsoft 365 security model" title="Trust starts with" accent="a visible boundary." description="This current Microsoft 365 security model shows administrators where mail goes, which identity RelayBridge uses, what is stored locally, and which limitations still matter." />
 
   <section class="security-summary">
     <div class="container security-summary-grid">
@@ -43,7 +43,7 @@ const securitySections = [
         <section id="philosophy">
           <p class="eyebrow"><span></span> Security philosophy</p>
           <h2>Minimize hidden trust.</h2>
-          <p class="prose-lede">RelayBridge exists to modernize a narrow boundary without creating a new hosted mail dependency. The security model favors local control, inspectable source, constrained Microsoft authorization, durable state, and accurate delivery semantics.</p>
+          <p class="prose-lede">RelayBridge exists to modernize a narrow boundary without creating a new hosted mail dependency. The security model favors local control, a publicly documented architecture, constrained Microsoft authorization, durable state, and accurate delivery semantics.</p>
           <div class="principle-grid">
             <div><b>01</b><h3>Keep the path direct</h3><p>Mail moves from infrastructure you control to Microsoft 365.</p></div>
             <div><b>02</b><h3>Use modern identity</h3><p>Certificates and OAuth replace a stored Microsoft password or client secret.</p></div>

@@ -4,15 +4,15 @@ import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
 ---
 
 <BaseLayout
-  title="RelayBridge — Modern Microsoft 365 email for legacy devices"
-  description="RelayBridge is an open-source, local SMTP-to-Microsoft-365 bridge for printers, scanners, and legacy applications."
+  title="RelayBridge — Modern email for legacy devices"
+  description="RelayBridge starts with Microsoft 365, helping printers, scanners, and legacy applications use modern authentication without another relay provider."
 >
   <section class="hero section-dark">
     <div class="container hero-grid">
       <div class="hero-copy">
         <p class="eyebrow eyebrow-light"><span></span> Open-source <i>•</i> Local-first <i>•</i> Microsoft 365</p>
-        <h1>Modern Microsoft 365 email <em>for legacy devices.</em></h1>
-        <p class="hero-lede">RelayBridge lets printers, scanners, and legacy applications send through Microsoft 365 using modern authentication—without routing your mail through another relay provider.</p>
+        <h1>Modern email <em>for legacy devices.</em></h1>
+        <p class="hero-lede">RelayBridge starts with Microsoft 365, letting printers, scanners, and legacy applications use modern authentication without routing mail through another relay provider.</p>
         <div class="button-row">
           <a class="button button-accent" href="/how-it-works/">See how it works <span aria-hidden="true">→</span></a>
           <a class="button button-ghost" href="https://github.com/getrelaybridge">View on GitHub</a>
@@ -87,7 +87,7 @@ import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
       </div>
       <div class="feature-grid">
         <article><span class="feature-code">LOCAL</span><h3>Runs locally</h3><p>Your mail does not pass through a RelayBridge-operated cloud service.</p></article>
-        <article><span class="feature-code">SOURCE</span><h3>Open source</h3><p>Inspect the implementation and public security model yourself.</p></article>
+        <article><span class="feature-code">SOURCE</span><h3>Open-source direction</h3><p>RelayBridge is being developed as an open-source project. The application source will be published with the public release.</p></article>
         <article><span class="feature-code">IDENTITY</span><h3>Certificate authentication</h3><p>Certificate-based OAuth replaces password-based Microsoft authentication.</p></article>
         <article><span class="feature-code">SCOPE</span><h3>Scoped permissions</h3><p>Exchange Application RBAC is designed to restrict RelayBridge to an authorized sender.</p></article>
         <article><span class="feature-code">QUEUE</span><h3>Durable delivery queue</h3><p>Accepted messages are queued locally and temporary failures are retried.</p></article>
@@ -113,11 +113,7 @@ import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
     </div>
   </section>
 
-  <section class="section open-source-section" itemscope itemtype="https://schema.org/SoftwareSourceCode">
-    <meta itemprop="name" content="RelayBridge" />
-    <meta itemprop="codeRepository" content="https://github.com/getrelaybridge" />
-    <meta itemprop="license" content="https://opensource.org/license/mit" />
-    <meta itemprop="description" content="Open-source local SMTP-to-Microsoft-365 modernization bridge for legacy devices and applications." />
+  <section class="section open-source-section">
     <div class="container open-source-grid">
       <div class="code-card" aria-hidden="true">
         <div class="code-card-bar"><span></span><span></span><span></span><b>relaybridge / security-model</b></div>
@@ -125,13 +121,13 @@ import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
 <span>02</span>  product_cloud: none
 <span>03</span>  microsoft_identity: certificate
 <span>04</span>  client_secret: none
-<span>05</span>  source: public
+<span>05</span>  application_source: release_pending
 <span>06</span>  release_status: preparing_v1</code></pre>
       </div>
       <div>
         <p class="eyebrow"><span></span> Open source</p>
-        <h2>Security you<br /><em>can inspect.</em></h2>
-        <p class="section-lede">RelayBridge is intended to be publicly auditable. Read the architecture, inspect the source as it becomes available, and follow development in the open.</p>
+        <h2>A security model<br /><em>you can inspect.</em></h2>
+        <p class="section-lede">RelayBridge is being developed as an open-source project. Its application source will be published with the public release; the architecture and security model are available now.</p>
         <div class="button-row">
           <a class="button button-ink" href="https://github.com/getrelaybridge">Explore on GitHub <span aria-hidden="true">→</span></a>
           <a class="text-link" href="/security/">Read the security model</a>

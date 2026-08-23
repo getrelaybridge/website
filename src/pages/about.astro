@@ -4,8 +4,8 @@ import PageHero from '../components/PageHero.astro';
 import CallToAction from '../components/CallToAction.astro';
 ---
 
-<BaseLayout title="About RelayBridge" description="RelayBridge is an independent open-source project solving the Microsoft 365 authentication gap for legacy SMTP equipment.">
-  <PageHero eyebrow="About the project" title="A focused answer to" accent="a real compatibility problem." description="RelayBridge is an independent open-source project for administrators who need working legacy devices to coexist with modern Microsoft 365 authentication." />
+<BaseLayout title="About RelayBridge" description="RelayBridge is an independent open-source project modernizing email for legacy SMTP equipment, starting with Microsoft 365.">
+  <PageHero eyebrow="About the project" title="A focused answer to" accent="a real compatibility problem." description="RelayBridge is an independent open-source project for administrators who need working legacy devices to coexist with modern mail platforms, starting with Microsoft 365." />
   <section class="section section-white">
     <div class="container editorial-grid">
       <div class="editorial-number">01 / WHY</div>
@@ -14,6 +14,8 @@ import CallToAction from '../components/CallToAction.astro';
       <div class="about-principles"><article><h3>Local-first</h3><p>The administrator controls the system that receives local SMTP and holds queued mail.</p></article><article><h3>Inspectability</h3><p>Architecture, limitations, and source should be available for direct scrutiny.</p></article><article><h3>Precision</h3><p>Claims should match real protocol boundaries, especially around authorization and delivery.</p></article></div>
       <div class="editorial-number">03 / STATUS</div>
       <div class="prose"><h2>Built in the open,<br /><em>before calling it ready.</em></h2><p class="prose-lede">RelayBridge is under active development and v1.0 is being prepared. Public builds, complete setup instructions, and the final support matrix will be published only after the relevant implementation is ready.</p></div>
+      <div class="editorial-number">04 / FUTURE</div>
+      <div class="prose"><h2>Future direction</h2><p class="prose-lede">Microsoft 365 is the first supported provider. RelayBridge is architected with potential future provider expansion in mind.</p><p>Google Workspace and other modern mail providers may be evaluated later. Future integrations will only be added when they meet RelayBridge's existing local-first, security, durability, and reliability standards.</p></div>
     </div>
   </section>
   <CallToAction eyebrow="Open source" title="Follow RelayBridge on GitHub." description="Inspect public work, follow release preparation, and learn how the security model develops." primaryHref="https://github.com/getrelaybridge" primaryLabel="View the organization" secondaryHref="/security/" secondaryLabel="Security architecture" />
