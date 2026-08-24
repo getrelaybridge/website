@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
+import ConceptArchitectureSketch from '../components/ConceptArchitectureSketch.astro';
 ---
 
 <BaseLayout
@@ -10,7 +10,7 @@ import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
   <section class="hero section-dark">
     <div class="container hero-grid">
       <div class="hero-copy">
-        <p class="eyebrow eyebrow-light"><span></span> Open-source <i>•</i> Local-first <i>•</i> Microsoft 365</p>
+        <p class="eyebrow eyebrow-light"><span></span><b>Open-source</b><span class="eyebrow-pair"><i>•</i><b>Local-first</b></span><span class="eyebrow-pair"><i>•</i><b>Microsoft 365</b></span></p>
         <h1>Modern email <em>for legacy devices.</em></h1>
         <p class="hero-lede">RelayBridge starts with Microsoft 365, letting printers, scanners, and legacy applications use modern authentication without routing mail through another relay provider.</p>
         <div class="button-row">
@@ -21,7 +21,7 @@ import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
       </div>
       <div class="hero-visual">
         <div class="visual-label">MAIL PATH / LOCAL-FIRST</div>
-        <ArchitectureDiagram />
+        <ConceptArchitectureSketch variant="hybrid" />
       </div>
     </div>
   </section>

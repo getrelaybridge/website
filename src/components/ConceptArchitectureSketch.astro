@@ -1,0 +1,287 @@
+---
+import { Image } from 'astro:assets';
+import homepageMailPath from '../assets/relaybridge-homepage-mail-path-aligned.webp';
+
+interface Props {
+  variant: 'hybrid' | 'how-it-works' | 'security';
+}
+
+const { variant } = Astro.props;
+const isFlowDiagram = variant === 'how-it-works' || variant === 'security';
+const flowLabel = variant === 'how-it-works'
+  ? 'Legacy device or application, local SMTP intake, durable local spool and queue, certificate-based OAuth, and TLS-protected Exchange Online SMTP submission.'
+  : 'Trusted private LAN, RelayBridge local boundary, local certificate identity, scoped Exchange Application RBAC, and Exchange Online with no RelayBridge-operated cloud relay.';
+const flowNodes = variant === 'how-it-works'
+  ? [
+      ['LEGACY', 'Printer · Scanner · Legacy app', 'Legacy device / application', 'neutral'],
+      ['INTAKE', 'Local SMTP', 'Constrained device boundary', 'neutral'],
+      ['QUEUE', 'RelayBridge', 'Runs on your network · durable local spool / queue', 'hub'],
+      ['IDENTITY', 'Certificate-based OAuth', 'Local certificate identity', 'hub'],
+      ['OUTBOUND', 'Microsoft 365', 'Exchange Online · OAuth + TLS · TLS-protected submission', 'amber'],
+    ]
+  : [
+      ['LAN', 'Trusted private LAN', 'Device intake boundary', 'neutral'],
+      ['LOCAL', 'RelayBridge local boundary', 'Administrator-controlled host', 'hub'],
+      ['IDENTITY', 'Local certificate identity', 'Private key remains local', 'hub'],
+      ['SCOPE', 'Exchange Application RBAC', 'Authorized sender scope', 'neutral'],
+      ['M365', 'Exchange Online', 'No RelayBridge-operated cloud relay', 'amber'],
+    ];
+---
+
+<div class:list={['architecture-sketch', `architecture-sketch--${variant}`]}>
+  {isFlowDiagram ? (
+    <div class="hybrid-flow-diagram" role="img" aria-label={flowLabel}>
+      {flowNodes.map(([code, title, detail, tone], index) => (
+        <>
+          <div class:list={['hybrid-flow-node', `hybrid-flow-node--${tone}`]}>
+            <span>{code}</span>
+            <strong>{title}</strong>
+            <small>{detail}</small>
+          </div>
+          {index < flowNodes.length - 1 && (
+            <svg class="hybrid-flow-arrow" viewBox="0 0 58 24" aria-hidden="true">
+              <path d="M2 13c17-3 33-3 50-1" />
+              <path d="m45 5 10 7-10 8" />
+              <path class="offset" d="M3 17c15-2 29-2 43-1" />
+            </svg>
+          )}
+        </>
+      ))}
+    </div>
+  ) : (
+  <>
+  {variant === 'hybrid' && (
+    <Image
+      class="hybrid-artwork"
+      src={homepageMailPath}
+      alt="A printer, scanner, and legacy application send local SMTP to RelayBridge on the local network, which uses OAuth and TLS to submit mail to Microsoft 365 Exchange Online."
+      widths={[480, 720, 960, 1280]}
+      sizes="(max-width: 980px) calc(100vw - 80px), 580px"
+      format="webp"
+      quality={82}
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+  )}
+  <svg viewBox="0 0 680 470" role="img" aria-labelledby={`sketch-title-${variant} sketch-desc-${variant}`}>
+    <title id={`sketch-title-${variant}`}>RelayBridge local mail path</title>
+    <desc id={`sketch-desc-${variant}`}>A printer, scanner, and legacy application send local SMTP to RelayBridge, which uses OAuth and TLS to submit mail to Microsoft 365 Exchange Online.</desc>
+    <defs>
+      <marker id={`arrow-${variant}`} markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+        <path d="M1 1 9 5 1 9" class="arrow-head" />
+      </marker>
+      <filter id={`rough-${variant}`} x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="19" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+
+    <g class="paper-marks" aria-hidden="true">
+      <path d="M28 28c80-9 158-11 238-7M466 438c58 6 116 4 177-5" />
+      <path d="M619 38c11 9 18 20 23 34M37 391c-8 12-12 25-13 39" />
+    </g>
+
+    <g class="sketch-lines" filter={`url(#rough-${variant})`}>
+      <g class="source source-printer">
+        <rect x="36" y="72" width="114" height="78" rx="9" />
+        <path d="M57 71V49h72v23M57 116h72v49H57zM70 128h46M70 139h37M117 94h10" />
+      </g>
+      <g class="source source-scanner">
+        <path d="M37 208h112l-13 69H49zM48 206l19-25h71l11 25M65 229h59M70 243h47" />
+      </g>
+      <g class="source source-app">
+        <rect x="36" y="325" width="114" height="74" rx="8" />
+        <path d="M36 345h114M51 335h1M63 335h1M75 335h1M58 366l12 8-12 8M80 383h29" />
+      </g>
+
+      <path class="connector local" d="M151 110c52 4 55 78 108 90M151 240c50 0 64-26 108-36M151 362c47-4 65-99 108-150" />
+      <path class="connector main local" d="M167 207c32 0 58 0 91 0" marker-end={`url(#arrow-${variant})`} />
+
+      <g class="relay">
+        <path class="relay-fill" d="M273 129c57-18 127-12 169 8l8 132c-48 22-130 20-181 0z" />
+        <path d="M273 129c57-18 127-12 169 8l8 132c-48 22-130 20-181 0z" />
+        <path d="M302 174c20-23 48-30 71-17 14 8 24 23 30 44M399 196l8 12 8-12M400 237c-21 20-49 25-70 12-14-9-23-23-29-42M305 211l-8-12-8 12" />
+      </g>
+
+      <path class="connector main secure" d="M455 207c43 0 71 0 111 0" marker-end={`url(#arrow-${variant})`} />
+
+      <g class="cloud">
+        <path class="cloud-fill" d="M575 265c-37 0-54-22-43-48 5-13 17-22 33-25 0-32 24-52 54-48 21 3 36 16 42 34 23-1 39 13 39 34 0 31-25 53-59 53z" />
+        <path d="M575 265c-37 0-54-22-43-48 5-13 17-22 33-25 0-32 24-52 54-48 21 3 36 16 42 34 23-1 39 13 39 34 0 31-25 53-59 53z" />
+        <path d="M588 193h44v42h-44zM588 207h44M602 193v42M617 193v42" />
+      </g>
+    </g>
+
+  </svg>
+  <div class="sketch-labels" aria-hidden="true">
+    <span class="sketch-node-label sketch-printer">Printer</span>
+    <span class="sketch-node-label sketch-scanner">Scanner</span>
+    <span class="sketch-node-label sketch-app">Legacy app</span>
+    <span class="sketch-connector-label sketch-local">Local SMTP</span>
+    <span class="sketch-node-label sketch-relay">RelayBridge</span>
+    <span class="sketch-detail-label sketch-relay-detail">Runs on your network</span>
+    <span class="sketch-connector-label sketch-secure">OAuth + TLS</span>
+    <span class="sketch-node-label sketch-cloud">Microsoft 365</span>
+    <span class="sketch-detail-label sketch-cloud-detail">Exchange Online</span>
+  </div>
+  {variant === 'hybrid' && (
+    <div class="hybrid-mobile-sketch" role="img" aria-label="Mail flows from local legacy devices through RelayBridge on your network, then securely to Microsoft 365.">
+      <div class="hybrid-mobile-node">
+        <span>LEGACY DEVICES</span>
+        <strong>Printer · Scanner · Legacy app</strong>
+      </div>
+      <div class="hybrid-mobile-connector"><span>Local SMTP</span><i aria-hidden="true">↓</i></div>
+      <div class="hybrid-mobile-node hybrid-mobile-node--relay">
+        <span>LOCAL BRIDGE</span>
+        <strong>RelayBridge</strong>
+        <small>Runs on your network</small>
+      </div>
+      <div class="hybrid-mobile-connector"><span>OAuth + TLS</span><i aria-hidden="true">↓</i></div>
+      <div class="hybrid-mobile-node hybrid-mobile-node--cloud">
+        <span>MAIL PLATFORM</span>
+        <strong>Microsoft 365</strong>
+        <small>Exchange Online</small>
+      </div>
+    </div>
+  )}
+  </>
+  )}
+</div>
+
+<style>
+  .architecture-sketch { position: relative; width: 100%; }
+  .hybrid-artwork { display: block; width: 100%; height: auto; }
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .sketch-lines, .paper-marks { fill: none; stroke: var(--sketch-ink); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
+  .paper-marks { opacity: .13; stroke-width: 1.5; }
+  .arrow-head { fill: none; stroke: var(--sketch-ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .connector { opacity: .7; stroke-width: 1.8; }
+  .connector.main { opacity: 1; stroke-width: 2.6; }
+  .relay-fill { fill: var(--sketch-relay); stroke: none; opacity: .9; }
+  .cloud-fill { fill: var(--sketch-cloud); stroke: none; opacity: .92; }
+  .sketch-labels { position: absolute; inset: 0; color: #eef6f4; pointer-events: none; }
+  .sketch-labels span { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; }
+  .sketch-node-label { font-size: 16px; font-weight: 700; line-height: 1.2; }
+  .sketch-detail-label, .sketch-connector-label { color: #d2dfdd; font: 700 13px/1.2 var(--mono); letter-spacing: .035em; text-transform: uppercase; }
+  .sketch-detail-label { font-size: 14px; font-weight: 600; letter-spacing: .025em; }
+  .sketch-printer { left: 13.7%; top: 37.5%; }
+  .sketch-scanner { left: 13.7%; top: 64.1%; }
+  .sketch-app { left: 13.7%; top: 90.2%; }
+  .sketch-local { left: 30.1%; top: 39.8%; }
+  .sketch-relay { left: 52.9%; top: 63.1%; }
+  .sketch-relay-detail { left: 52.9%; top: 68.3%; }
+  .sketch-secure { left: 75%; top: 39.8%; }
+  .sketch-cloud { left: 90.4%; top: 63.5%; }
+  .sketch-cloud-detail { left: 90.4%; top: 68.5%; }
+  .architecture-sketch--hybrid { --sketch-ink: #dce9e7; --sketch-relay: #39d6ae; --sketch-cloud: #f1b85b; }
+  .architecture-sketch--hybrid > svg,
+  .architecture-sketch--hybrid > .sketch-labels { display: none; }
+  .architecture-sketch--how-it-works,
+  .architecture-sketch--security { --sketch-ink: #dce9e7; --sketch-relay: #39d6ae; --sketch-cloud: #f1b85b; }
+  .hybrid-mobile-sketch { display: none; }
+
+  .hybrid-flow-diagram {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(118px, 1fr) 38px) minmax(118px, 1fr);
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+  .hybrid-flow-node {
+    position: relative;
+    min-width: 0;
+    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 20px 17px;
+    border: 1px solid rgba(220, 233, 231, .34);
+    border-radius: 12px 10px 13px 9px;
+    color: #eef6f4;
+    background: rgba(255, 255, 255, .035);
+  }
+  .hybrid-flow-node::before {
+    content: "";
+    position: absolute;
+    inset: 5px -4px -4px 5px;
+    z-index: -1;
+    border-right: 1px solid rgba(220, 233, 231, .14);
+    border-bottom: 1px solid rgba(220, 233, 231, .14);
+    border-radius: 10px 12px 9px 13px;
+    transform: rotate(.35deg);
+  }
+  .hybrid-flow-node span {
+    position: absolute;
+    top: 18px;
+    left: 17px;
+    color: #c8d8d6;
+    font: 700 13px/1 var(--mono);
+    letter-spacing: .06em;
+  }
+  .hybrid-flow-node strong { font-size: 16px; line-height: 1.35; }
+  .hybrid-flow-node small { margin-top: 10px; color: #d2dfdd; font: 500 14px/1.5 var(--mono); }
+  .hybrid-flow-node--hub {
+    border-color: rgba(57, 214, 174, .72);
+    background: rgba(57, 214, 174, .14);
+    box-shadow: inset 0 0 28px rgba(57, 214, 174, .04);
+  }
+  .hybrid-flow-node--hub span { color: #72e8ca; }
+  .hybrid-flow-node--amber {
+    border-color: rgba(241, 184, 91, .7);
+    background: rgba(241, 184, 91, .12);
+  }
+  .hybrid-flow-node--amber span { color: #f1c778; }
+  .hybrid-flow-arrow {
+    align-self: center;
+    width: 38px;
+    height: 24px;
+    fill: none;
+    stroke: #72e8ca;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+  }
+  .hybrid-flow-arrow .offset { opacity: .2; stroke-width: 1; }
+
+  @media (max-width: 980px) {
+    .hybrid-flow-diagram { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+    .hybrid-flow-node { min-height: 138px; padding: 20px; }
+    .hybrid-flow-node span { top: 16px; left: 20px; }
+    .hybrid-flow-arrow { width: 34px; height: 27px; margin-inline: auto; transform: rotate(90deg); }
+  }
+
+  @media (max-width: 560px) {
+    .hybrid-artwork { display: none; }
+    .hybrid-mobile-sketch { display: grid; gap: 9px; }
+    .hybrid-mobile-node {
+      position: relative;
+      display: grid;
+      gap: 7px;
+      padding: 18px;
+      border: 1px solid rgba(220,233,231,.34);
+      border-radius: 10px 8px 11px 9px;
+      color: #eef6f4;
+      background: rgba(255,255,255,.035);
+    }
+    .hybrid-mobile-node::after {
+      content: "";
+      position: absolute;
+      inset: 4px -3px -3px 5px;
+      z-index: -1;
+      border-right: 1px solid rgba(220,233,231,.13);
+      border-bottom: 1px solid rgba(220,233,231,.13);
+      border-radius: 8px 11px 9px 10px;
+    }
+    .hybrid-mobile-node span { color: #d2dfdd; font: 700 13px/1 var(--mono); letter-spacing: .06em; }
+    .hybrid-mobile-node strong { font-size: 16px; line-height: 1.35; }
+    .hybrid-mobile-node small { color: #d2dfdd; font: 500 14px/1.45 var(--mono); }
+    .hybrid-mobile-node--relay { border-color: rgba(57,214,174,.68); background: rgba(57,214,174,.14); }
+    .hybrid-mobile-node--relay span { color: #72e8ca; }
+    .hybrid-mobile-node--cloud { border-color: rgba(241,184,91,.68); background: rgba(241,184,91,.12); }
+    .hybrid-mobile-node--cloud span { color: #f1c778; }
+    .hybrid-mobile-connector { display: grid; justify-items: center; gap: 3px; color: #d2dfdd; font: 700 13px/1.3 var(--mono); letter-spacing: .045em; text-transform: uppercase; }
+    .hybrid-mobile-connector i { color: #72e8ca; font-size: 18px; font-style: normal; line-height: 1; }
+  }
+</style>

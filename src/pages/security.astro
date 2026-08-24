@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import CallToAction from '../components/CallToAction.astro';
+import ConceptArchitectureSketch from '../components/ConceptArchitectureSketch.astro';
 
 const securitySections = [
   ['Local data path', 'A message moves from the submitting device to the administrator-controlled RelayBridge instance, then directly to Microsoft 365. RelayBridge does not operate an intermediary cloud relay.'],
@@ -23,6 +24,13 @@ const securitySections = [
       <div><span>MAIL PATH</span><strong>Device → RelayBridge → Microsoft 365</strong></div>
       <div><span>IDENTITY</span><strong>Local certificate, no client secret</strong></div>
       <div><span>PRODUCT CLOUD</span><strong>None in the delivery path</strong></div>
+    </div>
+  </section>
+
+  <section class="section security-boundary-section">
+    <div class="container architecture-large hybrid-architecture-card security-boundary-card">
+      <div class="visual-label visual-label-dark">CURRENT MICROSOFT 365 SECURITY BOUNDARY</div>
+      <ConceptArchitectureSketch variant="security" />
     </div>
   </section>
 

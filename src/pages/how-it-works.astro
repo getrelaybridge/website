@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
+import ConceptArchitectureSketch from '../components/ConceptArchitectureSketch.astro';
 import CallToAction from '../components/CallToAction.astro';
 ---
 
@@ -9,9 +9,9 @@ import CallToAction from '../components/CallToAction.astro';
   <PageHero eyebrow="Architecture" title="A local bridge between legacy SMTP" accent="and modern mail platforms." description="RelayBridge v1.0 targets Microsoft 365 / Exchange Online. Your existing devices keep using the SMTP they understand while RelayBridge handles the current Microsoft identity and transport requirements they cannot." />
 
   <section class="section section-white">
-    <div class="container architecture-large">
+    <div class="container architecture-large hybrid-architecture-card">
       <div class="visual-label visual-label-dark">SIMPLE MAIL PATH</div>
-      <ArchitectureDiagram />
+      <ConceptArchitectureSketch variant="how-it-works" />
     </div>
     <div class="container flow-summary">
       <div><span>01</span><h2>Submit</h2><p>Legacy devices send ordinary SMTP on the trusted local network.</p></div>
