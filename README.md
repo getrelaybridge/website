@@ -4,6 +4,14 @@ The public website for [RelayBridge](https://getrelaybridge.com), an open-source
 
 This repository contains the static public website only. It does not depend on, import, or contain RelayBridge application source or private configuration.
 
+## Technical guides
+
+Browse all [RelayBridge technical guides](https://getrelaybridge.com/guides/), including:
+
+- [Microsoft 365 SMTP relay for legacy printers](https://getrelaybridge.com/guides/microsoft-365-smtp-relay-legacy-printers/)
+- [Scan to email with Microsoft 365](https://getrelaybridge.com/guides/scan-to-email-microsoft-365/)
+- [Exchange Online SMTP OAuth for legacy applications](https://getrelaybridge.com/guides/exchange-online-smtp-oauth-legacy-apps/)
+
 ## Local development
 
 Requirements:
