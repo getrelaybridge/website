@@ -1,0 +1,136 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#not-one-switch', label: 'TLS is not one switch' },
+  { href: '#starttls', label: 'STARTTLS and port 587' },
+  { href: '#versions', label: 'TLS versions' },
+  { href: '#ciphers', label: 'Cipher-suite overlap' },
+  { href: '#certificates', label: 'Certificates and clocks' },
+  { href: '#sni', label: 'What SNI tells you' },
+  { href: '#tests', label: 'Practical tests' },
+  { href: '#relaybridge', label: 'RelayBridge boundary' },
+  { href: '#checklist', label: 'Remediation checklist' },
+  { href: '#faq', label: 'Frequently asked questions' },
+  { href: '#references', label: 'Microsoft references' },
+];
+---
+
+<GuideLayout title="Legacy Printer TLS Failures with Microsoft 365 | RelayBridge" description="Diagnose Microsoft 365 SMTP TLS handshake failures on legacy printers: STARTTLS, port 587, TLS 1.2 and 1.3, cipher suites, certificates, clocks, and SNI evidence." eyebrow="Guide · TLS diagnostics" heading="Why legacy printers fail TLS handshakes with Microsoft 365" summary="A firmware checkbox labeled SSL or TLS does not prove compatibility. The client and Exchange Online must agree on SMTP mode, protocol version, cipher suite, certificate validation, and authentication before a message can be submitted." toc={toc}>
+  <section id="not-one-switch">
+    <p class="guide-kicker">Compatibility is negotiated</p>
+    <p class="guide-lede">A printer can truthfully advertise “TLS support” and still fail against <code>smtp.office365.com</code>. It may support only an obsolete protocol, offer no currently accepted cipher, use implicit TLS on the wrong port, or reject the service certificate because its clock or trust store is stale.</p>
+    <h2>TLS is not one feature switch</h2>
+    <p>The handshake is a negotiation between two implementations. The printer proposes protocol versions, cipher suites, extensions, and other parameters. The service selects a compatible combination and presents a certificate. If there is no overlap—or the client cannot validate the result—the connection ends before SMTP authentication.</p>
+    <p>This is why a generic “authentication failed” message on a device can be misleading. First prove the TCP and TLS layers; only then investigate OAuth, credentials, SMTP AUTH controls, or sender authorization.</p>
+  </section>
+
+  <section id="starttls">
+    <h2>Port 587 expects SMTP followed by STARTTLS</h2>
+    <p>Microsoft recommends <code>smtp.office365.com</code> on TCP port 587 for client SMTP submission. The client opens a plain SMTP connection, receives the server greeting, issues <code>EHLO</code>, sees the <code>STARTTLS</code> capability, and upgrades that connection to TLS before authenticating.</p>
+    <div class="guide-flow guide-flow-vertical" aria-label="SMTP STARTTLS negotiation sequence">
+      <div><span>01</span><strong>TCP connection</strong><small>smtp.office365.com:587</small></div>
+      <i aria-hidden="true">↓</i>
+      <div><span>02</span><strong>EHLO and STARTTLS</strong><small>Upgrade the existing SMTP session</small></div>
+      <i aria-hidden="true">↓</i>
+      <div><span>03</span><strong>TLS handshake</strong><small>Version, cipher, certificate</small></div>
+      <i aria-hidden="true">↓</i>
+      <div><span>04</span><strong>SMTP authentication</strong><small>OAuth/XOAUTH2 or other allowed method</small></div>
+    </div>
+    <p>Implicit TLS attempts to begin the TLS handshake immediately. Microsoft’s device guidance warns that software defaulting to port 465 does not support the required client-submission TLS mode. Printer menus may label STARTTLS as TLS, explicit TLS, or “use secure connection after connect,” so check the vendor documentation.</p>
+  </section>
+
+  <section id="versions">
+    <h2>Exchange Online requires a modern TLS version</h2>
+    <p>Microsoft’s current client-submission guidance requires TLS 1.2 or TLS 1.3. TLS 1.0 and TLS 1.1 are deprecated across Microsoft 365. Exchange Online retains a separate opt-in <code>smtp-legacy.office365.com</code> endpoint for specific SMTP AUTH legacy-client scenarios, but Microsoft describes those older versions as unsupported.</p>
+    <p>Firmware release notes are more reliable than a settings-page label. Confirm the exact protocol version used by the SMTP client component; a device may support TLS 1.2 for its web administration interface while its scan-to-email module uses an older embedded library.</p>
+    <div class="guide-callout guide-callout-boundary"><span>SECURITY TRADEOFF</span><p>The legacy endpoint can preserve a transition path, but it does not modernize the device. Treat it as an explicit risk exception with an exit plan, not proof that obsolete TLS remains a recommended design.</p></div>
+  </section>
+
+  <section id="ciphers">
+    <h2>TLS 1.2 still needs cipher-suite overlap</h2>
+    <p>Supporting TLS 1.2 is necessary but not sufficient. Microsoft 365 currently documents two TLS 1.3 AES-GCM suites and four TLS 1.2 ECDHE-RSA suites using AES-GCM or AES-CBC with SHA-256/384. Microsoft has removed older weak options such as 3DES and non-forward-secret RSA key exchange.</p>
+    <div class="guide-table-wrap">
+      <table class="guide-table">
+        <thead><tr><th>Protocol</th><th>Documented Microsoft 365 cipher suites</th></tr></thead>
+        <tbody>
+          <tr><th>TLS 1.3</th><td><code>TLS_AES_256_GCM_SHA384</code><br /><code>TLS_AES_128_GCM_SHA256</code></td></tr>
+          <tr><th>TLS 1.2</th><td><code>TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</code><br /><code>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</code><br /><code>TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384</code><br /><code>TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>A printer that offers only static-RSA, 3DES, RC4, SHA-1-era, or export suites can therefore advertise TLS 1.2 yet fail to negotiate. Capture the actual ClientHello or ask the vendor for the SMTP client cipher list.</p>
+  </section>
+
+  <section id="certificates">
+    <h2>Certificate validation, DNS, and device time matter</h2>
+    <p>After the server selects a protocol and cipher, the client validates the certificate chain and service name. Legacy devices commonly fail because their CA bundle is old, a required intermediate certificate is missing, their real-time clock is wrong, or firmware cannot validate the certificate’s current signature chain.</p>
+    <p>Use the DNS name <code>smtp.office365.com</code>, not a pinned IP address. Microsoft’s service addresses and certificates can change. Verify that the printer has working DNS, NTP or manually maintained time, an updateable trust store, and no TLS-inspection appliance substituting a certificate the device does not trust.</p>
+    <p>A successful certificate check proves only the encrypted channel. It does not grant SMTP AUTH, authorize a sender, or guarantee message acceptance.</p>
+  </section>
+
+  <section id="sni">
+    <h2>What SNI can—and cannot—tell you</h2>
+    <p>Server Name Indication carries a requested host name inside the TLS ClientHello. Modern diagnostic tools can send SNI explicitly, and packet capture can reveal whether a client included it.</p>
+    <p>However, Microsoft’s current SMTP client-submission guidance identifies the required DNS name, STARTTLS mode, TLS versions, and supported ciphers; it does not identify missing SNI as the universal cause of legacy printer failures. Do not infer an SNI defect from a generic handshake error alone. Compare a working and failing ClientHello or obtain a vendor statement for the exact firmware.</p>
+    <div class="guide-callout"><span>EVIDENCE OVER ASSUMPTION</span><p>SNI is one observable handshake field, not a diagnosis by itself. Version, cipher, certificate validation, STARTTLS mode, and network interception are usually faster checks.</p></div>
+  </section>
+
+  <section id="tests">
+    <h2>Practical tests from the same network</h2>
+    <h3>1. Test TCP reachability</h3>
+    <p><code>Test-NetConnection smtp.office365.com -Port 587</code></p>
+    <p>A successful result proves DNS and TCP reachability only. It does not test STARTTLS, certificate validation, or authentication.</p>
+    <h3>2. Test SMTP STARTTLS with OpenSSL</h3>
+    <p><code>openssl s_client -starttls smtp -connect smtp.office365.com:587 -servername smtp.office365.com -tls1_2</code></p>
+    <p>Review the negotiated protocol, cipher, certificate chain, and verification result. The <code>-servername</code> argument sends SNI explicitly for this controlled test. Run it from the printer’s actual network segment when possible.</p>
+    <h3>3. Compare with device evidence</h3>
+    <p>If the controlled test succeeds and the printer fails, collect the printer firmware version, timestamped SMTP log, packet capture, and vendor cipher documentation. If both fail, investigate DNS, firewall, TLS inspection, or the site egress path before changing Exchange settings.</p>
+  </section>
+
+  <section id="relaybridge">
+    <h2>How RelayBridge moves the TLS boundary</h2>
+    <p>RelayBridge is designed for devices that can submit ordinary SMTP locally but cannot negotiate the modern Microsoft 365 path. It accepts from explicitly configured local sources, durably queues the message, and creates a separate upstream connection to Exchange Online using current TLS, OAuth, and XOAUTH2.</p>
+    <p>The printer is not upgraded and the two connections do not share a TLS session. RelayBridge owns the upstream cryptography and token flow; the device retains its narrow local SMTP behavior.</p>
+    <p>Inbound STARTTLS is not currently available. That means the local device-to-RelayBridge hop must be confined to a trusted private network with explicit source and sender restrictions. This tradeoff is documented in the <a href="/security/">current Microsoft 365 security model</a>. RelayBridge remains pre-release.</p>
+  </section>
+
+  <section id="checklist">
+    <h2>Remediation checklist</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Update firmware first</h3><p>Use a maintained vendor release and confirm the SMTP module—not only the web UI—supports TLS 1.2 or later.</p></div></li>
+      <li><span>02</span><div><h3>Use the correct mode</h3><p>Configure <code>smtp.office365.com</code>, port 587, and STARTTLS rather than implicit TLS on port 465.</p></div></li>
+      <li><span>03</span><div><h3>Check cipher overlap</h3><p>Verify the device offers at least one cipher currently documented by Microsoft 365.</p></div></li>
+      <li><span>04</span><div><h3>Repair trust and time</h3><p>Update CA certificates, correct DNS and clock settings, and identify any TLS-inspection certificate substitution.</p></div></li>
+      <li><span>05</span><div><h3>Choose a supported alternative</h3><p>If firmware cannot meet the boundary, evaluate another Microsoft mail-flow option, a controlled local bridge, or device replacement.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="guide-faq">
+      <details open><summary>Is enabling “TLS” on a printer enough?</summary><p>No. Confirm STARTTLS mode, exact protocol version, cipher suites, certificate validation, DNS, and device time.</p></details>
+      <details><summary>Which TLS versions does Microsoft 365 client submission require?</summary><p>Microsoft’s current guidance requires TLS 1.2 or TLS 1.3 for client SMTP submission.</p></details>
+      <details><summary>Why is port 465 a warning sign?</summary><p>Port 465 commonly indicates implicit TLS. Microsoft documents port 587 with STARTTLS for client submission and warns that a device defaulting to 465 does not support the required mode.</p></details>
+      <details><summary>Does Exchange Online SMTP require SNI?</summary><p>Microsoft’s current client-submission guidance does not present missing SNI as a universal requirement or diagnosis. Capture the handshake and verify the exact firmware rather than assuming.</p></details>
+      <details><summary>Can RelayBridge accept TLS from the printer?</summary><p>Not currently. Inbound STARTTLS is unavailable, so local intake must remain restricted to configured devices on a trusted private network.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>Official Microsoft references</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn — Set up a multifunction device or application to send email using Microsoft 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/email-delivery/fix-issues-with-printers-scanners-and-lob-applications-that-send-email-using-off">Microsoft Learn — Fix issues with printers, scanners, and LOB applications</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/purview/technical-reference-details-about-encryption">Microsoft Learn — Technical reference details about Microsoft 365 encryption and cipher suites</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/purview/exchange-online-uses-tls-to-secure-email-connections">Microsoft Learn — How Exchange Online uses TLS to secure email connections</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/opt-in-exchange-online-endpoint-for-legacy-tls-using-smtp-auth">Microsoft Learn — Opt in to the Exchange Online endpoint for legacy TLS clients</a></li>
+    </ul>
+  </section>
+
+  <section class="related-guides" aria-labelledby="related-guides-heading">
+    <p class="guide-kicker">Related guides</p>
+    <h2 id="related-guides-heading">Continue after the handshake</h2>
+    <div><a href="/guides/troubleshooting-exchange-online-smtp-errors/"><strong>Troubleshoot SMTP errors</strong><span>Move from transport negotiation to authentication and sender diagnosis.</span></a><a href="/guides/scan-to-email-microsoft-365/"><strong>Scan to email with Microsoft 365</strong><span>Follow the full scanner-to-recipient message path.</span></a></div>
+  </section>
+</GuideLayout>

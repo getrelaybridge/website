@@ -37,7 +37,7 @@ const toc = [
       <span>IMPORTANT DISTINCTION</span>
       <p>Microsoft 365 supporting OAuth for SMTP does not mean every SMTP-speaking printer supports OAuth. The upstream service and the device are separate capabilities.</p>
     </div>
-    <p>Microsoft also documents other mail-flow categories for devices and applications, including connector-based SMTP relay and direct send. Each has different requirements and limits. The right option depends on recipients, sender identity, network egress, licensing, sending volume, and the controls your organization can operate.</p>
+    <p>Microsoft also documents other mail-flow categories for devices and applications, including connector-based SMTP relay, Direct Send, and High Volume Email. Each has different requirements and limits. The <a href="/guides/microsoft-365-smtp-options-compared/">Microsoft 365 SMTP decision matrix</a> compares them by recipients, sender identity, network egress, licensing, and sending volume.</p>
   </section>
 
   <section id="approaches">
@@ -88,7 +88,7 @@ const toc = [
   <section id="faq">
     <h2>Frequently asked questions</h2>
     <div class="guide-faq">
-      <details open><summary>Why can an older printer have trouble sending through Microsoft 365?</summary><p>It may support SMTP but lack current TLS, OAuth token acquisition, or XOAUTH2. The printer’s message-generation feature can still work even though its upstream authentication method no longer fits the service.</p></details>
+      <details open><summary>Why can an older printer have trouble sending through Microsoft 365?</summary><p>It may support SMTP but lack current TLS, OAuth token acquisition, or XOAUTH2. The printer’s message-generation feature can still work even though its upstream authentication method no longer fits the service. Use the <a href="/guides/legacy-printer-tls-cipher-suite-microsoft-365/">TLS handshake guide</a> when the connection fails before authentication.</p></details>
       <details><summary>Does Exchange Online SMTP support OAuth?</summary><p>Yes. Microsoft documents OAuth for SMTP and the SASL XOAUTH2 format used to present an access token. Whether a specific printer implements those capabilities is a separate question.</p></details>
       <details><summary>Can every printer implement OAuth?</summary><p>No. OAuth support depends on firmware and vendor design. Some devices cannot run the required flow or expose no way to configure it.</p></details>
       <details><summary>Do I necessarily need to replace a working printer?</summary><p>Not solely because it lacks OAuth. Native firmware, a suitable Microsoft mail-flow option, or a controlled local bridge may be viable. Replacement can still be the right security or support decision for an obsolete device.</p></details>

@@ -11,6 +11,10 @@ Browse all [RelayBridge technical guides](https://getrelaybridge.com/guides/), i
 - [Microsoft 365 SMTP relay for legacy printers](https://getrelaybridge.com/guides/microsoft-365-smtp-relay-legacy-printers/)
 - [Scan to email with Microsoft 365](https://getrelaybridge.com/guides/scan-to-email-microsoft-365/)
 - [Exchange Online SMTP OAuth for legacy applications](https://getrelaybridge.com/guides/exchange-online-smtp-oauth-legacy-apps/)
+- [Microsoft 365 SMTP options compared](https://getrelaybridge.com/guides/microsoft-365-smtp-options-compared/)
+- [Troubleshooting Exchange Online SMTP errors](https://getrelaybridge.com/guides/troubleshooting-exchange-online-smtp-errors/)
+- [Microsoft 365 SMTP relay for dynamic-IP branch offices](https://getrelaybridge.com/guides/office-365-smtp-relay-dynamic-ip-branch-offices/)
+- [Legacy printer TLS handshake failures with Microsoft 365](https://getrelaybridge.com/guides/legacy-printer-tls-cipher-suite-microsoft-365/)
 
 ## Local development
 

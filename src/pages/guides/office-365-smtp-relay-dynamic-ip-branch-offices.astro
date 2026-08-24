@@ -1,0 +1,129 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#branch-problem', label: 'The branch-office problem' },
+  { href: '#connector-identity', label: 'How connectors identify mail' },
+  { href: '#dynamic-ip', label: 'Dynamic IP and CGNAT' },
+  { href: '#port-25', label: 'The port 25 dependency' },
+  { href: '#certificate-option', label: 'Certificate connectors' },
+  { href: '#direct-send', label: 'Why Direct Send differs' },
+  { href: '#patterns', label: 'Viable architecture patterns' },
+  { href: '#relaybridge', label: 'RelayBridge at the branch' },
+  { href: '#checklist', label: 'Site assessment checklist' },
+  { href: '#faq', label: 'Frequently asked questions' },
+  { href: '#references', label: 'Microsoft references' },
+];
+---
+
+<GuideLayout title="Microsoft 365 SMTP Relay for Dynamic-IP Branch Offices | RelayBridge" description="Understand why IP-based Exchange Online connector relay breaks at dynamic-IP, CGNAT, retail, and branch sites—and evaluate certificate, port 587, and local bridge alternatives." eyebrow="Guide · Branch offices" heading="Microsoft 365 SMTP relay from dynamic-IP branch offices" summary="IP-based connector relay depends on a stable, exclusive public identity and outbound port 25. Distributed sites often have neither—but Microsoft also documents a certificate-based connector path, so the correct diagnosis is more nuanced than “connectors require static IPs.”" toc={toc}>
+  <section id="branch-problem">
+    <p class="guide-kicker">Identity meets network reality</p>
+    <p class="guide-lede">A design that works at headquarters can fail across stores, clinics, warehouses, and temporary sites. The mail settings may be identical while each location exits through a different ISP, rotating address, carrier NAT, security service, or port policy.</p>
+    <h2>The branch-office problem</h2>
+    <p>Connector-based SMTP relay sends to the tenant MX endpoint on TCP port 25. Exchange Online must attribute the connection to the organization. Microsoft supports that attribution through a TLS certificate—the recommended approach—or a static public IP address that is not shared with another organization.</p>
+    <p>At a branch, the printer usually owns neither identity. Its traffic is translated by a firewall or ISP, and its firmware may not be able to present the required accepted-domain certificate. Architecture must therefore be evaluated at the actual public egress boundary, not only on the printer configuration screen.</p>
+  </section>
+
+  <section id="connector-identity">
+    <h2>How Exchange Online connectors identify relay traffic</h2>
+    <div class="guide-flow" aria-label="Branch office connector relay identity flow">
+      <div><span>01</span><strong>Printer or application</strong><small>Private site address</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>02</span><strong>Public egress</strong><small>IP or TLS certificate identity</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>03</span><strong>Exchange Online MX</strong><small>Inbound connector on port 25</small></div>
+    </div>
+    <p>For IP-based relay, Exchange compares the public source address visible on the connection with the addresses configured on the inbound connector. Private RFC1918 addresses never reach Microsoft and cannot serve as connector identity.</p>
+    <p>For certificate-based relay, the sending system negotiates TLS and presents a certificate whose Subject or SAN contains an accepted domain. The connector validates that certificate identity instead of relying on the source IP.</p>
+  </section>
+
+  <section id="dynamic-ip">
+    <h2>Why dynamic IP and CGNAT break IP-based relay</h2>
+    <p>Microsoft explicitly states that dynamic IP addresses are not supported or allowed for IP-based connector relay. When the ISP rotates a branch address, the new connection no longer matches the connector. Microsoft’s troubleshooting guidance associates <code>5.7.64 TenantAttribution; Relay Access Denied</code> with a changed or mismatched IP or certificate.</p>
+    <p>Carrier-grade NAT creates another mismatch: multiple customers may share a public address, so the branch does not control an exclusive identity that can safely authorize relay. Cellular failover and some managed SD-WAN or secure-web-gateway paths can also change the egress address independently of the site firewall.</p>
+    <div class="guide-callout guide-callout-boundary"><span>DO NOT AUTOMATE AROUND IDENTITY</span><p>Continuously rewriting a connector whenever a dynamic address changes turns a security identity into a moving target. It also leaves gaps during failover and does not solve shared-address or port-blocking conditions.</p></div>
+  </section>
+
+  <section id="port-25">
+    <h2>Connector relay also depends on outbound port 25</h2>
+    <p>Both connector relay and Direct Send use the tenant MX endpoint on TCP port 25. Microsoft warns that network firewalls and ISPs may block this port. A static IP alone is therefore insufficient; the site must also have a permitted, monitored port 25 path to Exchange Online.</p>
+    <p>Test from the same egress path used by the device. A headquarters test does not prove branch reachability, and a successful DNS lookup does not prove TCP access. Document behavior during primary-WAN failure as well as normal operation.</p>
+    <p>Port 587 is different: it is the recommended client-submission port and the HVE port. Switching a connector design from 25 to 587 is not a port-only change; it selects a different Exchange Online service and authentication model.</p>
+  </section>
+
+  <section id="certificate-option">
+    <h2>Certificate-based connectors are the documented alternative</h2>
+    <p>It is inaccurate to say every Exchange Online connector requires a static IP. Microsoft recommends certificate-based connector authentication and allows the certificate Subject or SAN to contain an accepted domain. This avoids using the public source IP as the connector identity.</p>
+    <p>The alternative still has material requirements:</p>
+    <ul>
+      <li>The sending system must present and protect a suitable certificate.</li>
+      <li>The certificate identity must match the connector and an accepted domain.</li>
+      <li>The system must support TLS 1.2 or TLS 1.3.</li>
+      <li>Outbound TCP port 25 must remain available.</li>
+      <li>The device or server needs SMTP retry and operational logging.</li>
+    </ul>
+    <p>A full mail server or capable centralized relay can meet those requirements. Many printers cannot, which is why the distinction between “device” and “site relay” matters.</p>
+  </section>
+
+  <section id="direct-send">
+    <h2>Why Direct Send is not the same workaround</h2>
+    <p>Direct Send also targets the tenant MX endpoint on port 25, but it does not use an inbound connector and cannot deliver to external recipients. Microsoft recommends a static public IP for SPF and expects correct SPF, DKIM, and DMARC for the accepted-domain sender.</p>
+    <p>For internal-only notifications, Direct Send may be viable when the site can operate the sender like an internet mail server. It does not address an ISP port 25 block, and it does not provide external relay.</p>
+  </section>
+
+  <section id="patterns">
+    <h2>Viable architecture patterns</h2>
+    <div class="guide-option-list">
+      <article><h3>Centralize connector relay</h3><p>Route branch devices to a managed corporate mail server or relay that owns the certificate or stable IP, queueing, logs, and port 25 path. Secure the site-to-center transport and never expose an open relay.</p></article>
+      <article><h3>Use native OAuth client submission</h3><p>A capable device or application can use <code>smtp.office365.com</code> on port 587 with OAuth and XOAUTH2. It can send externally and does not depend on a static public IP.</p></article>
+      <article><h3>Use HVE for internal high-volume mail</h3><p>HVE uses port 587 and a dedicated account with credentials or OAuth, but recipients must be internal and the service has its own billing and message constraints.</p></article>
+      <article><h3>Place a compatibility bridge at the site</h3><p>A local bridge can accept the narrow SMTP capability already present, then own modern authentication, TLS, queueing, and retry upstream. Its local listener must be explicitly constrained.</p></article>
+    </div>
+  </section>
+
+  <section id="relaybridge">
+    <h2>How RelayBridge fits at a branch</h2>
+    <p>RelayBridge v1.0 is designed to run inside administrator-controlled local infrastructure. Printers and applications submit to its restricted local listener; RelayBridge durably persists accepted messages and sends directly to Exchange Online using OAuth, XOAUTH2, TLS, and outbound port 587.</p>
+    <p>This upstream path does not use a source-IP connector, so it does not require a static public IP or an outbound port 25 exception. Certificate-based application identity and scoped Exchange Application RBAC are intended to constrain the configured sender.</p>
+    <p>The tradeoff is explicit: inbound STARTTLS is not currently available. The device-to-RelayBridge hop must remain on a trusted private network, limited to configured sources and senders. RelayBridge is pre-release; review the <a href="/security/">security boundary</a> and <a href="/download/">release status</a> before treating this as an available deployment pattern.</p>
+  </section>
+
+  <section id="checklist">
+    <h2>Branch-site assessment checklist</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Record public egress</h3><p>Is it static, exclusive, dynamic, shared through CGNAT, or changed by failover and security services?</p></div></li>
+      <li><span>02</span><div><h3>Test ports per site</h3><p>Verify 25 and 587 from the real device path on primary and backup WAN connections.</p></div></li>
+      <li><span>03</span><div><h3>Inventory identity capability</h3><p>Can the device use OAuth/XOAUTH2 or present an accepted-domain TLS certificate?</p></div></li>
+      <li><span>04</span><div><h3>Define recipients and senders</h3><p>Separate internal-only notifications from external delivery and document every permitted sender address.</p></div></li>
+      <li><span>05</span><div><h3>Assign operational ownership</h3><p>Decide who monitors queues, rotates certificates, reviews failures, patches the relay, and tests WAN failover.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="guide-faq">
+      <details open><summary>Can an IP-based Exchange Online connector use a dynamic public IP?</summary><p>No. Microsoft explicitly states that dynamic IP addresses are not supported or allowed for the IP-based connector method.</p></details>
+      <details><summary>Do all SMTP relay connectors require a static IP?</summary><p>No. Microsoft recommends certificate-based connector authentication as an alternative, but it still requires a suitable certificate, modern TLS, and port 25.</p></details>
+      <details><summary>Will Direct Send solve a dynamic-IP branch problem?</summary><p>It removes connector identity but still uses port 25, is internal-recipient only, and benefits from a static IP for SPF and reputation.</p></details>
+      <details><summary>Does port 587 work with an MX connector?</summary><p>No. Port 587 is used by client SMTP submission and HVE. Connector relay to the tenant MX endpoint uses port 25.</p></details>
+      <details><summary>Does RelayBridge require a static public IP?</summary><p>The intended Exchange Online path uses authenticated submission over port 587, not source-IP connector identity, so no static public IP is required.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>Official Microsoft references</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn — Set up a multifunction device or application to send email using Microsoft 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/email-delivery/fix-issues-with-printers-scanners-and-lob-applications-that-send-email-using-off">Microsoft Learn — Fix issues with printers, scanners, and LOB applications</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/troubleshoot/mailflow/tenantattribution-ndr">Microsoft Learn — Fix 550 5.7.64 TenantAttribution errors</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/azure/sap/workloads/exchange-online-integration-sap-email-outbound">Microsoft Learn — Exchange Online integration for outbound application email</a></li>
+    </ul>
+  </section>
+
+  <section class="related-guides" aria-labelledby="related-guides-heading">
+    <p class="guide-kicker">Related guides</p>
+    <h2 id="related-guides-heading">Compare the available paths</h2>
+    <div><a href="/guides/microsoft-365-smtp-options-compared/"><strong>Microsoft 365 SMTP options compared</strong><span>Choose by recipient scope, identity, network path, and volume.</span></a><a href="/guides/microsoft-365-smtp-relay-legacy-printers/"><strong>SMTP for legacy printers</strong><span>Understand the device compatibility boundary.</span></a></div>
+  </section>
+</GuideLayout>

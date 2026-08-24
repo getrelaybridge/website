@@ -1,0 +1,117 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#decision', label: 'The decision first' },
+  { href: '#comparison', label: 'Options compared' },
+  { href: '#client-submission', label: 'Client SMTP submission' },
+  { href: '#smtp-relay', label: 'Connector SMTP relay' },
+  { href: '#direct-send', label: 'Direct Send' },
+  { href: '#hve', label: 'High Volume Email' },
+  { href: '#choose', label: 'How to choose' },
+  { href: '#relaybridge', label: 'Where RelayBridge fits' },
+  { href: '#faq', label: 'Frequently asked questions' },
+  { href: '#references', label: 'Microsoft references' },
+];
+---
+
+<GuideLayout title="Microsoft 365 SMTP Options Compared | RelayBridge" description="Compare Microsoft 365 client SMTP submission, connector-based SMTP relay, Direct Send, and High Volume Email for printers, applications, and automated mail." eyebrow="Guide · Mail-flow decisions" heading="Microsoft 365 SMTP options compared" summary="Client submission, connector relay, Direct Send, and High Volume Email solve different mail-flow problems. Choose by recipient scope, identity, network path, device capability, and operating model—not by whichever endpoint answers first." toc={toc}>
+  <section id="decision">
+    <p class="guide-kicker">Start with constraints</p>
+    <p class="guide-lede">Microsoft documents four relevant sending paths for devices and applications. None is universally best. The right choice follows from who must receive the mail, how the sender can authenticate, whether TCP port 25 is available, and whether the sending system can meet current TLS requirements.</p>
+    <h2>Make the mail-flow decision before configuring the device</h2>
+    <p>A printer settings page may reduce the problem to server, port, username, and password. Exchange Online sees a larger system: tenant attribution, sender authorization, recipient scope, abuse controls, transport security, and retry behavior. A configuration can therefore connect successfully and still be the wrong architecture.</p>
+    <p>Use the comparison below as a screening tool. Microsoft changes service capabilities and limits over time, so confirm the linked Microsoft documentation before a production rollout.</p>
+  </section>
+
+  <section id="comparison">
+    <h2>The four Microsoft 365 paths at a glance</h2>
+    <div class="guide-table-wrap">
+      <table class="guide-table">
+        <thead><tr><th>Method</th><th>Endpoint and port</th><th>Identity</th><th>Recipients</th><th>Key dependency</th></tr></thead>
+        <tbody>
+          <tr><th>Client SMTP submission</th><td><code>smtp.office365.com</code><br />587 recommended</td><td>Licensed mailbox; OAuth recommended</td><td>Internal and external</td><td>SMTP AUTH, modern TLS, mailbox limits</td></tr>
+          <tr><th>Connector SMTP relay</th><td>Tenant MX endpoint<br />25</td><td>Inbound connector using a TLS certificate or static unshared public IP</td><td>Internal and external</td><td>Port 25 and connector identity</td></tr>
+          <tr><th>Direct Send</th><td>Tenant MX endpoint<br />25</td><td>No mailbox sign-in or connector</td><td>Internal only</td><td>Port 25, accepted-domain sender, internet mail-server hygiene</td></tr>
+          <tr><th>High Volume Email</th><td><code>smtp.hve.mx.microsoft</code><br />587</td><td>HVE account credentials or OAuth</td><td>Internal only</td><td>HVE account, billing policy, modern TLS</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="guide-callout"><span>CURRENT HVE DETAIL</span><p>Microsoft now recommends <code>smtp.hve.mx.microsoft</code>. The older <code>smtp-hve.office365.com</code> endpoint is documented for future deprecation.</p></div>
+  </section>
+
+  <section id="client-submission">
+    <h2>1. Client SMTP submission</h2>
+    <p>Client submission authenticates through a cloud mailbox. Microsoft recommends OAuth, requires TLS 1.2 or TLS 1.3, and recommends TCP port 587. It can send to recipients inside and outside the organization and can originate from changing public IP addresses.</p>
+    <p>The designated mailbox must be licensed, SMTP AUTH must be permitted by the effective organization and mailbox settings, and the authenticated identity needs Send As permission when the visible sender differs. Mailbox sending limits apply, including the documented 30 messages-per-minute and 10,000-recipient daily limits.</p>
+    <div class="guide-option-list">
+      <article><h3>Choose it when</h3><p>The application supports OAuth and XOAUTH2, needs external delivery, and can operate within mailbox limits.</p></article>
+      <article><h3>Avoid assuming</h3><p>A checkbox labeled “SMTP authentication” does not prove OAuth support. Many devices implement only username-and-password mechanisms.</p></article>
+    </div>
+  </section>
+
+  <section id="smtp-relay">
+    <h2>2. Connector-based SMTP relay</h2>
+    <p>Connector relay sends to the tenant MX endpoint on TCP port 25. An Exchange Online inbound connector attributes the traffic to the organization by validating a TLS certificate—the recommended method—or a static public IP address that is not shared with another organization.</p>
+    <p>A licensed mailbox is not required, the sender can use an address in an accepted domain, and delivery can include external recipients. The sending device or server must retry temporary failures and remain within Microsoft’s reasonable sending limits.</p>
+    <div class="guide-callout guide-callout-boundary"><span>NETWORK BOUNDARY</span><p>For IP-based connectors, Microsoft explicitly says dynamic addresses are not supported or allowed. Certificate-based connectors remove the static-IP identity requirement, but still require port 25, current TLS, and a suitable certificate on the sending system.</p></div>
+  </section>
+
+  <section id="direct-send">
+    <h2>3. Direct Send</h2>
+    <p>Direct Send delivers anonymously to the tenant MX endpoint on port 25 without a mailbox sign-in or connector. It is limited to recipients hosted in the same Microsoft 365 organization. Mail to external recipients is rejected.</p>
+    <p>Microsoft recommends this only for advanced customers prepared to operate the sender like an internet mail server. A static public IP is recommended so the accepted domain can publish SPF, and Microsoft also calls for correct DKIM and DMARC configuration. Messages receive the same scanning applied to anonymous internet mail.</p>
+    <p>Direct Send is therefore not simply “SMTP without a password.” It moves reputation, DNS authentication, port 25 reachability, and mail-server operating responsibilities to the customer.</p>
+  </section>
+
+  <section id="hve">
+    <h2>4. High Volume Email</h2>
+    <p>High Volume Email is a dedicated Microsoft 365 service for high-volume mail to internal recipients. It uses port 587 with STARTTLS and supports an HVE account credential or OAuth token. The service is separate from ordinary mailbox SMTP AUTH controls.</p>
+    <p>Microsoft currently documents no recipient-rate or message-rate limit, while still enforcing other boundaries: up to 50 recipients per message, a 10 MB maximum message size, internal recipients only, connection limits, and up to 100 HVE accounts per tenant. HVE uses Microsoft 365 pay-as-you-go billing through an Azure-linked billing policy.</p>
+    <p>HVE is a strong fit for internal notifications at scale. It is not an external transactional-email path and does not solve a device that cannot meet its TLS or authentication requirements.</p>
+  </section>
+
+  <section id="choose">
+    <h2>How to choose</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Define recipient scope</h3><p>If any recipient is external, remove Direct Send and HVE from the shortlist.</p></div></li>
+      <li><span>02</span><div><h3>Inventory the client</h3><p>Confirm STARTTLS behavior, TLS versions, OAuth/XOAUTH2 support, certificate capability, sender control, and retry behavior.</p></div></li>
+      <li><span>03</span><div><h3>Test the network path</h3><p>Determine whether ports 587 and 25 are permitted and whether the site has an exclusive static public IP or can present an accepted-domain certificate.</p></div></li>
+      <li><span>04</span><div><h3>Match volume and operations</h3><p>Account for mailbox limits, HVE recipient scope and billing, connector administration, monitoring, logs, queueing, and failure recovery.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="relaybridge">
+    <h2>Where RelayBridge fits</h2>
+    <p>RelayBridge is not a fifth Microsoft-hosted sending service. It is a local compatibility bridge for devices and applications that can produce SMTP mail but cannot implement the selected modern upstream path themselves.</p>
+    <p>The v1.0 design accepts mail from explicitly configured local sources, persists accepted messages in a durable queue, and delivers directly to Exchange Online over port 587 using TLS, OAuth, and XOAUTH2. Its certificate-based application identity and scoped Exchange Application RBAC are designed to constrain sender authorization without depending on a static public IP or outbound port 25.</p>
+    <p>The local intake hop does not currently support STARTTLS and must remain inside a deliberately trusted private-network boundary. RelayBridge is pre-release, so evaluate the architecture through <a href="/how-it-works/">how it works</a> and the <a href="/security/">current security model</a>, not as production setup documentation.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="guide-faq">
+      <details open><summary>Which option supports external recipients?</summary><p>Client SMTP submission and connector-based SMTP relay support external recipients. Direct Send and HVE are limited to recipients inside the Microsoft 365 organization.</p></details>
+      <details><summary>Does connector relay always require a static public IP?</summary><p>No. Microsoft recommends certificate-based connector authentication. A static unshared public IP is required when the connector uses IP identity instead.</p></details>
+      <details><summary>Does HVE replace ordinary SMTP AUTH?</summary><p>No. HVE is a dedicated internal high-volume service with its own accounts, endpoint, limits, and pay-as-you-go billing model.</p></details>
+      <details><summary>Can client submission work from a dynamic public IP?</summary><p>Yes. Microsoft documents client submission as usable from any location or IP address, provided the client meets its mailbox, authentication, TLS, and sending-limit requirements.</p></details>
+      <details><summary>Is RelayBridge an SMTP relay provider?</summary><p>No. RelayBridge runs locally in administrator-controlled infrastructure and is designed to deliver directly to Exchange Online rather than through a RelayBridge-operated cloud relay.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>Official Microsoft references</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn — Set up a multifunction device or application to send email using Microsoft 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/high-volume-mails-m365">Microsoft Learn — Manage High Volume Email for Microsoft 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn — Enable or disable SMTP AUTH in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/defender-office-365/outbound-spam-sending-limits-troubleshoot">Microsoft Learn — Troubleshoot outbound sending limits in Exchange Online</a></li>
+    </ul>
+  </section>
+
+  <section class="related-guides" aria-labelledby="related-guides-heading">
+    <p class="guide-kicker">Related guides</p>
+    <h2 id="related-guides-heading">Continue from decision to diagnosis</h2>
+    <div><a href="/guides/troubleshooting-exchange-online-smtp-errors/"><strong>Troubleshoot Exchange Online SMTP errors</strong><span>Map the full server response to the failing SMTP stage.</span></a><a href="/guides/office-365-smtp-relay-dynamic-ip-branch-offices/"><strong>Dynamic-IP branch offices</strong><span>Understand static-IP, certificate, and port 25 boundaries.</span></a></div>
+  </section>
+</GuideLayout>

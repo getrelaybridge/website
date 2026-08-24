@@ -1,0 +1,131 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#first-response', label: 'Preserve the full response' },
+  { href: '#failure-stage', label: 'Find the failure stage' },
+  { href: '#authentication', label: '535 authentication errors' },
+  { href: '#send-as', label: '5.7.60 Send As errors' },
+  { href: '#relay', label: 'Relay and attribution errors' },
+  { href: '#limits', label: 'Throttling and limits' },
+  { href: '#tls', label: 'TLS failures' },
+  { href: '#workflow', label: 'Diagnostic workflow' },
+  { href: '#relaybridge', label: 'RelayBridge behavior' },
+  { href: '#faq', label: 'Frequently asked questions' },
+  { href: '#references', label: 'Microsoft references' },
+];
+---
+
+<GuideLayout title="Troubleshooting Exchange Online SMTP Errors | RelayBridge" description="Diagnose Exchange Online SMTP errors including 535 5.7.139, 5.7.57, 550 5.7.60, 5.7.64 Relay Access Denied, throttling, and TLS failures." eyebrow="Guide · SMTP diagnostics" heading="Troubleshooting Exchange Online SMTP errors" summary="The enhanced status code is only part of the diagnosis. Preserve the full response, identify the SMTP stage that failed, and test the identity, sender, connector, network, and TLS boundary in that order." toc={toc}>
+  <section id="first-response">
+    <p class="guide-kicker">Do not discard the suffix</p>
+    <p class="guide-lede">A code such as <code>535 5.7.139</code> can appear with different explanatory text. That text distinguishes a disabled SMTP AUTH setting from an authentication-policy rejection or a federated identity problem. Troubleshooting from the number alone can produce the wrong fix.</p>
+    <h2>Preserve the complete Exchange response</h2>
+    <p>Collect the timestamp, endpoint, port, client IP, authenticated identity, envelope sender, header From address, recipient, and every line returned by the server. Device displays often truncate the useful part, so enable SMTP logging or reproduce the test from a controlled host when possible.</p>
+    <div class="guide-callout"><span>SAFETY RULE</span><p>Do not “fix” an authentication error by broadly disabling Security Defaults, MFA, or Conditional Access. First determine whether the client can use OAuth or whether a different Microsoft-supported sending path is more appropriate.</p></div>
+  </section>
+
+  <section id="failure-stage">
+    <h2>Find the failing SMTP stage</h2>
+    <div class="guide-table-wrap">
+      <table class="guide-table">
+        <thead><tr><th>Stage</th><th>Typical evidence</th><th>First checks</th></tr></thead>
+        <tbody>
+          <tr><th>DNS / TCP</th><td>Timeout, name-resolution failure, connection refused</td><td>Endpoint, port, DNS, firewall, ISP egress</td></tr>
+          <tr><th>STARTTLS</th><td>Disconnect or handshake failure before authentication</td><td>TLS version, cipher overlap, STARTTLS mode, certificate trust, clock</td></tr>
+          <tr><th>AUTH</th><td><code>535</code>, <code>5.7.3</code>, <code>5.7.57</code></td><td>Authentication method, token or credential, effective SMTP AUTH controls</td></tr>
+          <tr><th>MAIL FROM</th><td><code>5.7.60</code>, anonymous-mail or sender errors</td><td>Authenticated identity, envelope sender, Send As authorization</td></tr>
+          <tr><th>RCPT TO</th><td>Relay or recipient-scope rejection</td><td>Direct Send scope, connector attribution, recipient validity</td></tr>
+          <tr><th>Submission / queue</th><td>Quota, concurrency, or transient service response</td><td>Rate, daily recipients, concurrent sessions, retry policy</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="authentication">
+    <h2>535, 5.7.3, and 5.7.139 authentication errors</h2>
+    <p>Microsoft’s troubleshooting guidance groups <code>535 5.7.3 Authentication unsuccessful</code> and <code>5.7.57 Client not authenticated to send mail</code> around the authenticated-submission path. Verify that the client is using <code>smtp.office365.com</code>, that it is actually authenticating, and that its authentication method is allowed.</p>
+    <p>For ordinary SMTP AUTH, inspect both levels of Exchange control:</p>
+    <ul>
+      <li><code>Get-TransportConfig | Format-List SmtpClientAuthenticationDisabled</code> shows the organization setting.</li>
+      <li><code>Get-CASMailbox -Identity &lt;MailboxIdentity&gt; | Format-List SmtpClientAuthenticationDisabled</code> shows the mailbox override.</li>
+    </ul>
+    <p>A mailbox value of <code>False</code> means enabled, <code>True</code> means disabled, and a blank value inherits the organization setting. Those settings do not make a password-only client compatible with a policy that requires modern authentication.</p>
+    <h3>Why 535 5.7.139 needs its full text</h3>
+    <p>Microsoft documents multiple suffixes, including disabled SMTP client authentication, a request that does not meet authentication criteria, and federated STS reachability or HTTPS failures. HVE also has its own <code>535 5.7.139</code> organization-configuration response on its dedicated endpoint. Match the entire message to the endpoint and identity type before changing anything.</p>
+  </section>
+
+  <section id="send-as">
+    <h2>550 5.7.60 and Send As failures</h2>
+    <p><code>5.7.60 SMTP; Client doesn't have permissions to send as this sender</code> means the authenticated mailbox is submitting with another sender address and lacks the required Send As permission. Compare three values: the identity used during AUTH, the SMTP envelope <code>MAIL FROM</code>, and the message header <code>From:</code>.</p>
+    <p>If one mailbox legitimately submits as another, grant narrowly scoped Send As permission and verify it. If a fleet must use arbitrary addresses in an accepted domain, connector relay may fit better than mailbox client submission. Do not solve the mismatch by granting broad sender access without an explicit requirement.</p>
+    <p><code>550 5.1.8 Bad outbound sender</code> is different: Microsoft associates it with a sender blocked in the Restricted Users portal. Check the exact response instead of treating every <code>550</code> as a permission problem.</p>
+  </section>
+
+  <section id="relay">
+    <h2>Relay and tenant-attribution errors</h2>
+    <p><code>5.7.57 Client was not authenticated to send anonymous mail during MAIL FROM</code> commonly appears when a device connects to <code>smtp.office365.com</code> but does not authenticate. Direct Send and connector relay use the tenant MX endpoint instead; changing only the credentials does not convert one architecture into another.</p>
+    <p><code>5.7.64 TenantAttribution; Relay Access Denied</code> points to connector identity. Microsoft identifies a changed or mismatched static source IP or TLS certificate as common causes. Confirm the public egress address seen by Microsoft, the connector configuration, and the certificate subject or SAN used on the connection.</p>
+    <p>Direct Send has a separate scope boundary: it delivers only to recipients inside the organization. An external-recipient failure is expected behavior, not a connector defect.</p>
+  </section>
+
+  <section id="limits">
+    <h2>Throttling, concurrency, and submission limits</h2>
+    <p>Ordinary authenticated SMTP submission is documented at 30 messages per minute and 10,000 recipients per day. Microsoft also allows up to three concurrent connections for a mailbox; additional simultaneous sessions can receive <code>432 4.3.2 Concurrent connections limit exceeded</code>.</p>
+    <p>Exceeding the per-minute rate causes throttling and delayed carryover. Exceeding the daily recipient limit can return <code>554 5.2.0 STOREDRV.Submission.Exception:SubmissionQuotaExceededException</code>. A full Sent Items mailbox can produce a different <code>554 5.2.2</code> quota error.</p>
+    <div class="guide-callout"><span>RETRY CLASSIFICATION</span><p>Retry temporary 4xx responses with bounded backoff. Do not endlessly retry permanent 5xx authorization, sender, recipient, or configuration failures; surface them for administrative action.</p></div>
+  </section>
+
+  <section id="tls">
+    <h2>TLS failures can happen before any SMTP error code</h2>
+    <p>Client SMTP submission requires STARTTLS with TLS 1.2 or TLS 1.3. A device offering only TLS 1.0/1.1 or obsolete cipher suites may disconnect during the handshake and never reach AUTH, so its log may contain only a generic connection or certificate error.</p>
+    <p>First test TCP reachability on port 587, then test the STARTTLS negotiation. Confirm that the device is not attempting implicit TLS on port 465, that its clock is correct, and that its trust store can validate the service certificate. The dedicated legacy-TLS endpoint exists as an opt-in compatibility measure, but Microsoft marks those older TLS versions unsupported; it should not be treated as the modern target architecture.</p>
+    <p>The deeper <a href="/guides/legacy-printer-tls-cipher-suite-microsoft-365/">TLS handshake guide</a> separates port, protocol, cipher, certificate, and authentication failures.</p>
+  </section>
+
+  <section id="workflow">
+    <h2>A disciplined diagnostic workflow</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Identify the chosen sending method</h3><p>Record the endpoint, port, intended recipient scope, and whether identity is a mailbox, connector, HVE account, or no authentication.</p></div></li>
+      <li><span>02</span><div><h3>Prove DNS and TCP reachability</h3><p>Test from the same network path as the device. A successful port test does not prove TLS or authentication.</p></div></li>
+      <li><span>03</span><div><h3>Prove STARTTLS</h3><p>Capture the negotiated TLS version, cipher, certificate validation result, and where the handshake stops.</p></div></li>
+      <li><span>04</span><div><h3>Validate identity and authorization</h3><p>Check the exact OAuth or credential flow, effective SMTP AUTH controls, sender match, Send As permissions, or connector identity.</p></div></li>
+      <li><span>05</span><div><h3>Classify the response</h3><p>Separate transient retryable failures from permanent configuration failures and preserve the Exchange correlation text for message trace or support.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="relaybridge">
+    <h2>How RelayBridge changes the diagnostic boundary</h2>
+    <p>RelayBridge is designed to separate local device intake from Exchange Online delivery. A device submits to a controlled local listener; RelayBridge durably queues the accepted message and owns the modern OAuth, XOAUTH2, TLS, retry, and upstream logging path.</p>
+    <p>That architecture can make temporary failures survivable and centralize diagnostics, but it does not bypass Microsoft controls. Incorrect Exchange Application RBAC, an unauthorized sender, a blocked network path, or a permanent recipient rejection must still be corrected. RelayBridge should expose those failures rather than repeatedly masking them.</p>
+    <p>Inbound STARTTLS is not currently available, so the local hop remains restricted to explicitly configured sources on a trusted private network. RelayBridge is pre-release and this article is diagnostic guidance, not a setup procedure.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="guide-faq">
+      <details open><summary>Does 535 5.7.139 always mean SMTP AUTH is disabled?</summary><p>No. That code appears with multiple explanatory suffixes. Preserve and interpret the complete server response, endpoint, and authentication method.</p></details>
+      <details><summary>What causes 550 5.7.60?</summary><p>The authenticated mailbox is attempting to send as another address without the required Send As permission. Compare the AUTH identity, envelope sender, and header From value.</p></details>
+      <details><summary>Why does Direct Send fail for an external recipient?</summary><p>Direct Send is intentionally limited to recipients inside the Microsoft 365 organization. Use an external-capable method when external delivery is required.</p></details>
+      <details><summary>Should every SMTP failure be retried?</summary><p>No. Retry temporary 4xx responses with bounded backoff. Permanent 5xx authorization and configuration errors require intervention.</p></details>
+      <details><summary>Does a final SMTP 250 response prove inbox delivery?</summary><p>No. It proves acceptance at the SMTP boundary. Filtering, rules, routing, quarantine, and downstream delivery still follow; use Exchange message trace for later events.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>Official Microsoft references</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/email-delivery/fix-issues-with-printers-scanners-and-lob-applications-that-send-email-using-off">Microsoft Learn — Fix issues with printers, scanners, and LOB applications that send email using Microsoft 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn — Enable or disable SMTP AUTH in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/email-delivery/ndr/non-delivery-reports-in-exchange-online">Microsoft Learn — NDRs and SMTP errors in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/send-emails/smtp-submission-improvements">Microsoft Learn — SMTP authenticated submission throttling</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/monitoring/trace-an-email-message/message-trace-modern-eac">Microsoft Learn — Message trace in the Exchange admin center</a></li>
+    </ul>
+  </section>
+
+  <section class="related-guides" aria-labelledby="related-guides-heading">
+    <p class="guide-kicker">Related guides</p>
+    <h2 id="related-guides-heading">Trace the underlying architecture</h2>
+    <div><a href="/guides/microsoft-365-smtp-options-compared/"><strong>Microsoft 365 SMTP options compared</strong><span>Verify that the selected endpoint matches the required mail flow.</span></a><a href="/guides/legacy-printer-tls-cipher-suite-microsoft-365/"><strong>Legacy printer TLS failures</strong><span>Diagnose negotiation before authentication begins.</span></a></div>
+  </section>
+</GuideLayout>

@@ -22,7 +22,7 @@ const toc = [
     <p class="guide-lede">Scan-to-email is a chain of separate operations: capture a document, construct an email, submit it to an SMTP service, authenticate upstream, and let Microsoft 365 process delivery. The failure point is often between the scanner’s legacy SMTP client and Exchange Online’s modern identity requirements.</p>
     <h2>Why scan-to-email becomes difficult</h2>
     <p>Many scanners and multifunction printers were built when a mailbox username and password were enough for outbound SMTP. The device may still scan perfectly and generate a valid MIME attachment, yet be unable to obtain an OAuth token, present it through XOAUTH2, or negotiate a current TLS version.</p>
-    <p>The visible symptom is usually blunt—an authentication error, connection failure, or generic “send failed” message. Diagnosing it requires separating document creation, local network reachability, SMTP dialogue, authentication, upstream acceptance, and final delivery.</p>
+    <p>The visible symptom is usually blunt—an authentication error, connection failure, or generic “send failed” message. Diagnosing it requires separating document creation, local network reachability, SMTP dialogue, authentication, upstream acceptance, and final delivery. The <a href="/guides/troubleshooting-exchange-online-smtp-errors/">Exchange Online SMTP error guide</a> maps common responses to those stages.</p>
   </section>
 
   <section id="old-model">
