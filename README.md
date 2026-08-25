@@ -2,7 +2,9 @@
 
 The public website for [RelayBridge](https://getrelaybridge.com), an open-source project for modern email delivery from legacy SMTP devices and applications. RelayBridge starts with Microsoft 365 / Exchange Online as its current v1.0 target.
 
-This repository contains the static public website only. It does not depend on, import, or contain RelayBridge application source or private configuration.
+RelayBridge application source is public at [getrelaybridge/relaybridge](https://github.com/getrelaybridge/relaybridge) under the Mozilla Public License 2.0 (`MPL-2.0`). Official signed Windows binaries are still in release preparation.
+
+This repository contains the static public website only. It does not depend on, import, or contain the RelayBridge application source or private configuration.
 
 ## Technical guides
 
@@ -56,4 +58,4 @@ Small fixes are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before p
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+The RelayBridge application is licensed under MPL-2.0 in its [source repository](https://github.com/getrelaybridge/relaybridge). This website repository remains MIT licensed; see [LICENSE](LICENSE).

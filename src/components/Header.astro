@@ -23,7 +23,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(hre
           {navItems.map((item) => (
             <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
           ))}
-          <a href="https://github.com/getrelaybridge">GitHub</a>
+          <a href="https://github.com/getrelaybridge/relaybridge">GitHub</a>
           <a href="/download/" aria-current={pathname === '/download/' ? 'page' : undefined}>Release status</a>
         </div>
       </details>
@@ -31,7 +31,7 @@ const isCurrent = (href: string) => pathname === href || pathname.startsWith(hre
         {navItems.map((item) => (
           <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
         ))}
-        <a href="https://github.com/getrelaybridge">GitHub</a>
+        <a href="https://github.com/getrelaybridge/relaybridge">GitHub</a>
         <a class="button button-small button-dark" href="/download/" aria-current={pathname === '/download/' ? 'page' : undefined}>Release status</a>
       </div>
     </nav>

@@ -64,6 +64,7 @@ const securitySections = [
           <p class="eyebrow"><span></span> Security philosophy</p>
           <h2>Minimize hidden trust.</h2>
           <p class="prose-lede">RelayBridge exists to modernize a narrow boundary without creating a new hosted mail dependency. The security model favors local control, a publicly documented architecture, constrained Microsoft authorization, durable state, and accurate delivery semantics.</p>
+          <p>The <a class="text-link" href="https://github.com/getrelaybridge/relaybridge">RelayBridge source code</a> is public under the Mozilla Public License 2.0 and available for direct review.</p>
           <div class="principle-grid">
             <div><b>01</b><h3>Keep the path direct</h3><p>Mail moves from infrastructure you control to Microsoft 365.</p></div>
             <div><b>02</b><h3>Use modern identity</h3><p>Certificates and OAuth replace a stored Microsoft password or client secret.</p></div>
@@ -121,5 +122,5 @@ const securitySections = [
     </div>
   </section>
 
-  <CallToAction eyebrow="Open development" title="Inspect the project as it develops." description="RelayBridge is preparing for v1.0. Follow the organization for source, releases, and documentation updates." primaryHref="https://github.com/getrelaybridge" primaryLabel="View on GitHub" secondaryHref="/docs/" secondaryLabel="Documentation" />
+  <CallToAction eyebrow="Open development" title="Inspect the public source." description="Review RelayBridge under MPL-2.0 while official signed Windows binaries remain in release preparation." primaryHref="https://github.com/getrelaybridge/relaybridge" primaryLabel="View source" secondaryHref="/docs/" secondaryLabel="Documentation" />
 </BaseLayout>
