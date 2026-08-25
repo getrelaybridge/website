@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-smtp-troubleshooting.webp';
 
 const toc = [
   { href: '#first-response', label: 'Preserve the full response' },
@@ -16,7 +17,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Troubleshooting Exchange Online SMTP Errors | RelayBridge" description="Diagnose Exchange Online SMTP errors including 535 5.7.139, 5.7.57, 550 5.7.60, 5.7.64 Relay Access Denied, throttling, and TLS failures." eyebrow="Guide · SMTP diagnostics" heading="Troubleshooting Exchange Online SMTP errors" summary="The enhanced status code is only part of the diagnosis. Preserve the full response, identify the SMTP stage that failed, and test the identity, sender, connector, network, and TLS boundary in that order." toc={toc}>
+<GuideLayout title="Troubleshooting Exchange Online SMTP Errors | RelayBridge" description="Diagnose Exchange Online SMTP errors including 535 5.7.139, 5.7.57, 550 5.7.60, 5.7.64 Relay Access Denied, throttling, and TLS failures." eyebrow="Guide · SMTP diagnostics" heading="Troubleshooting Exchange Online SMTP errors" summary="The enhanced status code is only part of the diagnosis. Preserve the full response, identify the SMTP stage that failed, and test the identity, sender, connector, network, and TLS boundary in that order." toc={toc} image={guideImage} imageAlt="Simplified Exchange Online SMTP diagnostic path from port 587 and TLS through 535 authentication checks and 550 Send As checks to a final 250 accepted response." imageCaption="Treat this as a stage map, not a complete error decoder: preserve the full Exchange response before changing configuration." >
   <section id="first-response">
     <p class="guide-kicker">Do not discard the suffix</p>
     <p class="guide-lede">A code such as <code>535 5.7.139</code> can appear with different explanatory text. That text distinguishes a disabled SMTP AUTH setting from an authentication-policy rejection or a federated identity problem. Troubleshooting from the number alone can produce the wrong fix.</p>

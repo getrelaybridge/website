@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-smtp-options.webp';
 
 const toc = [
   { href: '#decision', label: 'The decision first' },
@@ -15,7 +16,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Microsoft 365 SMTP Options Compared | RelayBridge" description="Compare Microsoft 365 client SMTP submission, connector-based SMTP relay, Direct Send, and High Volume Email for printers, applications, and automated mail." eyebrow="Guide · Mail-flow decisions" heading="Microsoft 365 SMTP options compared" summary="Client submission, connector relay, Direct Send, and High Volume Email solve different mail-flow problems. Choose by recipient scope, identity, network path, device capability, and operating model—not by whichever endpoint answers first." toc={toc}>
+<GuideLayout title="Microsoft 365 SMTP Options Compared | RelayBridge" description="Compare Microsoft 365 client SMTP submission, connector-based SMTP relay, Direct Send, and High Volume Email for printers, applications, and automated mail." eyebrow="Guide · Mail-flow decisions" heading="Microsoft 365 SMTP options compared" summary="Client submission, connector relay, Direct Send, and High Volume Email solve different mail-flow problems. Choose by recipient scope, identity, network path, device capability, and operating model—not by whichever endpoint answers first." toc={toc} image={guideImage} imageAlt="Four Microsoft 365 SMTP paths: client submission using OAuth on port 587, connector relay using a certificate or static IP on port 25, Direct Send for internal recipients on port 25, and High Volume Email for internal recipients on port 587." imageCaption="The four Microsoft-supported paths differ by identity, port, recipient scope, and network requirements." >
   <section id="decision">
     <p class="guide-kicker">Start with constraints</p>
     <p class="guide-lede">Microsoft documents four relevant sending paths for devices and applications. None is universally best. The right choice follows from who must receive the mail, how the sender can authenticate, whether TCP port 25 is available, and whether the sending system can meet current TLS requirements.</p>

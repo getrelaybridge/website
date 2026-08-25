@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from './PageHero.astro';
 import CallToAction from './CallToAction.astro';
-import { Image } from 'astro:assets';
+import PageArtwork from './PageArtwork.astro';
 import type { ImageMetadata } from 'astro';
 
 interface TocItem {
@@ -29,24 +29,7 @@ const { title, description, eyebrow, heading, summary, toc, image, imageAlt, ima
   <PageHero eyebrow={eyebrow} title={heading} description={summary} />
 
   {image && imageAlt && (
-    <section class="guide-visual-band" aria-label="Guide architecture overview">
-      <figure class="container guide-visual">
-        <a class="guide-visual-image-link" href={image.src} target="_blank" rel="noopener" aria-label="Open the full-size guide diagram">
-          <Image
-            src={image}
-            alt={imageAlt}
-            widths={[480, 720, 960, 1200, 1376]}
-            sizes="(max-width: 720px) calc(100vw - 40px), (max-width: 1200px) calc(100vw - 80px), 1120px"
-            format="webp"
-            quality={88}
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-        </a>
-        {imageCaption && <figcaption><span>{imageCaption}</span><a href={image.src} target="_blank" rel="noopener">View full-size diagram</a></figcaption>}
-      </figure>
-    </section>
+    <PageArtwork image={image} alt={imageAlt} caption={imageCaption} ariaLabel="Guide architecture overview" />
   )}
 
   <section class="guide-status" aria-label="Release status">

@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
+import PageArtwork from '../../components/PageArtwork.astro';
 import CallToAction from '../../components/CallToAction.astro';
+import guidesArtwork from '../../assets/page-art/guides-overview.webp';
+
+const guidesArtworkAlt = 'Hand-drawn technical guide collection for printers, scanners, legacy applications, and Microsoft 365 infrastructure.';
 
 const guides = [
   {
@@ -56,8 +60,9 @@ const guides = [
 ];
 ---
 
-<BaseLayout title="Guides — RelayBridge" description="Practical guides for Microsoft 365 SMTP, legacy printers, scanners, multifunction devices, and applications that cannot use modern authentication directly.">
+<BaseLayout title="Guides — RelayBridge" description="Practical guides for Microsoft 365 SMTP, legacy printers, scanners, multifunction devices, and applications that cannot use modern authentication directly." image={guidesArtwork.src} imageAlt={guidesArtworkAlt}>
   <PageHero eyebrow="Problem-solving guides" title="Microsoft 365 SMTP guides for legacy devices" description="Practical explanations for connecting printers, scanners, multifunction devices, and legacy applications to modern Microsoft 365 mail infrastructure." />
+  <PageArtwork image={guidesArtwork} alt={guidesArtworkAlt} caption="Seven practical guides cover device compatibility, Microsoft 365 mail-flow choices, distributed sites, and diagnostics." ariaLabel="RelayBridge technical guides overview" />
 
   <section class="section section-white">
     <div class="container">

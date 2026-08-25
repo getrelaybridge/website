@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import routeNotFoundArtwork from '../assets/page-art/route-not-found.webp';
 ---
 
-<BaseLayout title="Page not found — RelayBridge" description="The requested RelayBridge page could not be found.">
+<BaseLayout title="Page not found — RelayBridge" description="The requested RelayBridge page could not be found." image={routeNotFoundArtwork.src} imageAlt="A hand-drawn incomplete bridge representing a RelayBridge route that could not be found.">
   <section class="not-found section-dark">
     <div class="container not-found-inner">
       <span class="error-code">404 / ROUTE NOT FOUND</span>

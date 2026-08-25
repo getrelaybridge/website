@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import downloadArtwork from '../assets/page-art/download-status.webp';
 ---
 
-<BaseLayout title="RelayBridge downloads — v1.0 in preparation" description="Public RelayBridge v1.0 builds are not available yet. Follow development and releases on GitHub.">
+<BaseLayout title="RelayBridge downloads — v1.0 in preparation" description="Public RelayBridge v1.0 builds are not available yet. Follow development and releases on GitHub." image={downloadArtwork.src} imageAlt="RelayBridge release-status illustration showing a Windows service, local daemon, certificate keystore, and GitHub repository around an active-development package.">
   <section class="download-page section-dark">
     <div class="container download-grid">
       <div>

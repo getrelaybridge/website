@@ -1,11 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
+import PageArtwork from '../components/PageArtwork.astro';
 import CallToAction from '../components/CallToAction.astro';
+import aboutArtwork from '../assets/page-art/about-local-first.webp';
+
+const aboutArtworkAlt = 'Comparison showing a hosted cloud relay excluded from the mail path and RelayBridge running locally between the administrator’s LAN and Microsoft 365.';
 ---
 
-<BaseLayout title="About RelayBridge" description="RelayBridge is an independent open-source project modernizing email for legacy SMTP equipment, starting with Microsoft 365.">
+<BaseLayout title="About RelayBridge" description="RelayBridge is an independent open-source project modernizing email for legacy SMTP equipment, starting with Microsoft 365." image={aboutArtwork.src} imageAlt={aboutArtworkAlt}>
   <PageHero eyebrow="About the project" title="A focused answer to" accent="a real compatibility problem." description="RelayBridge is an independent open-source project for administrators who need working legacy devices to coexist with modern mail platforms, starting with Microsoft 365." />
+  <PageArtwork image={aboutArtwork} alt={aboutArtworkAlt} caption="RelayBridge keeps the compatibility layer on your network and does not add a RelayBridge-operated cloud relay to the mail path." ariaLabel="RelayBridge local-first architecture" />
   <section class="section section-white">
     <div class="container editorial-grid">
       <div class="editorial-number">01 / WHY</div>
