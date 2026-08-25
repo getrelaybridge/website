@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-scan-to-email.webp';
 
 const toc = [
   { href: '#why-difficult', label: 'Why scan to email is difficult' },
@@ -16,7 +17,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Scan to Email with Microsoft 365 Modern Authentication | RelayBridge" description="Understand the scan-to-email authentication problem in Microsoft 365 and how legacy scanners can use a local SMTP bridge while modern authentication is handled upstream." eyebrow="Guide · Scan to email" heading="How scan-to-email works with Microsoft 365 modern authentication" summary="The scanner only needs to create and submit a message. A local bridge can take responsibility for durable queuing, modern Microsoft authentication, and encrypted upstream delivery." toc={toc}>
+<GuideLayout title="Scan to Email with Microsoft 365 Modern Authentication | RelayBridge" description="Understand the scan-to-email authentication problem in Microsoft 365 and how legacy scanners can use a local SMTP bridge while modern authentication is handled upstream." eyebrow="Guide · Scan to email" heading="How scan-to-email works with Microsoft 365 modern authentication" summary="The scanner only needs to create and submit a message. A local bridge can take responsibility for durable queuing, modern Microsoft authentication, and encrypted upstream delivery." toc={toc} image={guideImage} imageAlt="A scanner submits a PDF attachment by local SMTP to RelayBridge, which durably spools it and uses XOAUTH2 and TLS for upstream Exchange Online acceptance." imageCaption="Exchange acceptance is the upstream SMTP boundary; it is not a guarantee of inbox placement." >
   <section id="why-difficult">
     <p class="guide-kicker">Start with the boundary</p>
     <p class="guide-lede">Scan-to-email is a chain of separate operations: capture a document, construct an email, submit it to an SMTP service, authenticate upstream, and let Microsoft 365 process delivery. The failure point is often between the scanner’s legacy SMTP client and Exchange Online’s modern identity requirements.</p>

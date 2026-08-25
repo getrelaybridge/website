@@ -1,11 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ConceptArchitectureSketch from '../components/ConceptArchitectureSketch.astro';
+import homeSocialImage from '../assets/page-art/home-mail-path.webp';
 ---
 
 <BaseLayout
   title="RelayBridge — Modern email for legacy devices"
   description="RelayBridge starts with Microsoft 365, helping printers, scanners, and legacy applications use modern authentication without another relay provider."
+  image={homeSocialImage.src}
+  imageAlt="Printers, scanners, and legacy applications submit local SMTP through RelayBridge to Microsoft 365 using OAuth and TLS."
 >
   <section class="hero section-dark">
     <div class="container hero-grid">

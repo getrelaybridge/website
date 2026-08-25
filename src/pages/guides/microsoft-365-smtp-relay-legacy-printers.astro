@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-printers.webp';
 
 const toc = [
   { href: '#compatibility-problem', label: 'The compatibility problem' },
@@ -15,7 +16,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Microsoft 365 SMTP for Legacy Printers | RelayBridge" description="Learn why older printers and multifunction devices struggle with Microsoft 365 modern authentication, what SMTP OAuth requires, and how a local SMTP bridge can close the compatibility gap." eyebrow="Guide · Printers and MFPs" heading="Microsoft 365 SMTP for legacy printers and multifunction devices" summary="A working printer can still be unable to send through Exchange Online. The usual problem is not SMTP itself; it is the authentication and transport capability around SMTP." toc={toc}>
+<GuideLayout title="Microsoft 365 SMTP for Legacy Printers | RelayBridge" description="Learn why older printers and multifunction devices struggle with Microsoft 365 modern authentication, what SMTP OAuth requires, and how a local SMTP bridge can close the compatibility gap." eyebrow="Guide · Printers and MFPs" heading="Microsoft 365 SMTP for legacy printers and multifunction devices" summary="A working printer can still be unable to send through Exchange Online. The usual problem is not SMTP itself; it is the authentication and transport capability around SMTP." toc={toc} image={guideImage} imageAlt="A legacy printer sends local SMTP to RelayBridge, which queues the message and submits it to Microsoft 365 over port 587 using OAuth and XOAUTH2." imageCaption="RelayBridge separates the printer’s local SMTP capability from Microsoft 365’s modern identity and transport requirements." >
   <section id="compatibility-problem">
     <p class="guide-kicker">The short version</p>
     <p class="guide-lede">Many printers and MFPs can compose a message and submit it over SMTP, but their firmware was designed for a username-and-password era. Microsoft 365 can accept authenticated SMTP with OAuth, while an older device may have no way to obtain a token or present it through XOAUTH2.</p>

@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import homepageMailPath from '../assets/relaybridge-homepage-mail-path-aligned.webp';
+import homepageMailPath from '../assets/page-art/home-mail-path.webp';
 
 interface Props {
   variant: 'hybrid' | 'how-it-works' | 'security';
@@ -125,26 +125,6 @@ const flowNodes = variant === 'how-it-works'
     <span class="sketch-node-label sketch-cloud">Microsoft 365</span>
     <span class="sketch-detail-label sketch-cloud-detail">Exchange Online</span>
   </div>
-  {variant === 'hybrid' && (
-    <div class="hybrid-mobile-sketch" role="img" aria-label="Mail flows from local legacy devices through RelayBridge on your network, then securely to Microsoft 365.">
-      <div class="hybrid-mobile-node">
-        <span>LEGACY DEVICES</span>
-        <strong>Printer · Scanner · Legacy app</strong>
-      </div>
-      <div class="hybrid-mobile-connector"><span>Local SMTP</span><i aria-hidden="true">↓</i></div>
-      <div class="hybrid-mobile-node hybrid-mobile-node--relay">
-        <span>LOCAL BRIDGE</span>
-        <strong>RelayBridge</strong>
-        <small>Runs on your network</small>
-      </div>
-      <div class="hybrid-mobile-connector"><span>OAuth + TLS</span><i aria-hidden="true">↓</i></div>
-      <div class="hybrid-mobile-node hybrid-mobile-node--cloud">
-        <span>MAIL PLATFORM</span>
-        <strong>Microsoft 365</strong>
-        <small>Exchange Online</small>
-      </div>
-    </div>
-  )}
   </>
   )}
 </div>
@@ -179,7 +159,6 @@ const flowNodes = variant === 'how-it-works'
   .architecture-sketch--hybrid > .sketch-labels { display: none; }
   .architecture-sketch--how-it-works,
   .architecture-sketch--security { --sketch-ink: #dce9e7; --sketch-relay: #39d6ae; --sketch-cloud: #f1b85b; }
-  .hybrid-mobile-sketch { display: none; }
 
   .hybrid-flow-diagram {
     display: grid;
@@ -252,36 +231,4 @@ const flowNodes = variant === 'how-it-works'
     .hybrid-flow-arrow { width: 34px; height: 27px; margin-inline: auto; transform: rotate(90deg); }
   }
 
-  @media (max-width: 560px) {
-    .hybrid-artwork { display: none; }
-    .hybrid-mobile-sketch { display: grid; gap: 9px; }
-    .hybrid-mobile-node {
-      position: relative;
-      display: grid;
-      gap: 7px;
-      padding: 18px;
-      border: 1px solid rgba(220,233,231,.34);
-      border-radius: 10px 8px 11px 9px;
-      color: #eef6f4;
-      background: rgba(255,255,255,.035);
-    }
-    .hybrid-mobile-node::after {
-      content: "";
-      position: absolute;
-      inset: 4px -3px -3px 5px;
-      z-index: -1;
-      border-right: 1px solid rgba(220,233,231,.13);
-      border-bottom: 1px solid rgba(220,233,231,.13);
-      border-radius: 8px 11px 9px 10px;
-    }
-    .hybrid-mobile-node span { color: #d2dfdd; font: 700 13px/1 var(--mono); letter-spacing: .06em; }
-    .hybrid-mobile-node strong { font-size: 16px; line-height: 1.35; }
-    .hybrid-mobile-node small { color: #d2dfdd; font: 500 14px/1.45 var(--mono); }
-    .hybrid-mobile-node--relay { border-color: rgba(57,214,174,.68); background: rgba(57,214,174,.14); }
-    .hybrid-mobile-node--relay span { color: #72e8ca; }
-    .hybrid-mobile-node--cloud { border-color: rgba(241,184,91,.68); background: rgba(241,184,91,.12); }
-    .hybrid-mobile-node--cloud span { color: #f1c778; }
-    .hybrid-mobile-connector { display: grid; justify-items: center; gap: 3px; color: #d2dfdd; font: 700 13px/1.3 var(--mono); letter-spacing: .045em; text-transform: uppercase; }
-    .hybrid-mobile-connector i { color: #72e8ca; font-size: 18px; font-style: normal; line-height: 1; }
-  }
 </style>

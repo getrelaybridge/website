@@ -1,113 +1,179 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-branch-topologies.webp';
 
 const toc = [
   { href: '#branch-problem', label: 'The branch-office problem' },
-  { href: '#connector-identity', label: 'How connectors identify mail' },
-  { href: '#dynamic-ip', label: 'Dynamic IP and CGNAT' },
-  { href: '#port-25', label: 'The port 25 dependency' },
-  { href: '#certificate-option', label: 'Certificate connectors' },
-  { href: '#direct-send', label: 'Why Direct Send differs' },
-  { href: '#patterns', label: 'Viable architecture patterns' },
-  { href: '#relaybridge', label: 'RelayBridge at the branch' },
-  { href: '#checklist', label: 'Site assessment checklist' },
+  { href: '#microsoft-identity', label: 'How Microsoft identifies mail' },
+  { href: '#dynamic-ip', label: 'Dynamic IP, CGNAT, and port 25' },
+  { href: '#options', label: 'Available architecture options' },
+  { href: '#relaybridge', label: 'How RelayBridge fits' },
+  { href: '#per-branch', label: 'RelayBridge at each branch' },
+  { href: '#central', label: 'Central RelayBridge over VPN' },
+  { href: '#choose', label: 'Choosing a topology' },
+  { href: '#security', label: 'Security requirements' },
+  { href: '#limitations', label: 'Current limitations' },
+  { href: '#checklist', label: 'Deployment checklist' },
   { href: '#faq', label: 'Frequently asked questions' },
   { href: '#references', label: 'Microsoft references' },
 ];
 ---
 
-<GuideLayout title="Microsoft 365 SMTP Relay for Dynamic-IP Branch Offices | RelayBridge" description="Understand why IP-based Exchange Online connector relay breaks at dynamic-IP, CGNAT, retail, and branch sites—and evaluate certificate, port 587, and local bridge alternatives." eyebrow="Guide · Branch offices" heading="Microsoft 365 SMTP relay from dynamic-IP branch offices" summary="IP-based connector relay depends on a stable, exclusive public identity and outbound port 25. Distributed sites often have neither—but Microsoft also documents a certificate-based connector path, so the correct diagnosis is more nuanced than “connectors require static IPs.”" toc={toc}>
+<GuideLayout
+  title="Dynamic-IP Branch Offices and Microsoft 365 SMTP | RelayBridge"
+  description="Understand how Microsoft 365 identifies SMTP traffic, evaluate branch-office mail options, and compare local RelayBridge deployment with a central instance reached over site-to-site VPN."
+  eyebrow="Guide · Branch offices"
+  heading="Microsoft 365 email from dynamic-IP branch offices"
+  summary="Dynamic public addresses, CGNAT, and blocked port 25 can make traditional connector relay unsuitable for branch sites. The right design starts with Microsoft 365 identity and recipient requirements, then decides whether mail should be queued locally, centrally, or through another supported path."
+  toc={toc}
+  image={guideImage}
+  imageAlt="Two RelayBridge deployment options for dynamic-IP branches: a RelayBridge instance at each branch, or branch printers reaching one central headquarters RelayBridge over site-to-site VPN; both submit to Microsoft 365 using OAuth and TLS on port 587."
+  imageCaption="When RelayBridge is the selected compatibility layer, it can run at each branch or centrally behind a site-to-site VPN."
+>
   <section id="branch-problem">
     <p class="guide-kicker">Identity meets network reality</p>
-    <p class="guide-lede">A design that works at headquarters can fail across stores, clinics, warehouses, and temporary sites. The mail settings may be identical while each location exits through a different ISP, rotating address, carrier NAT, security service, or port policy.</p>
+    <p class="guide-lede">A mail configuration that works at headquarters can fail across stores, clinics, warehouses, and small offices. The device settings may be identical while every branch uses a different ISP, changing address, carrier NAT, security service, failover path, or port policy.</p>
     <h2>The branch-office problem</h2>
-    <p>Connector-based SMTP relay sends to the tenant MX endpoint on TCP port 25. Exchange Online must attribute the connection to the organization. Microsoft supports that attribution through a TLS certificate—the recommended approach—or a static public IP address that is not shared with another organization.</p>
-    <p>At a branch, the printer usually owns neither identity. Its traffic is translated by a firewall or ISP, and its firmware may not be able to present the required accepted-domain certificate. Architecture must therefore be evaluated at the actual public egress boundary, not only on the printer configuration screen.</p>
+    <p>Legacy printers, scanners, and applications often understand only a narrow form of SMTP. They may be unable to use Microsoft OAuth, current TLS, or an accepted-domain certificate. Their branch internet connection may also lack a stable, exclusive public IP or an unrestricted outbound port 25 path.</p>
+    <p>Those are separate constraints: device capability, Microsoft identity, recipient scope, and network reachability. A sound design evaluates each constraint before selecting connector relay, client submission, Direct Send, a central corporate relay, or a compatibility bridge.</p>
   </section>
 
-  <section id="connector-identity">
-    <h2>How Exchange Online connectors identify relay traffic</h2>
+  <section id="microsoft-identity">
+    <h2>How Microsoft 365 identifies SMTP traffic</h2>
+    <p>Microsoft documents several ways for devices and applications to send mail. They do not share the same identity model, network endpoint, recipient scope, or operational responsibility.</p>
     <div class="guide-flow" aria-label="Branch office connector relay identity flow">
-      <div><span>01</span><strong>Printer or application</strong><small>Private site address</small></div>
+      <div><span>01</span><strong>Device or application</strong><small>Private branch address</small></div>
       <i aria-hidden="true">→</i>
       <div><span>02</span><strong>Public egress</strong><small>IP or TLS certificate identity</small></div>
       <i aria-hidden="true">→</i>
       <div><span>03</span><strong>Exchange Online MX</strong><small>Inbound connector on port 25</small></div>
     </div>
-    <p>For IP-based relay, Exchange compares the public source address visible on the connection with the addresses configured on the inbound connector. Private RFC1918 addresses never reach Microsoft and cannot serve as connector identity.</p>
-    <p>For certificate-based relay, the sending system negotiates TLS and presents a certificate whose Subject or SAN contains an accepted domain. The connector validates that certificate identity instead of relying on the source IP.</p>
+    <h3>Connector-based SMTP relay</h3>
+    <p>Connector relay sends to the tenant MX endpoint on TCP port 25. Exchange Online attributes the connection to the organization through a TLS certificate—the recommended method—or a static public IP address that is not shared with another organization.</p>
+    <h3>Authenticated client submission</h3>
+    <p>Client submission uses <code>smtp.office365.com</code>, normally on port 587. It can send to internal and external recipients, but the sender must use a supported authentication model and current TLS. Microsoft recommends OAuth instead of Basic authentication.</p>
+    <h3>Direct Send and HVE</h3>
+    <p>Direct Send uses the tenant MX endpoint on port 25 without an inbound connector and is limited to recipients inside the organization. High Volume Email uses a dedicated HVE account and port 587 for internal high-volume mail, with its own service and billing constraints.</p>
   </section>
 
   <section id="dynamic-ip">
-    <h2>Why dynamic IP and CGNAT break IP-based relay</h2>
-    <p>Microsoft explicitly states that dynamic IP addresses are not supported or allowed for IP-based connector relay. When the ISP rotates a branch address, the new connection no longer matches the connector. Microsoft’s troubleshooting guidance associates <code>5.7.64 TenantAttribution; Relay Access Denied</code> with a changed or mismatched IP or certificate.</p>
-    <p>Carrier-grade NAT creates another mismatch: multiple customers may share a public address, so the branch does not control an exclusive identity that can safely authorize relay. Cellular failover and some managed SD-WAN or secure-web-gateway paths can also change the egress address independently of the site firewall.</p>
-    <div class="guide-callout guide-callout-boundary"><span>DO NOT AUTOMATE AROUND IDENTITY</span><p>Continuously rewriting a connector whenever a dynamic address changes turns a security identity into a moving target. It also leaves gaps during failover and does not solve shared-address or port-blocking conditions.</p></div>
+    <h2>Why dynamic IP, CGNAT, and port 25 matter</h2>
+    <p>Microsoft explicitly states that dynamic IP addresses are not supported or allowed for IP-based connector relay. If a branch ISP rotates the public address, the new connection no longer matches the connector. Carrier-grade NAT creates a different problem: the branch does not control an exclusive public identity because multiple customers can share the same address.</p>
+    <p>Cellular failover, managed SD-WAN, and secure-web-gateway paths can also change egress independently of the branch firewall. Private RFC1918 device addresses never reach Microsoft and cannot act as connector identity.</p>
+    <p>Connector relay and Direct Send also require outbound TCP port 25. A static IP alone is therefore insufficient. The actual device path must permit port 25 during normal operation and WAN failover.</p>
+    <div class="guide-callout guide-callout-boundary"><span>DO NOT AUTOMATE AROUND IDENTITY</span><p>Continuously rewriting an Exchange Online connector whenever a branch address changes turns a security identity into a moving target. It does not solve CGNAT, shared egress, port blocking, or failover gaps.</p></div>
   </section>
 
-  <section id="port-25">
-    <h2>Connector relay also depends on outbound port 25</h2>
-    <p>Both connector relay and Direct Send use the tenant MX endpoint on TCP port 25. Microsoft warns that network firewalls and ISPs may block this port. A static IP alone is therefore insufficient; the site must also have a permitted, monitored port 25 path to Exchange Online.</p>
-    <p>Test from the same egress path used by the device. A headquarters test does not prove branch reachability, and a successful DNS lookup does not prove TCP access. Document behavior during primary-WAN failure as well as normal operation.</p>
-    <p>Port 587 is different: it is the recommended client-submission port and the HVE port. Switching a connector design from 25 to 587 is not a port-only change; it selects a different Exchange Online service and authentication model.</p>
-  </section>
-
-  <section id="certificate-option">
-    <h2>Certificate-based connectors are the documented alternative</h2>
-    <p>It is inaccurate to say every Exchange Online connector requires a static IP. Microsoft recommends certificate-based connector authentication and allows the certificate Subject or SAN to contain an accepted domain. This avoids using the public source IP as the connector identity.</p>
-    <p>The alternative still has material requirements:</p>
-    <ul>
-      <li>The sending system must present and protect a suitable certificate.</li>
-      <li>The certificate identity must match the connector and an accepted domain.</li>
-      <li>The system must support TLS 1.2 or TLS 1.3.</li>
-      <li>Outbound TCP port 25 must remain available.</li>
-      <li>The device or server needs SMTP retry and operational logging.</li>
-    </ul>
-    <p>A full mail server or capable centralized relay can meet those requirements. Many printers cannot, which is why the distinction between “device” and “site relay” matters.</p>
-  </section>
-
-  <section id="direct-send">
-    <h2>Why Direct Send is not the same workaround</h2>
-    <p>Direct Send also targets the tenant MX endpoint on port 25, but it does not use an inbound connector and cannot deliver to external recipients. Microsoft recommends a static public IP for SPF and expects correct SPF, DKIM, and DMARC for the accepted-domain sender.</p>
-    <p>For internal-only notifications, Direct Send may be viable when the site can operate the sender like an internet mail server. It does not address an ISP port 25 block, and it does not provide external relay.</p>
-  </section>
-
-  <section id="patterns">
-    <h2>Viable architecture patterns</h2>
+  <section id="options">
+    <h2>Available architecture options</h2>
     <div class="guide-option-list">
-      <article><h3>Centralize connector relay</h3><p>Route branch devices to a managed corporate mail server or relay that owns the certificate or stable IP, queueing, logs, and port 25 path. Secure the site-to-center transport and never expose an open relay.</p></article>
-      <article><h3>Use native OAuth client submission</h3><p>A capable device or application can use <code>smtp.office365.com</code> on port 587 with OAuth and XOAUTH2. It can send externally and does not depend on a static public IP.</p></article>
-      <article><h3>Use HVE for internal high-volume mail</h3><p>HVE uses port 587 and a dedicated account with credentials or OAuth, but recipients must be internal and the service has its own billing and message constraints.</p></article>
-      <article><h3>Place a compatibility bridge at the site</h3><p>A local bridge can accept the narrow SMTP capability already present, then own modern authentication, TLS, queueing, and retry upstream. Its local listener must be explicitly constrained.</p></article>
+      <article><h3>Use a certificate-based connector</h3><p>A capable mail server can present a certificate whose Subject or SAN contains an accepted Microsoft 365 domain. This removes static-IP identity, but still requires current TLS, outbound port 25, retry behavior, logging, and secure certificate handling.</p></article>
+      <article><h3>Use native OAuth client submission</h3><p>A capable device or application can connect to <code>smtp.office365.com</code> with OAuth and current TLS. It can send internally and externally without depending on a static source IP.</p></article>
+      <article><h3>Centralize through an existing corporate relay</h3><p>Branch devices can send over a private WAN or site-to-site VPN to an existing supported mail server that owns identity, queueing, logging, and the Microsoft-facing connection.</p></article>
+      <article><h3>Use Direct Send or HVE when the scope fits</h3><p>Direct Send and HVE can serve internal-recipient scenarios, but each has distinct network, identity, policy, volume, and operational requirements.</p></article>
+      <article><h3>Introduce a compatibility bridge</h3><p>A bridge can accept the constrained SMTP capability already present, then own modern authentication, TLS, durable queueing, and upstream retry. Its device-facing listener must remain explicitly restricted.</p></article>
     </div>
+    <p>The right choice depends on recipient scope, volume, device capability, existing mail infrastructure, network paths, availability requirements, and who will operate the service.</p>
   </section>
 
   <section id="relaybridge">
-    <h2>How RelayBridge fits at a branch</h2>
-    <p>RelayBridge v1.0 is designed to run inside administrator-controlled local infrastructure. Printers and applications submit to its restricted local listener; RelayBridge durably persists accepted messages and sends directly to Exchange Online using OAuth, XOAUTH2, TLS, and outbound port 587.</p>
-    <p>This upstream path does not use a source-IP connector, so it does not require a static public IP or an outbound port 25 exception. Certificate-based application identity and scoped Exchange Application RBAC are intended to constrain the configured sender.</p>
-    <p>The tradeoff is explicit: inbound STARTTLS is not currently available. The device-to-RelayBridge hop must remain on a trusted private network, limited to configured sources and senders. RelayBridge is pre-release; review the <a href="/security/">security boundary</a> and <a href="/download/">release status</a> before treating this as an available deployment pattern.</p>
+    <p class="guide-kicker">Compatibility-layer option</p>
+    <h2>How RelayBridge fits</h2>
+    <p>RelayBridge v1.0 is being designed as a local bridge for devices that cannot implement the required Microsoft authentication and transport themselves. A restricted device submits SMTP to RelayBridge; RelayBridge durably persists the accepted message and sends it to Exchange Online using certificate-based OAuth, XOAUTH2, mandatory TLS, and outbound port 587.</p>
+    <p>This intended Microsoft-facing path does not use a source-IP connector. Microsoft authorizes the application identity and scoped sender rather than treating a branch public IP as the credential. It also avoids a branch port 25 dependency.</p>
+    <p>After selecting RelayBridge as the compatibility layer, the next question is where the trusted listener and durable queue should run: at every branch, or centrally at headquarters or in a data center.</p>
+    <div class="guide-option-list">
+      <article><h3>Option A: RelayBridge at each branch</h3><p>Devices submit across the local branch network. Each site owns its RelayBridge host, queue, certificate lifecycle, monitoring, and direct Microsoft 365 connection.</p></article>
+      <article><h3>Option B: Central RelayBridge over VPN</h3><p>Branch devices route SMTP through a site-to-site VPN to one central instance. The central service owns queueing, certificate identity, monitoring, and the Microsoft 365 connection.</p></article>
+    </div>
+  </section>
+
+  <section id="per-branch">
+    <p class="guide-kicker">Distributed queue pattern</p>
+    <h2>RelayBridge at each branch</h2>
+    <div class="guide-flow" aria-label="Per-branch RelayBridge flow">
+      <div><span>01</span><strong>Branch device</strong><small>Local SMTP</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>02</span><strong>Local RelayBridge</strong><small>Durable branch queue</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>03</span><strong>Microsoft 365</strong><small>OAuth + TLS on port 587</small></div>
+    </div>
+    <p>A local instance accepts messages without depending on the branch-to-headquarters VPN. If the branch internet connection or Microsoft 365 is temporarily unavailable, RelayBridge can retain accepted messages in its local durable queue and retry upstream.</p>
+    <p>The tradeoff is operational multiplication. Every instance needs a supported host, restricted listener, protected certificate and private key, disk capacity, updates, monitoring, backup decisions, and recovery testing. This can suit large or isolated sites, but becomes expensive across many small branches.</p>
+  </section>
+
+  <section id="central">
+    <p class="guide-kicker">Centralized operations pattern</p>
+    <h2>Central RelayBridge over site-to-site VPN</h2>
+    <div class="guide-flow" aria-label="Central RelayBridge branch-office flow">
+      <div><span>01</span><strong>Branch devices</strong><small>Printer, scanner, or application</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>02</span><strong>Site-to-site VPN</strong><small>Trusted routed SMTP path</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>03</span><strong>Central RelayBridge</strong><small>Queue, OAuth, and TLS</small></div>
+      <i aria-hidden="true">→</i>
+      <div><span>04</span><strong>Microsoft 365</strong><small>Exchange Online acceptance</small></div>
+    </div>
+    <p>This topology keeps installation, certificate handling, queue monitoring, patching, and outbound policy in one controlled location. The branch public internet address is not part of the mail path: the device reaches the central site through private routed connectivity, and the central RelayBridge makes the authenticated Microsoft 365 connection.</p>
+    <p>The central model depends on VPN reachability and shared central infrastructure. If the private route is unavailable, a branch device cannot reach the queue until connectivity returns. The central host, storage, network path, and combined workload therefore need appropriate monitoring, capacity, recovery, and availability planning.</p>
+  </section>
+
+  <section id="choose">
+    <h2>Choosing between central and per-branch deployment</h2>
+    <div class="guide-option-list">
+      <article><h3>Prefer central when</h3><p>Branches already have reliable site-to-site VPN connectivity; centralized operations are a priority; branch devices can retry during VPN interruptions; and the central platform can be made appropriately resilient.</p></article>
+      <article><h3>Prefer per-branch when</h3><p>Local submission must continue during WAN or VPN outages; the site has suitable local compute and operational ownership; or local queue isolation matters more than minimizing instance count.</p></article>
+      <article><h3>A mixed model can be reasonable</h3><p>Large or connectivity-sensitive sites can run local instances while smaller branches use a central service. Keep sender policy, certificate ownership, monitoring, and recovery responsibilities explicit in either model.</p></article>
+    </div>
+  </section>
+
+  <section id="security">
+    <h2>Security requirements</h2>
+    <p>RelayBridge does not currently provide inbound STARTTLS for the device-facing SMTP hop. In a central topology, the site-to-site VPN supplies transport protection between the branch and central network, but it does not replace source restrictions or sender policy. In a per-branch topology, device SMTP must remain on a trusted local network.</p>
+    <ul>
+      <li>Never publish the local SMTP listener directly to the internet.</li>
+      <li>Restrict access to the exact branch subnets or device addresses that require service.</li>
+      <li>Constrain permitted senders and validate Exchange Application RBAC scope.</li>
+      <li>Protect and rotate the certificate private key used for Microsoft identity.</li>
+      <li>Monitor queue depth, disk usage, authentication failures, VPN reachability, and Microsoft 365 responses.</li>
+      <li>Test service restart, WAN failover, VPN failure, certificate rotation, and storage recovery.</li>
+    </ul>
+  </section>
+
+  <section id="limitations">
+    <h2>Current limitations and planning boundaries</h2>
+    <ul>
+      <li>Inbound STARTTLS is not currently available, so the device-facing path requires a trusted private network or VPN.</li>
+      <li>A central instance creates a shared dependency on the VPN, central host, storage, and network path.</li>
+      <li>A per-branch design multiplies hosts, certificates, monitoring, patching, and recovery work.</li>
+      <li>Device retry behavior varies; some devices may report immediate failure instead of waiting for connectivity to return.</li>
+      <li>Microsoft 365 SMTP acceptance does not guarantee inbox placement.</li>
+    </ul>
+    <div class="guide-callout guide-callout-boundary"><span>PRE-RELEASE BOUNDARY</span><p>RelayBridge has no public v1.0 build yet. Treat both topologies as planning guidance until release documentation confirms supported device counts, source and sender configuration, message volume, central-instance sizing, and operating procedures. Review the <a href="/security/">current Microsoft 365 security model</a> and <a href="/download/">release status</a>.</p></div>
   </section>
 
   <section id="checklist">
-    <h2>Branch-site assessment checklist</h2>
+    <h2>Branch deployment checklist</h2>
     <ol class="guide-steps">
-      <li><span>01</span><div><h3>Record public egress</h3><p>Is it static, exclusive, dynamic, shared through CGNAT, or changed by failover and security services?</p></div></li>
-      <li><span>02</span><div><h3>Test ports per site</h3><p>Verify 25 and 587 from the real device path on primary and backup WAN connections.</p></div></li>
-      <li><span>03</span><div><h3>Inventory identity capability</h3><p>Can the device use OAuth/XOAUTH2 or present an accepted-domain TLS certificate?</p></div></li>
-      <li><span>04</span><div><h3>Define recipients and senders</h3><p>Separate internal-only notifications from external delivery and document every permitted sender address.</p></div></li>
-      <li><span>05</span><div><h3>Assign operational ownership</h3><p>Decide who monitors queues, rotates certificates, reviews failures, patches the relay, and tests WAN failover.</p></div></li>
+      <li><span>01</span><div><h3>Confirm recipient scope</h3><p>Separate internal-only notifications from mail that must reach external recipients.</p></div></li>
+      <li><span>02</span><div><h3>Inventory device capability</h3><p>Record OAuth, TLS, certificate, sender, attachment, retry, and logging support for each device type.</p></div></li>
+      <li><span>03</span><div><h3>Map real network paths</h3><p>Document public egress, CGNAT, port 25 and 587 access, VPN routing, and primary and failover behavior.</p></div></li>
+      <li><span>04</span><div><h3>Choose the queue location</h3><p>Decide whether messages should be accepted at each branch or only after reaching the central site.</p></div></li>
+      <li><span>05</span><div><h3>Restrict the listener</h3><p>Allow only required devices, source addresses, and senders. Confirm no public or unintended inter-site route can reach it.</p></div></li>
+      <li><span>06</span><div><h3>Assign operational ownership</h3><p>Define responsibility for certificates, Exchange scope, patching, monitoring, capacity, backups, and incident response.</p></div></li>
+      <li><span>07</span><div><h3>Pilot with real devices</h3><p>Test attachments, sender restrictions, queue recovery, duplicates, error reporting, WAN failover, and VPN failure.</p></div></li>
     </ol>
   </section>
 
   <section id="faq">
     <h2>Frequently asked questions</h2>
     <div class="guide-faq">
-      <details open><summary>Can an IP-based Exchange Online connector use a dynamic public IP?</summary><p>No. Microsoft explicitly states that dynamic IP addresses are not supported or allowed for the IP-based connector method.</p></details>
-      <details><summary>Do all SMTP relay connectors require a static IP?</summary><p>No. Microsoft recommends certificate-based connector authentication as an alternative, but it still requires a suitable certificate, modern TLS, and port 25.</p></details>
-      <details><summary>Will Direct Send solve a dynamic-IP branch problem?</summary><p>It removes connector identity but still uses port 25, is internal-recipient only, and benefits from a static IP for SPF and reputation.</p></details>
-      <details><summary>Does port 587 work with an MX connector?</summary><p>No. Port 587 is used by client SMTP submission and HVE. Connector relay to the tenant MX endpoint uses port 25.</p></details>
-      <details><summary>Does RelayBridge require a static public IP?</summary><p>The intended Exchange Online path uses authenticated submission over port 587, not source-IP connector identity, so no static public IP is required.</p></details>
+      <details open><summary>Does every branch need its own RelayBridge instance?</summary><p>No. Branch devices can reach a central RelayBridge at headquarters or in a data center over a properly restricted site-to-site VPN. A local instance is useful when the branch needs local queueing or greater independence from the VPN.</p></details>
+      <details><summary>Can one central RelayBridge serve multiple branches?</summary><p>That is a valid architecture to evaluate when branch subnets are privately routed, access is tightly restricted, and the central host is operated as shared infrastructure. Confirm final v1.0 source, sender, scale, and capacity limits before production.</p></details>
+      <details><summary>Does a branch need a static public IP?</summary><p>Not for RelayBridge's intended authenticated submission path. The Microsoft 365 connection uses OAuth and TLS on port 587 rather than source-IP connector identity.</p></details>
+      <details><summary>What happens when the site-to-site VPN is down?</summary><p>In the central model, branch devices cannot reach the central queue until the private route returns. Device retry behavior and VPN resilience therefore matter. A per-branch instance can accept and queue locally while its upstream path is unavailable.</p></details>
+      <details><summary>Should the central SMTP listener be exposed publicly?</summary><p>No. Keep it behind the private VPN and firewall it to the exact branch sources that require access. RelayBridge is not intended to be an internet-facing open relay.</p></details>
+      <details><summary>Do all Exchange Online connectors require a static IP?</summary><p>No. Microsoft recommends certificate-based connector authentication as an alternative, but connector relay still requires a suitable certificate, current TLS, and outbound port 25.</p></details>
     </div>
   </section>
 

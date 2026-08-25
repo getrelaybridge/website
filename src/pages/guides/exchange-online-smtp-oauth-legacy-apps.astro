@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-legacy-apps.webp';
 
 const toc = [
   { href: '#compatibility', label: 'Application compatibility' },
@@ -17,7 +18,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Exchange Online SMTP OAuth for Legacy Applications | RelayBridge" description="Learn how Exchange Online SMTP OAuth works, why legacy applications may not support it directly, and how a local SMTP compatibility bridge can separate legacy intake from modern delivery." eyebrow="Guide · Legacy applications" heading="Using Exchange Online SMTP OAuth with legacy applications" summary="Older software can remain capable of generating SMTP mail while lacking the identity, token, and TLS machinery needed for direct modern-authenticated submission to Exchange Online." toc={toc}>
+<GuideLayout title="Exchange Online SMTP OAuth for Legacy Applications | RelayBridge" description="Learn how Exchange Online SMTP OAuth works, why legacy applications may not support it directly, and how a local SMTP compatibility bridge can separate legacy intake from modern delivery." eyebrow="Guide · Legacy applications" heading="Using Exchange Online SMTP OAuth with legacy applications" summary="Older software can remain capable of generating SMTP mail while lacking the identity, token, and TLS machinery needed for direct modern-authenticated submission to Exchange Online." toc={toc} image={guideImage} imageAlt="Legacy ERP, CRM, and script applications submit local SMTP to RelayBridge, which uses certificate-based identity, XOAUTH2, and TLS with Microsoft 365 Exchange Online." imageCaption="The legacy application keeps its narrow SMTP interface while RelayBridge owns modern Microsoft identity and transport." >
   <section id="compatibility">
     <p class="guide-kicker">Protocol and identity are separate</p>
     <p class="guide-lede">A legacy application may produce valid SMTP messages for years without understanding OAuth. Modernizing that path means deciding where token acquisition, application identity, Exchange authorization, TLS, retry, and durable queueing should live. Start with the <a href="/guides/microsoft-365-smtp-options-compared/">Microsoft 365 SMTP options comparison</a> when the upstream method is not yet fixed.</p>

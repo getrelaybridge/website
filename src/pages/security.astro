@@ -1,8 +1,9 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import CallToAction from '../components/CallToAction.astro';
-import ConceptArchitectureSketch from '../components/ConceptArchitectureSketch.astro';
+import securitySocialImage from '../assets/page-art/security-boundary.webp';
 
 const securitySections = [
   ['Local data path', 'A message moves from the submitting device to the administrator-controlled RelayBridge instance, then directly to Microsoft 365. RelayBridge does not operate an intermediary cloud relay.'],
@@ -16,7 +17,7 @@ const securitySections = [
 ];
 ---
 
-<BaseLayout title="RelayBridge security architecture" description="A precise public security model for RelayBridge, including local data flow, certificate identity, Exchange permissions, durability, and current limitations.">
+<BaseLayout title="RelayBridge security architecture" description="A precise public security model for RelayBridge, including local data flow, certificate identity, Exchange permissions, durability, and current limitations." image={securitySocialImage.src} imageAlt="RelayBridge security boundary between trusted local devices, local certificate and queue storage, and scoped Microsoft 365 Exchange authorization.">
   <PageHero eyebrow="Current Microsoft 365 security model" title="Trust starts with" accent="a visible boundary." description="This current Microsoft 365 security model shows administrators where mail goes, which identity RelayBridge uses, what is stored locally, and which limitations still matter." />
 
   <section class="security-summary">
@@ -30,7 +31,18 @@ const securitySections = [
   <section class="section security-boundary-section">
     <div class="container architecture-large hybrid-architecture-card security-boundary-card">
       <div class="visual-label visual-label-dark">CURRENT MICROSOFT 365 SECURITY BOUNDARY</div>
-      <ConceptArchitectureSketch variant="security" />
+      <Image
+        class="architecture-page-artwork"
+        src={securitySocialImage}
+        alt="RelayBridge security boundary between trusted local devices, local certificate and queue storage, and scoped Microsoft 365 Exchange authorization."
+        widths={[480, 720, 960, 1200, 1376]}
+        sizes="(max-width: 720px) calc(100vw - 80px), 1120px"
+        format="webp"
+        quality={88}
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
     </div>
   </section>
 

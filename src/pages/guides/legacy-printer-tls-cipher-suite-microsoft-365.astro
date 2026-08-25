@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-tls-ciphers.webp';
 
 const toc = [
   { href: '#not-one-switch', label: 'TLS is not one switch' },
@@ -16,7 +17,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Legacy Printer TLS Failures with Microsoft 365 | RelayBridge" description="Diagnose Microsoft 365 SMTP TLS handshake failures on legacy printers: STARTTLS, port 587, TLS 1.2 and 1.3, cipher suites, certificates, clocks, and SNI evidence." eyebrow="Guide · TLS diagnostics" heading="Why legacy printers fail TLS handshakes with Microsoft 365" summary="A firmware checkbox labeled SSL or TLS does not prove compatibility. The client and Exchange Online must agree on SMTP mode, protocol version, cipher suite, certificate validation, and authentication before a message can be submitted." toc={toc}>
+<GuideLayout title="Legacy Printer TLS Failures with Microsoft 365 | RelayBridge" description="Diagnose Microsoft 365 SMTP TLS handshake failures on legacy printers: STARTTLS, port 587, TLS 1.2 and 1.3, cipher suites, certificates, clocks, and SNI evidence." eyebrow="Guide · TLS diagnostics" heading="Why legacy printers fail TLS handshakes with Microsoft 365" summary="A firmware checkbox labeled SSL or TLS does not prove compatibility. The client and Exchange Online must agree on SMTP mode, protocol version, cipher suite, certificate validation, and authentication before a message can be submitted." toc={toc} image={guideImage} imageAlt="A legacy printer with TLS 1.0 and legacy cipher suites uses plain local intake to RelayBridge, which isolates the protocol boundary and negotiates current TLS with Microsoft 365." imageCaption="The printer’s legacy protocol does not continue upstream; RelayBridge creates a separate modern TLS connection to Microsoft 365." >
   <section id="not-one-switch">
     <p class="guide-kicker">Compatibility is negotiated</p>
     <p class="guide-lede">A printer can truthfully advertise “TLS support” and still fail against <code>smtp.office365.com</code>. It may support only an obsolete protocol, offer no currently accepted cipher, use implicit TLS on the wrong port, or reject the service certificate because its clock or trust store is stale.</p>

@@ -158,6 +158,7 @@ h2 em { color: #52666d; font-style: normal; font-weight: 600; }
 .architecture-large { position: relative; padding: 72px 50px 48px; color: #eef6f4; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--ink); }
 .hybrid-architecture-card { isolation: isolate; border-color: rgba(220,233,231,.24); background: linear-gradient(145deg, #0b1f29, #102d38); box-shadow: 0 24px 60px rgba(8,32,40,.16); }
 .hybrid-architecture-card::after { content: ""; position: absolute; inset: 12px -6px -6px 12px; z-index: -1; border-right: 1px solid rgba(57,214,174,.18); border-bottom: 1px solid rgba(57,214,174,.18); border-radius: 24px 30px 25px 29px; transform: rotate(.12deg); }
+.architecture-page-artwork { display: block; width: 100%; height: auto; border-radius: 12px 10px 13px 11px; }
 .architecture-large .architecture { grid-template-columns: 150px 1fr 190px 1fr 170px; min-height: 310px; }
 .architecture-large .source-node { padding: 15px; font-size: 13px; }
 .architecture-large .relay-node, .architecture-large .m365-node { min-height: 200px; }
@@ -264,6 +265,13 @@ h2 em { color: #52666d; font-style: normal; font-weight: 600; }
 .guide-card:last-child:nth-child(3n + 1) p { max-width: 560px; }
 .guides-context { background: #eef1ec; }
 
+.guide-visual-band { padding: 0 0 58px; background: var(--ink); }
+.guide-visual { position: relative; isolation: isolate; max-width: 1120px; margin: 0 auto; padding: 10px 10px 0; border: 1px solid rgba(220,233,231,.22); border-radius: 18px 15px 19px 16px; background: rgba(255,255,255,.045); box-shadow: 0 24px 60px rgba(3,18,24,.2); }
+.guide-visual::after { content: ""; position: absolute; inset: 9px -5px -5px 9px; z-index: -1; border-right: 1px solid rgba(57,214,174,.17); border-bottom: 1px solid rgba(57,214,174,.17); border-radius: 15px 19px 16px 18px; transform: rotate(.16deg); }
+.guide-visual-image-link { display: block; }
+.guide-visual img { display: block; width: 100%; height: auto; border-radius: 11px 9px 12px 10px; }
+.guide-visual figcaption { display: flex; justify-content: space-between; gap: 24px; padding: 14px 8px 16px; color: #c8d8d6; font: 500 14px/1.55 var(--mono); }
+.guide-visual figcaption a { flex: 0 0 auto; color: #72e8ca; font-weight: 700; text-underline-offset: 3px; }
 .guide-status { border-bottom: 1px solid #d8d3b8; background: #fff9dd; }
 .guide-status-inner { min-height: 70px; display: flex; align-items: center; gap: 14px; }
 .guide-status-inner > span { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #d39f36; }
@@ -474,6 +482,10 @@ h2 em { color: #52666d; font-style: normal; font-weight: 600; }
   .architecture-large .architecture { grid-template-columns: 1fr; }
   .docs-layout, .editorial-grid, .privacy-layout { grid-template-columns: 1fr; gap: 30px; }
   .guide-layout { grid-template-columns: 1fr; gap: 44px; }
+  .guide-visual-band { padding-bottom: 42px; }
+  .guide-visual { padding: 7px 7px 0; }
+  .guide-visual figcaption { display: grid; gap: 8px; padding: 12px 6px 14px; font-size: 13px; }
+  .guide-visual figcaption a { justify-self: start; }
   .section-aside { position: static; }
   .guide-toc { max-height: none; overflow: visible; padding-right: 0; }
   .guide-toc nav { grid-template-columns: repeat(2, 1fr); }

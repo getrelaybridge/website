@@ -1,17 +1,29 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import ConceptArchitectureSketch from '../components/ConceptArchitectureSketch.astro';
 import CallToAction from '../components/CallToAction.astro';
+import howItWorksSocialImage from '../assets/page-art/how-it-works-pipeline.webp';
 ---
 
-<BaseLayout title="How RelayBridge works" description="Understand how RelayBridge accepts local SMTP, queues mail durably, and submits it to Microsoft 365 with OAuth and TLS.">
+<BaseLayout title="How RelayBridge works" description="Understand how RelayBridge accepts local SMTP, queues mail durably, and submits it to Microsoft 365 with OAuth and TLS." image={howItWorksSocialImage.src} imageAlt="RelayBridge mail pipeline from local SMTP intake through durable queueing and certificate-based OAuth to Microsoft 365 Exchange Online.">
   <PageHero eyebrow="Architecture" title="A local bridge between legacy SMTP" accent="and modern mail platforms." description="RelayBridge v1.0 targets Microsoft 365 / Exchange Online. Your existing devices keep using the SMTP they understand while RelayBridge handles the current Microsoft identity and transport requirements they cannot." />
 
   <section class="section section-white">
     <div class="container architecture-large hybrid-architecture-card">
       <div class="visual-label visual-label-dark">SIMPLE MAIL PATH</div>
-      <ConceptArchitectureSketch variant="how-it-works" />
+      <Image
+        class="architecture-page-artwork"
+        src={howItWorksSocialImage}
+        alt="RelayBridge mail pipeline from local SMTP intake through durable queueing and certificate-based OAuth to Microsoft 365 Exchange Online."
+        widths={[480, 720, 960, 1200, 1376]}
+        sizes="(max-width: 720px) calc(100vw - 80px), 1120px"
+        format="webp"
+        quality={88}
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
     </div>
     <div class="container flow-summary">
       <div><span>01</span><h2>Submit</h2><p>Legacy devices send ordinary SMTP on the trusted local network.</p></div>
