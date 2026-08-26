@@ -20,9 +20,13 @@ interface Props {
   image?: ImageMetadata;
   imageAlt?: string;
   imageCaption?: string;
+  authorHandle?: string;
+  authorHref?: string;
+  verified?: string;
+  verifiedISO?: string;
 }
 
-const { title, description, eyebrow, heading, summary, toc, image, imageAlt, imageCaption } = Astro.props;
+const { title, description, eyebrow, heading, summary, toc, image, imageAlt, imageCaption, authorHandle, authorHref, verified, verifiedISO } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description} image={image?.src} imageAlt={imageAlt}>
@@ -38,6 +42,15 @@ const { title, description, eyebrow, heading, summary, toc, image, imageAlt, ima
       <p><strong>Pre-release note</strong> RelayBridge is under active development. No public v1.0 build or finalized setup guide is available yet. <a href="/download/">Check release status</a>.</p>
     </div>
   </section>
+
+  {(authorHandle || verified) && (
+    <section class="guide-trust" aria-label="Guide authorship and technical verification">
+      <div class="container guide-trust-inner">
+        {authorHandle && <p><span>Created / technically maintained by</span><a href={authorHref}>{authorHandle}</a></p>}
+        {verified && <p><span>Last technically verified</span><time datetime={verifiedISO}>{verified}</time></p>}
+      </div>
+    </section>
+  )}
 
   <section class="section section-white">
     <div class="container guide-layout">

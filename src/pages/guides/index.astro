@@ -7,82 +7,78 @@ import guidesArtwork from '../../assets/page-art/guides-overview.webp';
 
 const guidesArtworkAlt = 'Hand-drawn technical guide collection for printers, scanners, legacy applications, and Microsoft 365 infrastructure.';
 
-const guides = [
+const guideGroups = [
   {
-    number: '01',
-    title: 'Microsoft 365 SMTP for legacy printers',
-    description: 'Why older printers and multifunction devices struggle with OAuth, what Exchange Online expects, and where a local bridge fits.',
-    href: '/guides/microsoft-365-smtp-relay-legacy-printers/',
-    label: 'Printers and MFPs',
+    title: 'Migration and deprecation',
+    description: 'Plan around removed Windows features, changing Exchange authentication defaults, and obsolete application mail code.',
+    guides: [
+      { number: '01', title: 'Windows Server 2025 SMTP Server replacement options', description: 'What changed in Server 2025, how to inventory IIS SMTP dependencies, and how the replacement choices differ.', href: '/guides/windows-server-2025-smtp-server-replacement/', label: 'Windows Server' },
+      { number: '02', title: 'Exchange Online SMTP Basic Auth changes', description: 'The current December 2026 schedule, the difference between Basic and OAuth SMTP AUTH, and a migration decision tree.', href: '/guides/exchange-online-smtp-basic-auth-deprecation-2026/', label: 'December 2026' },
+      { number: '03', title: 'Send-MailMessage replacement options', description: 'A practical migration path for PowerShell scripts using Microsoft Graph, current SMTP libraries, APIs, or a local bridge.', href: '/guides/powershell-send-mailmessage-replacement-microsoft-365/', label: 'PowerShell' },
+    ],
   },
   {
-    number: '02',
-    title: 'Scan to email with modern authentication',
-    description: 'A practical look at the scan-to-email path when the scanner can speak SMTP but cannot authenticate to Microsoft 365 itself.',
-    href: '/guides/scan-to-email-microsoft-365/',
-    label: 'Scan to email',
+    title: 'Microsoft identity and security',
+    description: 'Separate tenant policy, authentication mechanisms, application identity, and the mail-flow method you actually need.',
+    guides: [
+      { number: '04', title: 'Security Defaults and SMTP AUTH', description: 'Why Security Defaults disables SMTP AUTH, how related controls differ, and which supported paths remain available.', href: '/guides/security-defaults-smtp-auth-microsoft-365/', label: 'Tenant policy' },
+      { number: '05', title: 'Exchange Online SMTP OAuth for legacy applications', description: 'How SMTP AUTH, OAuth, XOAUTH2, application identity, and scoped Exchange authorization fit together for older software.', href: '/guides/exchange-online-smtp-oauth-legacy-apps/', label: 'OAuth architecture' },
+      { number: '06', title: 'Microsoft 365 SMTP options compared', description: 'Choose between client submission, connector relay, Direct Send, and High Volume Email by identity, recipients, network path, and volume.', href: '/guides/microsoft-365-smtp-options-compared/', label: 'Decision matrix' },
+    ],
   },
   {
-    number: '03',
-    title: 'Exchange Online SMTP OAuth for legacy applications',
-    description: 'How SMTP AUTH, OAuth, XOAUTH2, application identity, and scoped Exchange authorization fit together for older software.',
-    href: '/guides/exchange-online-smtp-oauth-legacy-apps/',
-    label: 'Legacy applications',
+    title: 'Delivery and troubleshooting',
+    description: 'Understand service limits, diagnose complete SMTP responses, and design reliable delivery paths for distributed sites.',
+    guides: [
+      { number: '07', title: 'Exchange Online SMTP AUTH rate limits', description: 'How concurrent connections, message rate, recipient limits, retries, and durable burst smoothing interact.', href: '/guides/exchange-online-smtp-auth-rate-limits/', label: 'Capacity planning' },
+      { number: '08', title: 'Troubleshooting Exchange Online SMTP errors', description: 'Diagnose authentication, Send As, relay attribution, throttling, and TLS failures from the complete server response.', href: '/guides/troubleshooting-exchange-online-smtp-errors/', label: 'Diagnostics' },
+      { number: '09', title: 'SMTP relay from dynamic-IP branch offices', description: 'Understand static-IP, certificate, CGNAT, failover, and port 25 constraints across distributed sites.', href: '/guides/office-365-smtp-relay-dynamic-ip-branch-offices/', label: 'Branch offices' },
+      { number: '10', title: 'Legacy printer TLS handshake failures', description: 'Separate STARTTLS mode, TLS versions, cipher suites, certificate trust, device time, and SNI evidence.', href: '/guides/legacy-printer-tls-cipher-suite-microsoft-365/', label: 'TLS diagnostics' },
+    ],
   },
   {
-    number: '04',
-    title: 'Microsoft 365 SMTP options compared',
-    description: 'Choose between client submission, connector relay, Direct Send, and High Volume Email by identity, recipients, network path, and volume.',
-    href: '/guides/microsoft-365-smtp-options-compared/',
-    label: 'Decision matrix',
-  },
-  {
-    number: '05',
-    title: 'Troubleshooting Exchange Online SMTP errors',
-    description: 'Diagnose authentication, Send As, relay attribution, throttling, and TLS failures from the complete server response.',
-    href: '/guides/troubleshooting-exchange-online-smtp-errors/',
-    label: 'Diagnostics',
-  },
-  {
-    number: '06',
-    title: 'SMTP relay from dynamic-IP branch offices',
-    description: 'Understand static-IP, certificate, CGNAT, failover, and port 25 constraints across distributed sites.',
-    href: '/guides/office-365-smtp-relay-dynamic-ip-branch-offices/',
-    label: 'Branch offices',
-  },
-  {
-    number: '07',
-    title: 'Legacy printer TLS handshake failures',
-    description: 'Separate STARTTLS mode, TLS versions, cipher suites, certificate trust, device time, and SNI evidence.',
-    href: '/guides/legacy-printer-tls-cipher-suite-microsoft-365/',
-    label: 'TLS diagnostics',
+    title: 'Devices and legacy applications',
+    description: 'Choose a compatible path for equipment and software that cannot perform modern Microsoft authentication itself.',
+    guides: [
+      { number: '11', title: 'Legacy appliance email alerts', description: 'Evaluate native vendor OAuth first, then compare safe delivery patterns for older UPS, network, storage, and monitoring systems.', href: '/guides/legacy-appliance-email-alerts-microsoft-365/', label: 'Appliances' },
+      { number: '12', title: 'Microsoft 365 SMTP for legacy printers', description: 'Why older printers and multifunction devices struggle with OAuth, what Exchange Online expects, and where a local bridge fits.', href: '/guides/microsoft-365-smtp-relay-legacy-printers/', label: 'Printers and MFPs' },
+      { number: '13', title: 'Scan to email with modern authentication', description: 'A practical look at the scan-to-email path when the scanner can speak SMTP but cannot authenticate to Microsoft 365 itself.', href: '/guides/scan-to-email-microsoft-365/', label: 'Scan to email' },
+    ],
   },
 ];
 ---
 
-<BaseLayout title="Guides — RelayBridge" description="Practical guides for Microsoft 365 SMTP, legacy printers, scanners, multifunction devices, and applications that cannot use modern authentication directly." image={guidesArtwork.src} imageAlt={guidesArtworkAlt}>
-  <PageHero eyebrow="Problem-solving guides" title="Microsoft 365 SMTP guides for legacy devices" description="Practical explanations for connecting printers, scanners, multifunction devices, and legacy applications to modern Microsoft 365 mail infrastructure." />
-  <PageArtwork image={guidesArtwork} alt={guidesArtworkAlt} caption="Seven practical guides cover device compatibility, Microsoft 365 mail-flow choices, distributed sites, and diagnostics." ariaLabel="RelayBridge technical guides overview" />
+<BaseLayout title="Guides — RelayBridge" description="Practical guides for Microsoft 365 SMTP, Exchange Online authentication, Windows Server migration, legacy devices, and applications." image={guidesArtwork.src} imageAlt={guidesArtworkAlt}>
+  <PageHero eyebrow="Problem-solving guides" title="Microsoft 365 SMTP guides for legacy systems" description="Practical, source-backed explanations for administrators migrating printers, appliances, scripts, and applications to modern Microsoft 365 mail infrastructure." />
+  <PageArtwork image={guidesArtwork} alt={guidesArtworkAlt} caption="Thirteen practical guides cover migration, identity, mail-flow choices, device compatibility, distributed sites, and diagnostics." ariaLabel="RelayBridge technical guides overview" />
 
   <section class="section section-white">
     <div class="container">
       <div class="section-intro section-intro-row guides-intro">
         <div>
-          <p class="eyebrow"><span></span> Seven starting points</p>
+          <p class="eyebrow"><span></span> Thirteen starting points</p>
           <h2>Start with the problem<br /><em>in front of you.</em></h2>
         </div>
-        <p class="section-lede">These guides explain the compatibility boundary and the available solution categories. They are not product installation instructions; RelayBridge remains pre-release.</p>
+        <p class="section-lede">Each guide explains the Microsoft boundary, verification steps, and neutral solution categories. They are not a substitute for vendor documentation, and RelayBridge remains pre-release.</p>
       </div>
-      <div class="guide-card-grid">
-        {guides.map((guide) => (
-          <article class="guide-card">
-            <div class="guide-card-meta"><span>{guide.number}</span><span>{guide.label}</span></div>
-            <h2>{guide.title}</h2>
-            <p>{guide.description}</p>
-            <a class="text-link" href={guide.href}>Read guide <span aria-hidden="true">→</span></a>
-          </article>
-        ))}
-      </div>
+      {guideGroups.map((group) => {
+        const headingId = `guide-category-${group.title.toLowerCase().replaceAll(' ', '-')}`;
+        return (
+          <section class="guide-category" aria-labelledby={headingId}>
+            <div class="guide-category-heading"><h2 id={headingId}>{group.title}</h2><p>{group.description}</p></div>
+            <div class="guide-card-grid">
+              {group.guides.map((guide) => (
+                <article class="guide-card">
+                  <div class="guide-card-meta"><span>{guide.number}</span><span>{guide.label}</span></div>
+                  <h2>{guide.title}</h2>
+                  <p>{guide.description}</p>
+                  <a class="text-link" href={guide.href}>Read guide <span aria-hidden="true">→</span></a>
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   </section>
 

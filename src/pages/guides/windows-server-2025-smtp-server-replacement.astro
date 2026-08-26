@@ -1,0 +1,110 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#changed', label: 'What changed' },
+  { href: '#inventory', label: 'Inventory the dependency' }, { href: '#options', label: 'Replacement options' },
+  { href: '#decision', label: 'Decision matrix' }, { href: '#relaybridge', label: 'Where RelayBridge fits' },
+  { href: '#migration', label: 'Migration checklist' }, { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout
+  title="Windows Server 2025 Removed SMTP Server: Replacement Options for Microsoft 365 — RelayBridge"
+  description="Plan an IIS SMTP migration from Windows Server 2025 with inventory steps and neutral Microsoft 365, Graph, local MTA, SaaS, and local bridge options."
+  eyebrow="Windows Server migration"
+  heading="Windows Server 2025 removed SMTP Server: replacement options for Microsoft 365"
+  summary="Microsoft removed the legacy SMTP Server feature from Windows Server 2025 and provides no replacement inside the operating system. The right successor depends on your clients, mail-flow requirements, and operational model."
+  toc={toc}
+  authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08"
+>
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p>
+    <h2>Server 2025 needs a planned SMTP replacement.</h2>
+    <p class="guide-lede">The IIS 6-era SMTP Server feature is listed as removed from Windows Server 2025. Microsoft’s current removal notice says there is no replacement in the operating system and points administrators toward Exchange Server or a non-Microsoft SMTP server.</p>
+    <div class="guide-callout guide-callout-boundary"><span>Version boundary</span><p>This removal statement is specific to Windows Server 2025. It does not mean the feature was retroactively removed from Windows Server 2022. Inventory each host and plan within the support lifecycle of the version you actually run.</p></div>
+    <p>A replacement does not have to mimic the old server exactly. Start by deciding whether each sender can be modernized, whether mail must reach external recipients, and whether you still need local queueing when Microsoft 365 is temporarily unavailable.</p>
+  </section>
+
+  <section id="changed">
+    <p class="guide-kicker">The dependency</p>
+    <h2>Why IIS SMTP stayed in so many environments.</h2>
+    <p>Organizations commonly used the Windows SMTP service as a local compatibility layer. Printers, line-of-business applications, scheduled scripts, monitoring systems, and appliances submitted ordinary SMTP to a nearby Windows host. That host centralized outbound routing and sometimes absorbed short outages in its queue.</p>
+    <p>The feature’s removal changes the server upgrade plan, not the protocols spoken by those clients. A printer still unable to perform OAuth will not become modern merely because its relay host moves. Likewise, replacing the host with a raw forwarder does not settle identity, recipient scope, TLS, abuse controls, or retry behavior.</p>
+    <div class="guide-flow" aria-label="Legacy IIS SMTP dependency flow">
+      <div><span>Legacy clients</span><strong>Devices, scripts, applications</strong><small>Conventional SMTP</small></div><i aria-hidden="true">→</i>
+      <div><span>Removed role</span><strong>Windows SMTP Server</strong><small>IIS 6-era service</small></div><i aria-hidden="true">→</i>
+      <div><span>Destination</span><strong>Microsoft 365</strong><small>Supported mail-flow method required</small></div>
+    </div>
+  </section>
+
+  <section id="inventory">
+    <p class="guide-kicker">Read-only diagnostics</p>
+    <h2>Inventory the role, service, and clients before migrating.</h2>
+    <p>On each candidate server, these read-only PowerShell commands show whether the feature is available or installed and whether the SMTP service exists. Run them from an elevated PowerShell session where Server Manager cmdlets are available.</p>
+    <pre class="guide-command" aria-label="PowerShell commands to inspect the SMTP Server feature and service"><code>Get-WindowsFeature -Name SMTP-Server
+Get-Service -Name SMTPSVC -ErrorAction SilentlyContinue</code></pre>
+    <p>Feature presence is only the start. Record the current smart host, accepted source networks, sender domains, external-recipient requirement, message size, daily volume, peak burst, retry expectations, and every client IP. Review firewall or flow logs rather than trusting an old spreadsheet.</p>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Find every submitter</h3><p>Include multifunction devices, applications, task-scheduler jobs, monitoring platforms, storage systems, UPS cards, and forgotten test systems.</p></div></li>
+      <li><span>02</span><div><h3>Classify each mail path</h3><p>Note whether it sends internally only or externally, needs a recognizable mailbox identity, and can be changed to OAuth or an API.</p></div></li>
+      <li><span>03</span><div><h3>Capture operational behavior</h3><p>Measure bursts and determine what happens during an upstream outage. A replacement without durable retry may be a functional regression.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="options">
+    <p class="guide-kicker">Neutral alternatives</p>
+    <h2>Choose a successor by capability, not resemblance.</h2>
+    <div class="guide-option-list">
+      <article><h3>Native OAuth in the device or application</h3><p>Prefer a vendor-supported Microsoft 365 OAuth integration when the exact product and version provide one. It removes the compatibility relay from that sender’s path.</p></article>
+      <article><h3>Microsoft Graph or an application API</h3><p>For software you can rewrite, Graph <code>sendMail</code> or an appropriate service API can provide a modern application integration. Graph is not SMTP and is not a drop-in change for appliances.</p></article>
+      <article><h3>Exchange Online mail-flow options</h3><p>Authenticated client submission, SMTP relay through a connector, Direct Send, and High Volume Email have different identity, recipient, network, and volume boundaries. Use the <a href="/guides/microsoft-365-smtp-options-compared/">Microsoft 365 SMTP options comparison</a> to screen them.</p></article>
+      <article><h3>Postfix or another local MTA</h3><p>An organization already comfortable operating a mail transfer agent can build a controlled local relay. That also means owning configuration, authorization, patching, queue monitoring, and upstream compatibility.</p></article>
+      <article><h3>SaaS SMTP relay</h3><p>A managed relay can reduce local operations and may suit transactional mail. Review data path, privacy, sender-domain controls, availability, cost, and vendor lock-in.</p></article>
+      <article><h3>A purpose-built local SMTP bridge</h3><p>A local bridge is useful when the old clients must retain SMTP but the Microsoft-facing connection needs modern authentication and managed retry behavior.</p></article>
+    </div>
+  </section>
+
+  <section id="decision">
+    <p class="guide-kicker">Decision matrix</p>
+    <h2>Match the option to the constraint.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Situation</th><th>Strong starting point</th><th>Important boundary</th></tr></thead><tbody>
+      <tr><th>Rewriteable application</th><td>Graph, application API, or a current SMTP library with OAuth</td><td>Requires engineering and application identity design</td></tr>
+      <tr><th>Modern device</th><td>Vendor-native Microsoft OAuth</td><td>Verify the exact model, firmware, and tenant requirements</td></tr>
+      <tr><th>Existing mail team</th><td>Supported Exchange path or administered local MTA</td><td>Operations and queue ownership stay with your team</td></tr>
+      <tr><th>Many Windows-local legacy clients</th><td>Purpose-built local compatibility bridge</td><td>Must not become an unrestricted relay</td></tr>
+      <tr><th>Cloud-managed preference</th><td>SaaS relay</td><td>Mail traverses another provider and cost scales by service</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Product fit</p>
+    <h2>Where RelayBridge fits—and where it does not.</h2>
+    <p>RelayBridge is designed for legacy clients that can reach a local Windows service but cannot authenticate to Exchange Online themselves. It accepts explicitly authorized local SMTP, persists messages in a durable local queue, and uses Exchange Online SMTP OAuth for Microsoft-facing delivery. It is not a RelayBridge-operated cloud mail relay.</p>
+    <p>The RelayBridge-owned <a href="https://github.com/getrelaybridge/relaybridge">application source is publicly reviewable</a> under MPL-2.0. RelayBridge is independent: it is not a Microsoft product, endorsement, certification, or official Server 2025 replacement. Review the <a href="/how-it-works/">architecture</a> and <a href="/security/">current Microsoft 365 security model</a> before considering it.</p>
+    <div class="guide-callout"><span>When it is not necessary</span><p>Do not add RelayBridge when native vendor OAuth works, an application can cleanly move to Graph or an API, your organization already operates a suitable MTA, or another supported Microsoft mail-flow model fits better.</p></div>
+  </section>
+
+  <section id="migration">
+    <p class="guide-kicker">Migration checklist</p>
+    <h2>Move the dependency without creating a relay risk.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Freeze an evidence-based inventory</h3><p>Record client owners, source addresses, mail identity, recipient scope, volume, burst, message size, and outage tolerance.</p></div></li>
+      <li><span>02</span><div><h3>Select per-client paths</h3><p>Modernize capable applications and devices first. Do not force every sender through one replacement merely for architectural symmetry.</p></div></li>
+      <li><span>03</span><div><h3>Design least-privilege intake</h3><p>Restrict listeners by interface, firewall, allowlist, sender policy, and destination. Never reproduce an open or broadly reachable relay.</p></div></li>
+      <li><span>04</span><div><h3>Test normal and failure behavior</h3><p>Exercise internal and external recipients, attachments, peak bursts, Microsoft throttling, network interruption, restart, and persisted retry.</p></div></li>
+      <li><span>05</span><div><h3>Cut over in observable groups</h3><p>Migrate owners in batches, monitor both queues, retain a rollback window, then retire the legacy service only after silent clients are accounted for.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="references">
+    <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/windows-server/get-started/removed-deprecated-features-windows-server">Microsoft Learn: Features removed or no longer developed starting with Windows Server 2025</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/powershell/module/servermanager/get-windowsfeature?view=windowsserver2025-ps">Microsoft Learn: Get-WindowsFeature</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn: How to set up a multifunction device or application to send email using Microsoft 365</a></li>
+      <li><a href="https://www.postfix.org/BASIC_CONFIGURATION_README.html">Postfix official documentation: Basic configuration</a></li>
+    </ul>
+  </section>
+  <section class="related-guides" aria-labelledby="related-server-guides"><p class="guide-kicker">Related guides</p><h2 id="related-server-guides">Continue the migration plan</h2><div><a href="/guides/exchange-online-smtp-basic-auth-deprecation-2026/"><strong>Exchange Online Basic Auth changes</strong><span>Plan around Microsoft’s current authentication timeline.</span></a><a href="/guides/microsoft-365-smtp-options-compared/"><strong>Microsoft 365 SMTP options compared</strong><span>Match identity, recipients, network, and volume to a supported method.</span></a></div></section>
+</GuideLayout>

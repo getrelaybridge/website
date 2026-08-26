@@ -1,0 +1,85 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#controls', label: 'Separate the controls' },
+  { href: '#verify', label: 'Verify your tenant' }, { href: '#decision', label: 'Decision tree' },
+  { href: '#relaybridge', label: 'Where RelayBridge fits' }, { href: '#checklist', label: 'Migration checklist' },
+  { href: '#faq', label: 'FAQ' }, { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout title="Security Defaults Disables SMTP AUTH: What It Means for Printers and Legacy Apps — RelayBridge" description="Understand why Microsoft Entra Security Defaults disables SMTP AUTH and how MFA, Conditional Access, authentication policies, OAuth, and supported alternatives differ." eyebrow="Microsoft identity and policy" heading="Security Defaults disables SMTP AUTH: what it means for printers and legacy apps" summary="Security Defaults blocks legacy authentication and Exchange Online documents SMTP AUTH as already disabled when Security Defaults is enabled. OAuth does not turn a disabled protocol back on." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>Do not design an SMTP AUTH workaround around Security Defaults.</h2>
+    <p class="guide-lede">Microsoft’s current Exchange Online documentation states that if Security Defaults is enabled, SMTP AUTH is already disabled. This applies at the protocol availability layer: choosing OAuth instead of a password does not by itself make SMTP AUTH available under that configuration.</p>
+    <div class="guide-callout guide-callout-boundary"><span>Critical boundary</span><p>RelayBridge does not let a tenant keep Security Defaults enabled while bypassing Microsoft’s SMTP AUTH restriction. If Security Defaults must remain enabled, choose another supported Microsoft-compatible delivery path.</p></div>
+    <p>That does not make every printer or legacy application impossible to support. It means the administrator must separate the tenant’s policy model from the client’s authentication capabilities and select a mail-flow option that satisfies both.</p>
+  </section>
+
+  <section id="controls">
+    <p class="guide-kicker">Identity vocabulary</p><h2>MFA, Security Defaults, Conditional Access, and SMTP AUTH solve different problems.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Control</th><th>Purpose</th><th>SMTP relevance</th></tr></thead><tbody>
+      <tr><th>MFA</th><td>Adds authentication assurance beyond a single reusable credential.</td><td>It is not a mail protocol or an SMTP configuration switch.</td></tr>
+      <tr><th>Security Defaults</th><td>A Microsoft-managed baseline bundle that blocks legacy authentication and enforces protections broadly.</td><td>Exchange documents SMTP AUTH as disabled when it is enabled.</td></tr>
+      <tr><th>Conditional Access</th><td>A customizable Entra policy engine based on users, apps, clients, conditions, and controls.</td><td>Legacy-auth blocking and exceptions require deliberate policy design and licensing.</td></tr>
+      <tr><th>Authentication policy</th><td>Exchange control over which Basic authentication protocols a user can use.</td><td>It can block Basic for SMTP without defining whether SMTP AUTH itself is enabled.</td></tr>
+      <tr><th>SMTP AUTH setting</th><td>Exchange organization- and mailbox-level protocol availability.</td><td>Must allow the protocol before either Basic or OAuth SMTP submission can use it.</td></tr>
+      <tr><th>OAuth</th><td>A token-based authentication mechanism.</td><td>XOAUTH2 can authenticate SMTP AUTH only where the protocol is permitted.</td></tr>
+    </tbody></table></div>
+    <p>Security Defaults is all-or-on/off and is not a granular exception framework. Microsoft recommends Conditional Access for organizations that need customized policies. Disabling Security Defaults without immediately replacing its protections with appropriate Conditional Access policies creates a security gap; it is not a printer configuration step.</p>
+  </section>
+
+  <section id="verify">
+    <p class="guide-kicker">Read-only Exchange checks</p><h2>Verify protocol settings before blaming the device.</h2>
+    <p>After connecting with the current Exchange Online PowerShell module, these diagnostic commands show the organization-wide and mailbox-level SMTP AUTH settings. Replace the placeholder with the intended service mailbox. They do not change tenant state.</p>
+    <pre class="guide-command" aria-label="Exchange Online PowerShell commands to inspect SMTP AUTH settings"><code>Get-TransportConfig | Format-List SmtpClientAuthenticationDisabled
+Get-CASMailbox -Identity &lt;MailboxIdentity&gt; |
+  Format-List SmtpClientAuthenticationDisabled</code></pre>
+    <p>The organization value establishes the default. A mailbox value of <code>$null</code> inherits it, while explicit values can override it. These commands do not report the full Entra policy picture, so also review Security Defaults, Conditional Access, and Exchange authentication policies through your approved administrative process.</p>
+    <div class="guide-callout"><span>Interpretation</span><p>A password failure, an OAuth failure, and a protocol-disabled failure are not interchangeable. Preserve the full SMTP response and correlate it with Entra sign-in and Exchange evidence.</p></div>
+  </section>
+
+  <section id="decision">
+    <p class="guide-kicker">Honest decision tree</p><h2>Start with the tenant security requirement.</h2>
+    <div class="guide-option-list">
+      <article><h3>Security Defaults must remain enabled</h3><p>SMTP AUTH is unavailable under Microsoft’s documented behavior. Evaluate a different supported mail-flow method such as an appropriate Graph integration for rewriteable applications or another Microsoft 365 option whose requirements fit.</p></article>
+      <article><h3>The client supports Microsoft OAuth natively</h3><p>Prefer the vendor-supported path, but confirm the tenant policy permits SMTP AUTH if that is the protocol the integration uses. “Supports OAuth” does not identify the underlying mail-flow method.</p></article>
+      <article><h3>The organization needs granular policy</h3><p>Evaluate Conditional Access and Exchange controls as an identity architecture decision. Do not disable Security Defaults until equivalent protections have been designed and activated by responsible administrators.</p></article>
+      <article><h3>OAuth SMTP AUTH is intentionally available</h3><p>A local bridge can handle the legacy-client side while using OAuth toward Exchange Online, provided intake is least-privilege and the selected identity is authorized.</p></article>
+    </div>
+    <p>Use the <a href="/guides/microsoft-365-smtp-options-compared/">Microsoft 365 SMTP options comparison</a> to assess recipient, network, identity, and volume constraints rather than treating SMTP AUTH as the only answer.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Policy-compatible use</p><h2>Where RelayBridge fits—and where it does not.</h2>
+    <p>RelayBridge may fit when an organization deliberately uses a policy model in which OAuth SMTP AUTH is available, but printers or applications on the local network cannot perform OAuth. RelayBridge accepts controlled local SMTP, queues durably, and authenticates the Microsoft-facing SMTP connection with OAuth.</p>
+    <p>It does not bypass Security Defaults, Conditional Access, Exchange authorization, or mailbox policy. There is no RelayBridge-operated mail-relay cloud. Review the <a href="/security/">implementation-specific Microsoft 365 security model</a> and <a href="/how-it-works/">local bridge architecture</a>.</p>
+    <p>Tenant policy remains under your administrators’ control: RelayBridge is neither a Microsoft product nor a certified integration. You can inspect its <a href="https://github.com/getrelaybridge/relaybridge">public, RelayBridge-owned MPL-2.0 source</a> before evaluating the boundary.</p>
+    <div class="guide-callout"><span>When it is not necessary</span><p>Use native OAuth when it fits the actual tenant policy, use Graph or an application API for cleanly rewriteable software, and keep an existing appropriate MTA when it already provides the required controls.</p></div>
+  </section>
+
+  <section id="checklist">
+    <p class="guide-kicker">Migration checklist</p><h2>Turn policy names into tested delivery requirements.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Document the required security baseline</h3><p>Decide whether Security Defaults must remain enabled or whether the organization already operates equivalent Conditional Access controls.</p></div></li>
+      <li><span>02</span><div><h3>Identify the mail protocol behind “OAuth”</h3><p>Confirm whether a vendor integration uses SMTP AUTH, Graph, or another service. The token label alone is insufficient.</p></div></li>
+      <li><span>03</span><div><h3>Inspect Exchange and Entra policy</h3><p>Review organization and mailbox SMTP AUTH settings, authentication policies, Conditional Access, identities, and required permissions.</p></div></li>
+      <li><span>04</span><div><h3>Choose the supported path</h3><p>Evaluate recipient scope, external delivery, source network, volume, audit requirements, and outage behavior.</p></div></li>
+      <li><span>05</span><div><h3>Test denial as well as success</h3><p>Verify unauthorized sources, senders, recipients, and identities are rejected while the intended flow remains observable.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq"><p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2><div class="guide-faq">
+    <details><summary>Does an app password solve Security Defaults?</summary><p>No. App passwords are a legacy compatibility mechanism, and Security Defaults blocks legacy authentication. They do not re-enable SMTP AUTH under the documented configuration.</p></details>
+    <details><summary>Does OAuth always work when Basic authentication is blocked?</summary><p>No. OAuth avoids the Basic mechanism, but the underlying protocol must also be enabled and allowed by relevant tenant policy.</p></details>
+    <details><summary>Should we disable Security Defaults for one printer?</summary><p>That is a tenant-wide security architecture decision, not a device fix. First evaluate another supported mail-flow path; if customized policy is required, design equivalent Conditional Access protections before changing the baseline.</p></details>
+  </div></section>
+
+  <section id="references"><p class="guide-kicker">Authoritative sources</p><h2>References.</h2><ul class="guide-references">
+    <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn: Enable or disable SMTP AUTH in Exchange Online</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/entra/fundamentals/security-defaults">Microsoft Learn: Security Defaults in Microsoft Entra ID</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-block-legacy-authentication">Microsoft Learn: Block legacy authentication with Conditional Access</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/disable-basic-authentication-in-exchange-online">Microsoft Learn: Disable Basic authentication in Exchange Online</a></li>
+  </ul></section>
+  <section class="related-guides" aria-labelledby="related-security-guides"><p class="guide-kicker">Related guides</p><h2 id="related-security-guides">Continue from policy to design</h2><div><a href="/security/"><strong>RelayBridge security model</strong><span>Review the current implementation-specific Microsoft 365 boundary.</span></a><a href="/guides/microsoft-365-smtp-options-compared/"><strong>Microsoft 365 SMTP options compared</strong><span>Choose a method by its actual identity and network requirements.</span></a></div></section>
+</GuideLayout>

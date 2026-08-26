@@ -1,0 +1,81 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+const toc = [
+  { href: '#answer', label: 'Current limits' }, { href: '#behavior', label: 'Throttle behavior' },
+  { href: '#diagnose', label: 'Diagnose symptoms' }, { href: '#bursts', label: 'Plan for bursts' },
+  { href: '#relaybridge', label: 'Where RelayBridge fits' }, { href: '#checklist', label: 'Capacity checklist' },
+  { href: '#faq', label: 'FAQ' }, { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout title="Exchange Online SMTP AUTH Limits: 30 Messages/Minute, Connections, and Burst Queuing — RelayBridge" description="Understand Exchange Online SMTP AUTH connection, message-rate, and recipient limits, documented errors, retry behavior, and durable burst queuing." eyebrow="Exchange Online capacity" heading="Exchange Online SMTP AUTH limits: 30 messages/minute, connections, and burst queuing" summary="Authenticated client submission is limited to three concurrent connections, 30 messages per minute, and 10,000 recipients per day per mailbox. Reliable systems must treat those limits as delivery constraints, not errors to race around." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+  <section id="answer">
+    <p class="guide-kicker">Current documented limits</p><h2>Capacity is per submitting mailbox, not per device.</h2>
+    <p class="guide-lede">Microsoft currently documents a maximum of three concurrent SMTP Authenticated Submission connections, 30 messages per minute, and 10,000 recipients per day for a mailbox. Several devices sharing one submission identity share the same budget.</p>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Limit</th><th>Current value</th><th>Operational meaning</th></tr></thead><tbody>
+      <tr><th>Concurrent connections</th><td>3</td><td>A fourth connection can receive <code>432 4.3.2 Concurrent connections limit exceeded</code>.</td></tr>
+      <tr><th>Message rate</th><td>30 messages/minute</td><td>Excess submissions are throttled and can be carried into following minutes, producing delay.</td></tr>
+      <tr><th>Recipient rate</th><td>10,000 recipients/day</td><td>Recipients count, not only messages. Exceeding the daily quota causes submission failure.</td></tr>
+    </tbody></table></div>
+    <div class="guide-callout guide-callout-boundary"><span>Hard boundary</span><p>RelayBridge, another relay, or parallel devices cannot bypass Exchange Online service limits. If sustained demand exceeds the supported method, choose a mail-flow service designed for that workload.</p></div>
+  </section>
+
+  <section id="behavior">
+    <p class="guide-kicker">What Exchange does</p><h2>Throttling is not the same as silently dropping every excess message.</h2>
+    <p>Microsoft says messages beyond the per-minute limit are throttled and carried into following minutes, which can delay delivery. Clients should be prepared to retry when the service returns a transient response. A queue that honors the response and applies controlled retry is safer than a client that abandons the message or reconnects aggressively.</p>
+    <p>The daily recipient quota is different. Microsoft documents <code>554 5.2.0 STOREDRV.Submission.Exception:SubmissionQuotaExceededException</code> after that limit is exceeded. Repeated rapid retries cannot create new daily capacity and may hide the actual planning problem.</p>
+    <p>Sent-copy behavior can create another constraint: authenticated submission can store messages in the mailbox’s Sent Items, so a high-volume or poorly maintained mailbox can also encounter storage pressure.</p>
+    <div class="guide-flow" aria-label="Burst queuing and Exchange Online throttling flow"><div><span>Local burst</span><strong>Devices submit together</strong><small>Shift change or batch job</small></div><i aria-hidden="true">→</i><div><span>Controlled queue</span><strong>Persist and pace</strong><small>Honor upstream responses</small></div><i aria-hidden="true">→</i><div><span>Exchange Online</span><strong>Accept within limits</strong><small>Final semantics remain Microsoft’s</small></div></div>
+  </section>
+
+  <section id="diagnose">
+    <p class="guide-kicker">Evidence first</p><h2>Keep the complete SMTP response and the local queue state.</h2>
+    <p>A generic “send failed” message is not enough. Record the timestamp, submission identity, connection count, recipient count, full enhanced status code, retry decision, and final Exchange response. The leading digit matters: a 4xx response is normally transient; a 5xx response requires classification before retry.</p>
+    <div class="guide-option-list">
+      <article><h3><code>432 4.3.2</code> concurrent connections exceeded</h3><p>Reduce parallel connections for that submission identity. Connection pooling and a single controlled delivery worker are usually more useful than immediate reconnect storms.</p></article>
+      <article><h3>Messages delayed around a busy minute</h3><p>Compare enqueue time with Exchange acceptance time. A temporary backlog can be expected when a burst exceeds 30 messages per minute even though average daily traffic is low.</p></article>
+      <article><h3><code>SubmissionQuotaExceededException</code></h3><p>Count recipients across the mailbox’s daily traffic and investigate whether one message expands to many recipients. This is not solved by shorter retry intervals.</p></article>
+      <article><h3>Mailbox storage warnings</h3><p>Review Sent Items and retention behavior for the submission mailbox rather than assuming the SMTP connection itself is the only bottleneck.</p></article>
+    </div>
+    <p>For non-capacity failures, use the <a href="/guides/troubleshooting-exchange-online-smtp-errors/">Exchange Online SMTP error guide</a> to distinguish authentication, authorization, relay attribution, TLS, and throttling.</p>
+  </section>
+
+  <section id="bursts">
+    <p class="guide-kicker">Workload examples</p><h2>Design for peak arrival rate, not the daily average.</h2>
+    <h3>Multiple MFPs at shift change</h3><p>Ten devices may be quiet all day and then submit scans at once. A local queue can accept authorized messages durably and serialize delivery, but users should see that Exchange acceptance may take longer during the burst.</p>
+    <h3>ERP batch notifications</h3><p>A job producing hundreds of separate messages may take multiple minutes to drain. Determine whether the workload belongs on SMTP client submission or on an application-oriented service with appropriate throughput.</p>
+    <h3>Monitoring and alert storms</h3><p>An incident can cause many systems to emit repeated alerts simultaneously. Apply deduplication and escalation logic at the monitoring source where possible; a mail queue should not become the only incident-control mechanism.</p>
+    <p>Average volume helps size retention, but burst shape determines queue depth and user-visible delay. Capacity planning should include upstream outage duration as well as Microsoft throttling.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Durable local delivery</p><h2>Where RelayBridge fits—and where it does not.</h2>
+    <p>RelayBridge can durably accept authorized local messages, use a controlled Exchange Online delivery path, persist retries across process restarts, and smooth short bursts from multiple legacy clients. The mail remains on the local host until Exchange accepts it; there is no RelayBridge-operated cloud relay.</p>
+    <p>This improves resilience at the compatibility boundary but does not promise delivery beyond Exchange acceptance semantics or add Microsoft quota. Review the <a href="/how-it-works/">queue and delivery architecture</a> and the <a href="/security/">security boundary</a>. RelayBridge is an independent project, not Microsoft endorsed or certified; its <a href="https://github.com/getrelaybridge/relaybridge">MPL-2.0 application source is public</a>.</p>
+    <div class="guide-callout"><span>When it is not necessary</span><p>If senders already implement robust OAuth SMTP, your application can use a suitable API, an existing MTA provides the required durability, or the workload needs a higher-volume Microsoft service, adding another local bridge is unnecessary.</p></div>
+  </section>
+
+  <section id="checklist">
+    <p class="guide-kicker">Capacity checklist</p><h2>Measure, queue, pace, and alert.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Count identities and shared clients</h3><p>Map every sender using the same mailbox so its connection and rate budget is visible.</p></div></li>
+      <li><span>02</span><div><h3>Measure peak minute and recipient fan-out</h3><p>Capture arrival distribution, recipients per message, daily recipients, and the longest acceptable delay.</p></div></li>
+      <li><span>03</span><div><h3>Persist before acknowledging</h3><p>Only acknowledge local acceptance after the message is durably stored if the client expects the relay to own retry.</p></div></li>
+      <li><span>04</span><div><h3>Classify upstream responses</h3><p>Back off transient 4xx responses and surface durable 5xx failures for operator action rather than retrying everything identically.</p></div></li>
+      <li><span>05</span><div><h3>Alert on age and depth</h3><p>Queue age is often more actionable than queue count. Alert before delayed operational mail becomes invisible.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq"><p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2><div class="guide-faq">
+    <details><summary>Does Exchange drop message 31 in a minute?</summary><p>Microsoft describes throttling and carry-over into following minutes, which produces delay. Clients still need correct transient-response handling.</p></details>
+    <details><summary>Are 30 messages and 10,000 recipients the same measure?</summary><p>No. One message can have multiple recipients. The per-minute message rate and daily recipient rate constrain different dimensions.</p></details>
+    <details><summary>Can adding more parallel connections drain a queue faster?</summary><p>Not beyond the documented limit. A fourth simultaneous connection can receive a 432 response, so uncontrolled parallelism can make recovery worse.</p></details>
+  </div></section>
+
+  <section id="references"><p class="guide-kicker">Authoritative sources</p><h2>References.</h2><ul class="guide-references">
+    <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/send-emails/smtp-submission-improvements">Microsoft Learn: SMTP Authenticated Submission client protocol improvements</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/office365/servicedescriptions/exchange-online-service-description/exchange-online-limits">Microsoft Learn: Exchange Online limits</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/defender-office-365/outbound-spam-sending-limits-troubleshoot">Microsoft Learn: Outbound spam protection and sending limits</a></li>
+  </ul></section>
+  <section class="related-guides" aria-labelledby="related-limit-guides"><p class="guide-kicker">Related guides</p><h2 id="related-limit-guides">Continue from capacity to diagnosis</h2><div><a href="/guides/troubleshooting-exchange-online-smtp-errors/"><strong>Troubleshoot Exchange SMTP errors</strong><span>Classify authentication, authorization, TLS, relay, and throttle responses.</span></a><a href="/how-it-works/"><strong>Review RelayBridge queueing</strong><span>See how local acceptance and Exchange delivery are separated.</span></a></div></section>
+</GuideLayout>

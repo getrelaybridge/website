@@ -49,7 +49,7 @@ const toc = [
       <div><span>03</span><strong>Exchange Online MX</strong><small>Inbound connector on port 25</small></div>
     </div>
     <h3>Connector-based SMTP relay</h3>
-    <p>Connector relay sends to the tenant MX endpoint on TCP port 25. Exchange Online attributes the connection to the organization through a TLS certificate—the recommended method—or a static public IP address that is not shared with another organization.</p>
+    <p>At a branch, connector relay normally reaches the tenant MX endpoint on TCP port 25. The inbound connector needs a stable organization-attribution signal: Microsoft recommends a TLS certificate; the alternative is an exclusive static public IP. Shared or changing egress addresses cannot provide that IP identity reliably.</p>
     <h3>Authenticated client submission</h3>
     <p>Client submission uses <code>smtp.office365.com</code>, normally on port 587. It can send to internal and external recipients, but the sender must use a supported authentication model and current TLS. Microsoft recommends OAuth instead of Basic authentication.</p>
     <h3>Direct Send and HVE</h3>

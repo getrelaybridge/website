@@ -1,0 +1,84 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#affected', label: 'Which appliances' },
+  { href: '#verify', label: 'Verify capability' }, { href: '#options', label: 'Delivery options' },
+  { href: '#relaybridge', label: 'Where RelayBridge fits' }, { href: '#checklist', label: 'Migration checklist' },
+  { href: '#faq', label: 'FAQ' }, { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout title="Legacy Appliance Email Alerts to Microsoft 365: When Native OAuth Isn't Available — RelayBridge" description="Connect older UPS, network, storage, monitoring, and embedded appliances to Microsoft 365 by checking native OAuth first and comparing supported mail paths." eyebrow="Legacy appliance compatibility" heading="Legacy appliance email alerts to Microsoft 365: when native OAuth isn't available" summary="Prefer the exact vendor-supported Microsoft 365 OAuth integration when your appliance and firmware provide one. For older embedded systems that only speak conventional SMTP, choose a controlled delivery path without pretending every current product has the same limitation." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>Verify the exact model before adding a relay.</h2>
+    <p class="guide-lede">Modern versions of some appliances and software can authenticate to Microsoft 365 natively. If your exact model, firmware, edition, and license support a vendor-documented OAuth integration, prefer it. A compatibility relay is for equipment whose SMTP stack cannot meet the supported Microsoft authentication or mail-flow requirements.</p>
+    <div class="guide-callout guide-callout-boundary"><span>No blanket vendor claim</span><p>Capability changes across firmware and product generations. “NAS,” “UPS,” or “monitoring appliance” is not a compatibility result. Verify the vendor’s current documentation for the exact deployed version.</p></div>
+    <p>When native OAuth is unavailable, the decision depends on recipient scope, network path, sender identity, TLS support, retry behavior, volume, and whether the appliance can trust a local endpoint.</p>
+  </section>
+
+  <section id="affected">
+    <p class="guide-kicker">Common legacy senders</p><h2>The hard cases are usually embedded and rarely upgraded.</h2>
+    <p>Typical candidates include older UPS and power-management cards, network switches and controllers, storage appliances, environmental monitors, access-control systems, industrial controllers, legacy monitoring servers, and other embedded devices with a small SMTP settings form.</p>
+    <p>These systems may support only a server name, port, sender, password, and a basic TLS toggle. Some cannot perform XOAUTH2; others lack current TLS versions, certificate trust, accurate time, Server Name Indication, or reliable retry. Each limitation points to a different remedy.</p>
+    <div class="guide-flow" aria-label="Legacy appliance mail compatibility flow"><div><span>Appliance</span><strong>Alerting stays local</strong><small>Restricted SMTP client</small></div><i aria-hidden="true">→</i><div><span>Compatibility layer</span><strong>Policy and durable queue</strong><small>Only when native support is absent</small></div><i aria-hidden="true">→</i><div><span>Microsoft 365</span><strong>Supported delivery method</strong><small>OAuth or matching mail flow</small></div></div>
+  </section>
+
+  <section id="verify">
+    <p class="guide-kicker">Capability checklist</p><h2>Turn “supports email” into concrete requirements.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Record model, firmware, edition, and license</h3><p>Use the vendor support matrix for that exact combination. An OAuth feature in a current product page does not prove an older deployed version has it.</p></div></li>
+      <li><span>02</span><div><h3>Identify the actual authentication method</h3><p>Look for Microsoft 365 OAuth or XOAUTH2, not only a generic “authentication” checkbox. Determine whether setup requires an app registration or vendor cloud service.</p></div></li>
+      <li><span>03</span><div><h3>Verify the transport stack</h3><p>Check STARTTLS mode, TLS 1.2 or later, certificate validation, current trust roots, DNS, accurate time, endpoint name, and port.</p></div></li>
+      <li><span>04</span><div><h3>Test queue and retry behavior</h3><p>Find out whether the appliance persists an alert across network interruption and how operators learn about final failure.</p></div></li>
+      <li><span>05</span><div><h3>Define recipients and identity</h3><p>Internal-only alerts, external recipients, delegated sender identity, and high-volume events can require different Microsoft 365 paths.</p></div></li>
+    </ol>
+    <p>For TLS-specific failures, follow the <a href="/guides/legacy-printer-tls-cipher-suite-microsoft-365/">TLS handshake evidence workflow</a>; the same protocol layers apply beyond printers.</p>
+  </section>
+
+  <section id="options">
+    <p class="guide-kicker">Neutral alternatives</p><h2>Select the path that matches the appliance and tenant.</h2>
+    <div class="guide-option-list">
+      <article><h3>Vendor-native Microsoft OAuth</h3><p>Use this first when officially supported for the exact version. Follow the vendor’s identity, permissions, certificate, and update guidance.</p></article>
+      <article><h3>Vendor notification service or API</h3><p>Some platforms provide their own alerting integration. Evaluate data handling, cloud dependency, sender control, licensing, and outage behavior.</p></article>
+      <article><h3>Supported Microsoft 365 mail-flow option</h3><p>Authenticated client submission, connector relay, Direct Send, and High Volume Email have different requirements. Compare external-recipient need, network identity, volume, and tenant security policy.</p></article>
+      <article><h3>Existing local MTA</h3><p>An already-operated, appropriately secured MTA may provide the necessary compatibility and queueing. Confirm its upstream Microsoft path remains supported.</p></article>
+      <article><h3>SaaS SMTP relay</h3><p>A managed service can support older SMTP clients, but introduces another mail-processing provider. Review privacy, residency, authentication, availability, and cost.</p></article>
+      <article><h3>Local SMTP bridge</h3><p>A purpose-built bridge can accept narrowly authorized local appliances and handle modern Exchange Online authentication and durable retry on their behalf.</p></article>
+    </div>
+    <p>The <a href="/guides/microsoft-365-smtp-options-compared/">Microsoft 365 SMTP options comparison</a> and <a href="/guides/security-defaults-smtp-auth-microsoft-365/">Security Defaults guide</a> cover mail-flow and policy boundaries in more detail.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Local compatibility</p><h2>Where RelayBridge fits—and where it does not.</h2>
+    <p>RelayBridge may fit older appliances that can submit conventional SMTP to a Windows host on the local network but cannot perform Microsoft OAuth. It restricts local intake, stores accepted messages in a durable local queue, and uses Exchange Online SMTP OAuth for delivery. It does not route mail through a RelayBridge-operated cloud service.</p>
+    <p>That model can preserve alerts through a short upstream outage, but it cannot repair an appliance that never retries before local acceptance, bypass Microsoft limits, or override tenant policy. See the <a href="/how-it-works/">local queue architecture</a> and <a href="/security/">security boundary</a>.</p>
+    <p>Evaluate RelayBridge as independent infrastructure: Microsoft does not supply, endorse, or certify it. The <a href="https://github.com/getrelaybridge/relaybridge">RelayBridge-owned implementation is public under MPL-2.0</a> for direct review.</p>
+    <div class="guide-callout"><span>When it is not necessary</span><p>Do not add RelayBridge when the exact appliance supports vendor-native OAuth, a vendor API is the approved path, another supported Microsoft option fits directly, or an existing MTA already provides the required controls.</p></div>
+  </section>
+
+  <section id="checklist">
+    <p class="guide-kicker">Migration checklist</p><h2>Protect alerts from silent failure.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Inventory every appliance</h3><p>Record owner, location, model, firmware, source IP, sender, recipients, alert types, and escalation impact.</p></div></li>
+      <li><span>02</span><div><h3>Check vendor-native support first</h3><p>Verify current official documentation for the deployed version and test token renewal and failure reporting.</p></div></li>
+      <li><span>03</span><div><h3>Choose and constrain the mail path</h3><p>Allow only intended sources, senders, and recipients; keep the listener local; and avoid anonymous reachability from untrusted networks.</p></div></li>
+      <li><span>04</span><div><h3>Test realistic alerts</h3><p>Exercise normal events, attachments, multiple recipients, expired credentials, broken DNS, upstream outage, queue restart, and throttling.</p></div></li>
+      <li><span>05</span><div><h3>Monitor the monitoring path</h3><p>Alert on queue age, authentication failure, certificate problems, and final rejection through a channel that does not depend solely on the same email path.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq"><p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2><div class="guide-faq">
+    <details><summary>Do all older appliances require an SMTP relay?</summary><p>No. Some products can be upgraded to a version with native OAuth, and some environments can use another supported Microsoft mail-flow method directly.</p></details>
+    <details><summary>Is “TLS enabled” enough for Microsoft 365?</summary><p>No. Protocol version, cipher compatibility, certificate validation, trust roots, endpoint name, time, and STARTTLS behavior all matter.</p></details>
+    <details><summary>Should all devices share one mailbox?</summary><p>Not automatically. Shared identity concentrates permissions, quotas, audit scope, and blast radius. Design identities and sender authorization according to your operational and security requirements.</p></details>
+  </div></section>
+
+  <section id="references"><p class="guide-kicker">Authoritative sources</p><h2>References.</h2><ul class="guide-references">
+    <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn: Set up a device or application to send email using Microsoft 365</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn: Authenticate SMTP using OAuth</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn: Enable or disable SMTP AUTH in Exchange Online</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/purview/exchange-online-uses-tls-to-secure-email-connections">Microsoft Learn: Exchange Online uses TLS to secure email connections</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/email-delivery/fix-issues-with-printers-scanners-and-lob-applications-that-send-email-using-off">Microsoft Learn: Fix issues with devices and LOB applications that send email using Microsoft 365</a></li>
+  </ul></section>
+  <section class="related-guides" aria-labelledby="related-appliance-guides"><p class="guide-kicker">Related guides</p><h2 id="related-appliance-guides">Continue with device-specific evidence</h2><div><a href="/guides/microsoft-365-smtp-relay-legacy-printers/"><strong>Microsoft 365 SMTP for legacy printers</strong><span>Apply the compatibility model to printers and MFPs.</span></a><a href="/guides/scan-to-email-microsoft-365/"><strong>Scan to email with modern authentication</strong><span>Follow the end-to-end scanner delivery path.</span></a></div></section>
+</GuideLayout>

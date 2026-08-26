@@ -1,0 +1,90 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+const toc = [
+  { href: '#answer', label: 'Current timeline' }, { href: '#difference', label: 'Basic vs OAuth' },
+  { href: '#affected', label: 'Find affected clients' }, { href: '#decision', label: 'Decision tree' },
+  { href: '#relaybridge', label: 'Where RelayBridge fits' }, { href: '#migration', label: 'Migration checklist' },
+  { href: '#faq', label: 'FAQ' }, { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout title="Exchange Online SMTP Basic Auth: December 2026 Changes and Migration Options — RelayBridge" description="Understand the current Exchange Online SMTP Basic Auth schedule, identify affected clients, and choose an OAuth, Graph, connector, or local bridge migration path." eyebrow="Exchange Online authentication" heading="Exchange Online SMTP Basic Auth: December 2026 changes and migration options" summary="Microsoft’s current schedule keeps existing behavior through December 2026, then makes Basic authentication for SMTP AUTH disabled by default. That is a policy transition—not yet the final removal date." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+  <section id="answer">
+    <p class="guide-kicker">Current timeline</p><h2>Use the updated schedule, not the old 2026 deadline.</h2>
+    <p class="guide-lede">Microsoft’s January 2026 update says SMTP AUTH Basic authentication behavior remains unchanged through December 2026. Near the end of December 2026, it becomes disabled by default for existing tenants, while administrators can still enable it when necessary. For new tenants created after that point, it is unavailable by default.</p>
+    <div class="guide-callout guide-callout-boundary"><span>No final removal date yet</span><p>Microsoft says it intends to announce the date of final removal in the second half of 2027. That does not mean final removal occurs in 2027. Treat earlier March or April 2026 dates in old articles as superseded.</p></div>
+    <div class="guide-flow guide-flow-vertical" aria-label="Exchange Online SMTP Basic authentication timeline"><div><span>Through December 2026</span><strong>Existing behavior continues</strong><small>Migration should still be underway</small></div><i aria-hidden="true">↓</i><div><span>End of December 2026</span><strong>Disabled by default</strong><small>Existing tenants may still enable it when needed</small></div><i aria-hidden="true">↓</i><div><span>Final removal</span><strong>Date not yet announced</strong><small>Microsoft plans a later announcement</small></div></div>
+  </section>
+
+  <section id="difference">
+    <p class="guide-kicker">Protocol vocabulary</p><h2>SMTP AUTH is not synonymous with Basic authentication.</h2>
+    <p>SMTP AUTH is the authenticated client-submission protocol. A client can use that protocol with a password-based Basic mechanism or with OAuth through XOAUTH2. Microsoft is changing the Basic authentication mechanism; OAuth-authenticated SMTP submission remains the supported modern-authentication path when SMTP AUTH is permitted for the tenant and mailbox.</p>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Term</th><th>What it means</th><th>Migration implication</th></tr></thead><tbody>
+      <tr><th>Basic SMTP AUTH</th><td>The client presents reusable mailbox credentials to authenticate.</td><td>This is the mechanism affected by the deprecation schedule.</td></tr>
+      <tr><th>OAuth SMTP AUTH</th><td>The client presents an OAuth access token using XOAUTH2 while continuing to submit over SMTP.</td><td>Still SMTP; requires token acquisition and Exchange authorization.</td></tr>
+      <tr><th>Microsoft Graph</th><td>An HTTPS application API with <code>sendMail</code>, not an SMTP endpoint.</td><td>Useful for rewriteable applications; not a transparent printer replacement.</td></tr>
+    </tbody></table></div>
+    <p>A migration that merely stores the same password somewhere else does not move the Microsoft-facing hop to modern authentication.</p>
+  </section>
+
+  <section id="affected">
+    <p class="guide-kicker">Tenant evidence</p><h2>Find the clients still using Basic authentication.</h2>
+    <p>Use the SMTP AUTH Clients report in the Exchange admin center under <strong>Reports → Mail flow</strong>. Microsoft documents the authentication protocol values as <code>TlsAuthLogin</code> for Basic authentication and <code>XOAUTH2</code> for modern authentication. Filter and export enough history to catch monthly jobs and rarely used devices; the report supports up to 90 days.</p>
+    <p>Map every observed identity back to a device, application, owner, network location, recipient scope, and business process. Also look for failed or dormant clients: a report of successful activity cannot prove an unused emergency workflow is absent.</p>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Separate Basic from OAuth</h3><p>Do not count all SMTP AUTH activity as legacy. The protocol report distinguishes the authentication mechanisms.</p></div></li>
+      <li><span>02</span><div><h3>Identify the real client</h3><p>A shared mailbox identity can hide multiple printers, scripts, and appliances. Correlate IP, TLS use, time, and operational ownership.</p></div></li>
+      <li><span>03</span><div><h3>Classify replaceability</h3><p>Record whether the sender supports native Microsoft OAuth, can be rewritten, or must retain a conventional local SMTP interface.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="decision">
+    <p class="guide-kicker">Migration decision tree</p><h2>Prefer the smallest supported change that removes the password dependency.</h2>
+    <div class="guide-option-list">
+      <article><h3>Client supports Microsoft 365 OAuth natively</h3><p>Use the vendor-supported integration, subject to your tenant’s SMTP AUTH policy. Validate the exact software or firmware version.</p></article>
+      <article><h3>Application can be changed</h3><p>Evaluate Microsoft Graph, an application-specific mail service, or a current SMTP library with OAuth. Choose based on delivery semantics and supportability, not fashion.</p></article>
+      <article><h3>Network and recipient pattern fits another Exchange option</h3><p>Compare connector relay, Direct Send, and High Volume Email against external-recipient, IP, certificate, volume, and identity requirements.</p></article>
+      <article><h3>Client must continue using ordinary SMTP</h3><p>Place a controlled compatibility service on the local network and modernize the Microsoft-facing hop. Confirm the tenant policy permits the chosen Exchange method.</p></article>
+    </div>
+    <p>The <a href="/guides/security-defaults-smtp-auth-microsoft-365/">Security Defaults guide</a> covers the important case where SMTP AUTH itself is disabled, and the <a href="/guides/microsoft-365-smtp-options-compared/">SMTP options comparison</a> covers non-equivalent delivery methods.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Compatibility boundary</p><h2>Where RelayBridge fits—and where it does not.</h2>
+    <p>RelayBridge accepts explicitly authorized SMTP from legacy clients on the local network, queues locally, and authenticates its delivery connection to Exchange Online with OAuth. It does not preserve Basic authentication toward Microsoft and it does not operate a cloud mail-relay service.</p>
+    <p>This can reduce the number of legacy clients that need individual OAuth implementations. It is only a fit where the organization intentionally permits OAuth SMTP AUTH and the local listener can be tightly scoped. See <a href="/how-it-works/">how the two hops are separated</a> and review the <a href="/security/">current Microsoft 365 security model</a>.</p>
+    <p>RelayBridge is independently developed; Microsoft neither supplies nor endorses or certifies it. The <a href="https://github.com/getrelaybridge/relaybridge">application code can be reviewed publicly</a> under MPL-2.0.</p>
+    <div class="guide-callout"><span>When it is not necessary</span><p>Prefer native OAuth when a device supports it, and prefer a clean Graph or API migration when an application can be maintained that way. An existing suitable MTA or another supported Microsoft mail-flow method may already solve the problem.</p></div>
+  </section>
+
+  <section id="migration">
+    <p class="guide-kicker">Migration checklist</p><h2>Make the December default change uneventful.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Review 90 days of SMTP client evidence</h3><p>Separate <code>TlsAuthLogin</code> from <code>XOAUTH2</code> and reconcile shared identities with actual clients.</p></div></li>
+      <li><span>02</span><div><h3>Confirm tenant and mailbox policy</h3><p>Document SMTP AUTH availability, Security Defaults, Conditional Access, authentication policies, and mailbox-level settings before choosing a target.</p></div></li>
+      <li><span>03</span><div><h3>Assign a supported target per client</h3><p>Native OAuth, Graph/API, a supported Exchange mail-flow option, a maintained MTA, SaaS relay, or a local bridge may each be right for a different sender.</p></div></li>
+      <li><span>04</span><div><h3>Test success and failure behavior</h3><p>Validate sender authorization, internal and external recipients, TLS, throttling, token renewal, outage retry, and alert visibility.</p></div></li>
+      <li><span>05</span><div><h3>Remove the old dependency deliberately</h3><p>After a stable observation period, disable legacy credentials according to policy and keep monitoring for stragglers.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq">
+    <p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2>
+    <div class="guide-faq">
+      <details><summary>Is SMTP AUTH being removed in December 2026?</summary><p>No. Microsoft’s current schedule says Basic authentication becomes disabled by default near the end of December 2026. A final-removal date has not yet been announced.</p></details>
+      <details><summary>Does OAuth mean moving from SMTP to Graph?</summary><p>No. OAuth can authenticate SMTP AUTH using XOAUTH2. Graph is a separate HTTPS API and a different integration.</p></details>
+      <details><summary>Can we simply re-enable Basic authentication after December 2026?</summary><p>Microsoft currently says existing-tenant administrators can still enable it after the default change, but that is a temporary dependency, not a migration strategy. Microsoft still intends final removal.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
+    <ul class="guide-references">
+      <li><a href="https://techcommunity.microsoft.com/blog/exchange/updated-exchange-online-smtp-auth-basic-authentication-deprecation-timeline/4489835">Microsoft Exchange Team: Updated Exchange Online SMTP AUTH Basic Authentication deprecation timeline</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/monitoring/mail-flow-reports/mfr-smtp-auth-clients-report">Microsoft Learn: SMTP AUTH Clients report</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission">Microsoft Learn: Enable or disable SMTP AUTH in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn: Authenticate an IMAP, POP, or SMTP connection using OAuth</a></li>
+    </ul>
+  </section>
+  <section class="related-guides" aria-labelledby="related-basic-guides"><p class="guide-kicker">Related guides</p><h2 id="related-basic-guides">Continue from timeline to policy</h2><div><a href="/guides/security-defaults-smtp-auth-microsoft-365/"><strong>Security Defaults and SMTP AUTH</strong><span>Separate protocol availability from authentication mechanism.</span></a><a href="/guides/exchange-online-smtp-oauth-legacy-apps/"><strong>SMTP OAuth for legacy applications</strong><span>Understand tokens, XOAUTH2, identity, and authorization.</span></a></div></section>
+</GuideLayout>

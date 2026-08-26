@@ -1,0 +1,89 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#inventory', label: 'Inventory scripts' },
+  { href: '#options', label: 'Migration options' }, { href: '#patterns', label: 'Migration patterns' },
+  { href: '#relaybridge', label: 'Where RelayBridge fits' }, { href: '#checklist', label: 'Migration checklist' },
+  { href: '#faq', label: 'FAQ' }, { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout title="Send-MailMessage Is Obsolete: Microsoft 365 Migration Options for PowerShell — RelayBridge" description="Inventory PowerShell Send-MailMessage usage and compare Microsoft Graph, Send-MgUserMail, MailKit, application APIs, and local SMTP compatibility bridges." eyebrow="PowerShell migration" heading="Send-MailMessage is obsolete: Microsoft 365 migration options for PowerShell" summary="Microsoft marks Send-MailMessage obsolete and says it does not guarantee secure SMTP connections. There is no single drop-in PowerShell replacement: choose Graph, a current library, an application API, or a controlled compatibility layer by workload." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>Treat this as an integration migration, not a cmdlet rename.</h2>
+    <p class="guide-lede">The official PowerShell documentation marks <code>Send-MailMessage</code> obsolete, warns that it does not guarantee secure connections to SMTP servers, and recommends against its use. Microsoft also says there is no immediate replacement available in PowerShell.</p>
+    <div class="guide-callout guide-callout-boundary"><span>Accuracy boundary</span><p>This does not mean every historical <code>Send-MailMessage</code> connection lacked TLS, or that every .NET SMTP client is inherently insecure. The actionable fact is that Microsoft has deprecated this cmdlet and does not recommend building a modern Microsoft 365 mail path around it.</p></div>
+    <p>The right migration depends on whether the script can change its interface, whether it sends as a user or an application, how credentials are managed, whether SMTP semantics matter, and how failures are observed.</p>
+  </section>
+
+  <section id="inventory">
+    <p class="guide-kicker">Safe source discovery</p><h2>Find usage without printing scripts or secrets.</h2>
+    <p>From a controlled repository root, this read-only PowerShell search reports file paths and line numbers containing the cmdlet. It deliberately omits matching line content, which may contain addresses, server names, or unsafe inline credentials.</p>
+    <pre class="guide-command" aria-label="PowerShell command to find Send-MailMessage usage without displaying matching lines"><code>Get-ChildItem -Path . -Recurse -Filter *.ps1 |
+  Select-String -Pattern '\bSend-MailMessage\b' |
+  Select-Object Path, LineNumber</code></pre>
+    <p>Extend the inventory beyond source text. Include scheduled tasks, automation accounts, deployment tooling, backup jobs, monitoring scripts, and scripts generated at runtime. For each caller, record ownership, frequency, recipients, attachments, sender identity, urgency, and what happens when delivery fails.</p>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Classify business impact</h3><p>Separate informational reports from password resets, backup failures, security alerts, and other messages whose delay or loss has operational impact.</p></div></li>
+      <li><span>02</span><div><h3>Locate credential handling</h3><p>Find stored passwords, credential files, environment variables, app registrations, managed identities, and interactive assumptions without copying secrets into the inventory.</p></div></li>
+      <li><span>03</span><div><h3>Capture delivery semantics</h3><p>Note HTML, attachments, reply-to, sender impersonation, distribution groups, external recipients, and whether acceptance must survive a temporary outage.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="options">
+    <p class="guide-kicker">Neutral alternatives</p><h2>Choose the supported interface the script can own.</h2>
+    <div class="guide-option-list">
+      <article><h3>Microsoft Graph and <code>Send-MgUserMail</code></h3><p>Graph is a strong choice for rewriteable Microsoft 365 automation. The <code>sendMail</code> API supports JSON or MIME and delegated or application <code>Mail.Send</code> permission models. A <code>202 Accepted</code> response means the request was accepted for processing, not that final delivery is complete.</p></article>
+      <article><h3>MailKit or another maintained SMTP library</h3><p>For software that should retain SMTP and can be engineered, a current library can support explicit TLS and OAuth patterns. Your code still owns token acquisition, Exchange authorization, retry classification, and safe secret handling.</p></article>
+      <article><h3>Application-specific notification API</h3><p>A ticketing, monitoring, workflow, or transactional email service may provide a better supported API than a generic mailbox. Evaluate audit, recipient, data-path, and availability requirements.</p></article>
+      <article><h3>Existing organization mail service</h3><p>An established local MTA or approved SaaS relay may already provide identity, queueing, observability, and policy controls. Reuse it when its service boundary fits.</p></article>
+      <article><h3>Local SMTP compatibility bridge</h3><p>When many stable scripts cannot be rewritten promptly, a local endpoint can preserve their conventional SMTP interface while moving Microsoft-facing authentication into one maintained service.</p></article>
+    </div>
+  </section>
+
+  <section id="patterns">
+    <p class="guide-kicker">Conceptual migration patterns</p><h2>Separate interface choice from identity and reliability.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Pattern</th><th>Best fit</th><th>You still own</th></tr></thead><tbody>
+      <tr><th>Graph from PowerShell</th><td>Actively maintained Microsoft 365 automation</td><td>App identity, permissions, token handling, Graph errors, and delivery monitoring</td></tr>
+      <tr><th>OAuth SMTP library</th><td>Applications where SMTP semantics remain appropriate</td><td>Library maintenance, TLS, token lifecycle, Exchange permissions, and retries</td></tr>
+      <tr><th>Local bridge</th><td>Many legacy scripts with a stable local SMTP contract</td><td>Local trust boundary, sender policy, service operation, and upstream identity</td></tr>
+      <tr><th>Approved service API</th><td>Workloads aligned to an existing platform</td><td>Vendor governance, API lifecycle, data path, and failure handling</td></tr>
+    </tbody></table></div>
+    <div class="guide-flow" aria-label="PowerShell mail migration choices"><div><span>Rewriteable</span><strong>Graph or current library</strong><small>Modern identity in the script</small></div><i aria-hidden="true">↔</i><div><span>Compatibility</span><strong>Local SMTP bridge</strong><small>Modern identity in the service</small></div><i aria-hidden="true">↔</i><div><span>Platform-owned</span><strong>Notification API</strong><small>Use an approved service boundary</small></div></div>
+    <p>Do not paste application secrets into examples or source files. Use your organization’s approved identity and secret-management mechanism, apply least privilege, and ensure unattended jobs do not depend on hidden interactive prompts.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Compatibility path</p><h2>Where RelayBridge fits—and where it does not.</h2>
+    <p>RelayBridge is relevant when a collection of older scripts can continue submitting conventional SMTP to an explicitly authorized local endpoint while a maintained Windows service handles Exchange Online OAuth, durable local queueing, and persisted retries. Messages do not traverse a RelayBridge-operated cloud relay.</p>
+    <p>This concentrates the compatibility boundary, but it does not eliminate the need to remove embedded credentials, restrict local senders, observe failures, or decide which scripts should eventually be rewritten. Read the <a href="/guides/exchange-online-smtp-oauth-legacy-apps/">SMTP OAuth architecture guide</a> and <a href="/how-it-works/">how RelayBridge separates the two hops</a>.</p>
+    <p>This compatibility path is provided by an independent project, not by Microsoft. Its <a href="https://github.com/getrelaybridge/relaybridge">public MPL-2.0 source</a> allows administrators to inspect the implementation directly; it is not a Microsoft certification or endorsement.</p>
+    <div class="guide-callout"><span>When it is not necessary</span><p>For one maintainable script, a clean Graph/API migration is often simpler. Native OAuth-capable software, an approved notification platform, or an existing suitable mail service may also remove any need for RelayBridge.</p></div>
+  </section>
+
+  <section id="checklist">
+    <p class="guide-kicker">Migration checklist</p><h2>Retire the obsolete dependency without hiding mail failures.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Build a script and owner inventory</h3><p>Search repositories and automation hosts, then classify business impact and maintenance ownership.</p></div></li>
+      <li><span>02</span><div><h3>Select a per-workload target</h3><p>Use Graph, a current SMTP library, an application API, an existing mail service, or a compatibility bridge according to the actual requirement.</p></div></li>
+      <li><span>03</span><div><h3>Design identity before code</h3><p>Choose delegated or application access, least-privilege permissions, secret or certificate lifecycle, and unattended execution behavior.</p></div></li>
+      <li><span>04</span><div><h3>Preserve failure visibility</h3><p>Capture request or SMTP responses, queue state, retries, correlation identifiers, and operator alerts. A successful API call is not proof of inbox delivery.</p></div></li>
+      <li><span>05</span><div><h3>Remove obsolete paths and secrets</h3><p>After parallel validation, disable old credentials, remove dead parameters, and keep an inventory check in code review or CI.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq"><p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2><div class="guide-faq">
+    <details><summary>Is <code>Send-MgUserMail</code> a drop-in replacement?</summary><p>No. It uses Microsoft Graph, which has a different identity, permissions, message model, response behavior, and error surface from SMTP.</p></details>
+    <details><summary>Does <code>202 Accepted</code> mean the message was delivered?</summary><p>No. Microsoft documents that it means the Graph request was accepted for processing. Exchange transport and policy processing still follow.</p></details>
+    <details><summary>Must every script move to Graph?</summary><p>No. Graph is one legitimate option. A maintained SMTP library, application API, existing mail service, or local compatibility bridge can be appropriate depending on the workload.</p></details>
+  </div></section>
+
+  <section id="references"><p class="guide-kicker">Authoritative sources</p><h2>References.</h2><ul class="guide-references">
+    <li><a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/send-mailmessage?view=powershell-7.5">Microsoft Learn: Send-MailMessage</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0">Microsoft Learn: user: sendMail</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.graph.users.actions/send-mgusermail?view=graph-powershell-1.0">Microsoft Learn: Send-MgUserMail</a></li>
+    <li><a href="https://github.com/jstedfast/MailKit">MailKit official project repository</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn: Authenticate SMTP using OAuth</a></li>
+  </ul></section>
+  <section class="related-guides" aria-labelledby="related-powershell-guides"><p class="guide-kicker">Related guides</p><h2 id="related-powershell-guides">Continue from code to mail flow</h2><div><a href="/guides/exchange-online-smtp-oauth-legacy-apps/"><strong>SMTP OAuth for legacy applications</strong><span>Understand the Microsoft-facing SMTP identity model.</span></a><a href="/guides/exchange-online-smtp-basic-auth-deprecation-2026/"><strong>Exchange Online Basic Auth changes</strong><span>Use the current migration schedule and inventory report.</span></a></div></section>
+</GuideLayout>
