@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-smtp-auth-limits.webp';
 const toc = [
   { href: '#answer', label: 'Current limits' }, { href: '#behavior', label: 'Throttle behavior' },
   { href: '#diagnose', label: 'Diagnose symptoms' }, { href: '#bursts', label: 'Plan for bursts' },
@@ -8,7 +9,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Exchange Online SMTP AUTH Limits: 30 Messages/Minute, Connections, and Burst Queuing — RelayBridge" description="Understand Exchange Online SMTP AUTH connection, message-rate, and recipient limits, documented errors, retry behavior, and durable burst queuing." eyebrow="Exchange Online capacity" heading="Exchange Online SMTP AUTH limits: 30 messages/minute, connections, and burst queuing" summary="Authenticated client submission is limited to three concurrent connections, 30 messages per minute, and 10,000 recipients per day per mailbox. Reliable systems must treat those limits as delivery constraints, not errors to race around." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+<GuideLayout title="Exchange Online SMTP AUTH Limits: 30 Messages/Minute, Connections, and Burst Queuing — RelayBridge" description="Understand Exchange Online SMTP AUTH connection, message-rate, and recipient limits, documented errors, retry behavior, and durable burst queuing." eyebrow="Exchange Online capacity" heading="Exchange Online SMTP AUTH limits: 30 messages/minute, connections, and burst queuing" summary="Authenticated client submission is limited to three concurrent connections, 30 messages per minute, and 10,000 recipients per day per mailbox. Reliable systems must treat those limits as delivery constraints, not errors to race around." toc={toc} image={guideImage} imageAlt="Printers, applications, and monitoring alerts feed a durable local queue that paces three delivery lanes toward Exchange Online." imageCaption="A durable queue can preserve and pace bursts, but it does not bypass Exchange Online connection, message-rate, or recipient limits." verified="August 2026" verifiedISO="2026-08">
   <section id="answer">
     <p class="guide-kicker">Current documented limits</p><h2>Capacity is per submitting mailbox, not per device.</h2>
     <p class="guide-lede">Microsoft currently documents a maximum of three concurrent SMTP Authenticated Submission connections, 30 messages per minute, and 10,000 recipients per day for a mailbox. Several devices sharing one submission identity share the same budget.</p>

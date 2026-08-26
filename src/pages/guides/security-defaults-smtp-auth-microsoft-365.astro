@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-security-defaults.webp';
 const toc = [
   { href: '#answer', label: 'Immediate answer' }, { href: '#controls', label: 'Separate the controls' },
   { href: '#verify', label: 'Verify your tenant' }, { href: '#decision', label: 'Decision tree' },
@@ -8,7 +9,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Security Defaults Disables SMTP AUTH: What It Means for Printers and Legacy Apps — RelayBridge" description="Understand why Microsoft Entra Security Defaults disables SMTP AUTH and how MFA, Conditional Access, authentication policies, OAuth, and supported alternatives differ." eyebrow="Microsoft identity and policy" heading="Security Defaults disables SMTP AUTH: what it means for printers and legacy apps" summary="Security Defaults blocks legacy authentication and Exchange Online documents SMTP AUTH as already disabled when Security Defaults is enabled. OAuth does not turn a disabled protocol back on." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+<GuideLayout title="Security Defaults Disables SMTP AUTH: What It Means for Printers and Legacy Apps — RelayBridge" description="Understand why Microsoft Entra Security Defaults disables SMTP AUTH and how MFA, Conditional Access, authentication policies, OAuth, and supported alternatives differ." eyebrow="Microsoft identity and policy" heading="Security Defaults disables SMTP AUTH: what it means for printers and legacy apps" summary="Security Defaults blocks legacy authentication and Exchange Online documents SMTP AUTH as already disabled when Security Defaults is enabled. OAuth does not turn a disabled protocol back on." toc={toc} image={guideImage} imageAlt="Legacy SMTP traffic stops at a locked Security Defaults shield while separate supported API and administrator-controlled policy choices are shown outside the blocked path." imageCaption="Security Defaults disables SMTP AUTH; use a different supported delivery method or an intentionally designed policy model rather than a bypass." verified="August 2026" verifiedISO="2026-08">
   <section id="answer">
     <p class="guide-kicker">Immediate answer</p><h2>Do not design an SMTP AUTH workaround around Security Defaults.</h2>
     <p class="guide-lede">Microsoft’s current Exchange Online documentation states that if Security Defaults is enabled, SMTP AUTH is already disabled. This applies at the protocol availability layer: choosing OAuth instead of a password does not by itself make SMTP AUTH available under that configuration.</p>

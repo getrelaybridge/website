@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-send-mailmessage-migration.webp';
 const toc = [
   { href: '#answer', label: 'Immediate answer' }, { href: '#inventory', label: 'Inventory scripts' },
   { href: '#options', label: 'Migration options' }, { href: '#patterns', label: 'Migration patterns' },
@@ -8,7 +9,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Send-MailMessage Is Obsolete: Microsoft 365 Migration Options for PowerShell — RelayBridge" description="Inventory PowerShell Send-MailMessage usage and compare Microsoft Graph, Send-MgUserMail, MailKit, application APIs, and local SMTP compatibility bridges." eyebrow="PowerShell migration" heading="Send-MailMessage is obsolete: Microsoft 365 migration options for PowerShell" summary="Microsoft marks Send-MailMessage obsolete and says it does not guarantee secure SMTP connections. There is no single drop-in PowerShell replacement: choose Graph, a current library, an application API, or a controlled compatibility layer by workload." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+<GuideLayout title="Send-MailMessage Is Obsolete: Microsoft 365 Migration Options for PowerShell — RelayBridge" description="Inventory PowerShell Send-MailMessage usage and compare Microsoft Graph, Send-MgUserMail, MailKit, application APIs, and local SMTP compatibility bridges." eyebrow="PowerShell migration" heading="Send-MailMessage is obsolete: Microsoft 365 migration options for PowerShell" summary="Microsoft marks Send-MailMessage obsolete and says it does not guarantee secure SMTP connections. There is no single drop-in PowerShell replacement: choose Graph, a current library, an application API, or a controlled compatibility layer by workload." toc={toc} image={guideImage} imageAlt="An obsolete PowerShell mail script branches toward Microsoft Graph, a maintained SMTP library, and a local compatibility bridge before reaching Microsoft 365." imageCaption="Replacing Send-MailMessage is an integration decision: Graph, a current SMTP library, an application API, or a controlled compatibility service may fit." verified="August 2026" verifiedISO="2026-08">
   <section id="answer">
     <p class="guide-kicker">Immediate answer</p><h2>Treat this as an integration migration, not a cmdlet rename.</h2>
     <p class="guide-lede">The official PowerShell documentation marks <code>Send-MailMessage</code> obsolete, warns that it does not guarantee secure connections to SMTP servers, and recommends against its use. Microsoft also says there is no immediate replacement available in PowerShell.</p>

@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-legacy-appliances.webp';
 const toc = [
   { href: '#answer', label: 'Immediate answer' }, { href: '#affected', label: 'Which appliances' },
   { href: '#verify', label: 'Verify capability' }, { href: '#options', label: 'Delivery options' },
@@ -8,7 +9,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Legacy Appliance Email Alerts to Microsoft 365: When Native OAuth Isn't Available — RelayBridge" description="Connect older UPS, network, storage, monitoring, and embedded appliances to Microsoft 365 by checking native OAuth first and comparing supported mail paths." eyebrow="Legacy appliance compatibility" heading="Legacy appliance email alerts to Microsoft 365: when native OAuth isn't available" summary="Prefer the exact vendor-supported Microsoft 365 OAuth integration when your appliance and firmware provide one. For older embedded systems that only speak conventional SMTP, choose a controlled delivery path without pretending every current product has the same limitation." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+<GuideLayout title="Legacy Appliance Email Alerts to Microsoft 365: When Native OAuth Isn't Available — RelayBridge" description="Connect older UPS, network, storage, monitoring, and embedded appliances to Microsoft 365 by checking native OAuth first and comparing supported mail paths." eyebrow="Legacy appliance compatibility" heading="Legacy appliance email alerts to Microsoft 365: when native OAuth isn't available" summary="Prefer the exact vendor-supported Microsoft 365 OAuth integration when your appliance and firmware provide one. For older embedded systems that only speak conventional SMTP, choose a controlled delivery path without pretending every current product has the same limitation." toc={toc} image={guideImage} imageAlt="A UPS, network switch, storage appliance, and environmental controller send local alerts through a durable bridge, while one modern device uses a native path." imageCaption="Check vendor-native OAuth first; use a controlled local compatibility path only for appliance versions that cannot meet the supported Microsoft requirements." verified="August 2026" verifiedISO="2026-08">
   <section id="answer">
     <p class="guide-kicker">Immediate answer</p><h2>Verify the exact model before adding a relay.</h2>
     <p class="guide-lede">Modern versions of some appliances and software can authenticate to Microsoft 365 natively. If your exact model, firmware, edition, and license support a vendor-documented OAuth integration, prefer it. A compatibility relay is for equipment whose SMTP stack cannot meet the supported Microsoft authentication or mail-flow requirements.</p>

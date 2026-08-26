@@ -20,13 +20,11 @@ interface Props {
   image?: ImageMetadata;
   imageAlt?: string;
   imageCaption?: string;
-  authorHandle?: string;
-  authorHref?: string;
   verified?: string;
   verifiedISO?: string;
 }
 
-const { title, description, eyebrow, heading, summary, toc, image, imageAlt, imageCaption, authorHandle, authorHref, verified, verifiedISO } = Astro.props;
+const { title, description, eyebrow, heading, summary, toc, image, imageAlt, imageCaption, verified, verifiedISO } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description} image={image?.src} imageAlt={imageAlt}>
@@ -43,11 +41,10 @@ const { title, description, eyebrow, heading, summary, toc, image, imageAlt, ima
     </div>
   </section>
 
-  {(authorHandle || verified) && (
-    <section class="guide-trust" aria-label="Guide authorship and technical verification">
+  {verified && (
+    <section class="guide-trust" aria-label="Guide technical verification">
       <div class="container guide-trust-inner">
-        {authorHandle && <p><span>Created / technically maintained by</span><a href={authorHref}>{authorHandle}</a></p>}
-        {verified && <p><span>Last technically verified</span><time datetime={verifiedISO}>{verified}</time></p>}
+        <p><span>Last technically verified</span><time datetime={verifiedISO}>{verified}</time></p>
       </div>
     </section>
   )}

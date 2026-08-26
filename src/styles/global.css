@@ -287,7 +287,6 @@ h2 em { color: #52666d; font-style: normal; font-weight: 600; }
 .guide-trust-inner { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .guide-trust p { display: flex; align-items: baseline; gap: 10px; margin: 0; color: #355c56; font-size: 15px; }
 .guide-trust p span { color: #416760; font: 700 12px/1.5 var(--mono); letter-spacing: .045em; text-transform: uppercase; }
-.guide-trust a { color: #106c5c; font-weight: 700; text-underline-offset: 3px; }
 .guide-trust time { color: #234f4d; font-weight: 700; }
 .guide-layout { display: grid; grid-template-columns: 220px minmax(0, 780px); gap: 80px; justify-content: center; align-items: start; }
 .guide-toc { max-height: calc(100vh - var(--sticky-header-offset) - 24px); overflow-y: auto; padding-right: 10px; }

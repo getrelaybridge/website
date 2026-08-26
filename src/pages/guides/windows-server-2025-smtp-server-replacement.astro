@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-windows-server-2025-smtp.webp';
 
 const toc = [
   { href: '#answer', label: 'Immediate answer' }, { href: '#changed', label: 'What changed' },
@@ -16,7 +17,10 @@ const toc = [
   heading="Windows Server 2025 removed SMTP Server: replacement options for Microsoft 365"
   summary="Microsoft removed the legacy SMTP Server feature from Windows Server 2025 and provides no replacement inside the operating system. The right successor depends on your clients, mail-flow requirements, and operational model."
   toc={toc}
-  authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08"
+  image={guideImage}
+  imageAlt="An obsolete Windows SMTP relay branches to modern application, local MTA, managed relay, and local bridge options that can deliver to Microsoft 365."
+  imageCaption="Server 2025 removes the in-box SMTP role; the replacement should match each sender’s identity, recipient, queueing, and operational requirements."
+  verified="August 2026" verifiedISO="2026-08"
 >
   <section id="answer">
     <p class="guide-kicker">Immediate answer</p>

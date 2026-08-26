@@ -1,5 +1,6 @@
 ---
 import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-basic-auth-timeline.webp';
 const toc = [
   { href: '#answer', label: 'Current timeline' }, { href: '#difference', label: 'Basic vs OAuth' },
   { href: '#affected', label: 'Find affected clients' }, { href: '#decision', label: 'Decision tree' },
@@ -8,7 +9,7 @@ const toc = [
 ];
 ---
 
-<GuideLayout title="Exchange Online SMTP Basic Auth: December 2026 Changes and Migration Options — RelayBridge" description="Understand the current Exchange Online SMTP Basic Auth schedule, identify affected clients, and choose an OAuth, Graph, connector, or local bridge migration path." eyebrow="Exchange Online authentication" heading="Exchange Online SMTP Basic Auth: December 2026 changes and migration options" summary="Microsoft’s current schedule keeps existing behavior through December 2026, then makes Basic authentication for SMTP AUTH disabled by default. That is a policy transition—not yet the final removal date." toc={toc} authorHandle="@yuvaraj-builds-ai" authorHref="https://github.com/yuvaraj-builds-ai" verified="August 2026" verifiedISO="2026-08">
+<GuideLayout title="Exchange Online SMTP Basic Auth: December 2026 Changes and Migration Options — RelayBridge" description="Understand the current Exchange Online SMTP Basic Auth schedule, identify affected clients, and choose an OAuth, Graph, connector, or local bridge migration path." eyebrow="Exchange Online authentication" heading="Exchange Online SMTP Basic Auth: December 2026 changes and migration options" summary="Microsoft’s current schedule keeps existing behavior through December 2026, then makes Basic authentication for SMTP AUTH disabled by default. That is a policy transition—not yet the final removal date." toc={toc} image={guideImage} imageAlt="A password key and SMTP envelope move toward a closed authentication gate while a separate OAuth token path continues to a modern mail cloud." imageCaption="Basic authentication reaches a default-off gate after December 2026; OAuth SMTP AUTH is a separate token-based mechanism where the protocol is permitted." verified="August 2026" verifiedISO="2026-08">
   <section id="answer">
     <p class="guide-kicker">Current timeline</p><h2>Use the updated schedule, not the old 2026 deadline.</h2>
     <p class="guide-lede">Microsoft’s January 2026 update says SMTP AUTH Basic authentication behavior remains unchanged through December 2026. Near the end of December 2026, it becomes disabled by default for existing tenants, while administrators can still enable it when necessary. For new tenants created after that point, it is unavailable by default.</p>
