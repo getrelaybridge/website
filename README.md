@@ -17,6 +17,12 @@ Browse all [RelayBridge technical guides](https://getrelaybridge.com/guides/), i
 - [Troubleshooting Exchange Online SMTP errors](https://getrelaybridge.com/guides/troubleshooting-exchange-online-smtp-errors/)
 - [Microsoft 365 SMTP relay for dynamic-IP branch offices](https://getrelaybridge.com/guides/office-365-smtp-relay-dynamic-ip-branch-offices/)
 - [Legacy printer TLS handshake failures with Microsoft 365](https://getrelaybridge.com/guides/legacy-printer-tls-cipher-suite-microsoft-365/)
+- [Windows Server 2025 SMTP Server replacement options](https://getrelaybridge.com/guides/windows-server-2025-smtp-server-replacement/)
+- [Exchange Online SMTP Basic Auth changes and migration options](https://getrelaybridge.com/guides/exchange-online-smtp-basic-auth-deprecation-2026/)
+- [Exchange Online SMTP AUTH rate limits and burst queuing](https://getrelaybridge.com/guides/exchange-online-smtp-auth-rate-limits/)
+- [Security Defaults and SMTP AUTH for printers and legacy applications](https://getrelaybridge.com/guides/security-defaults-smtp-auth-microsoft-365/)
+- [PowerShell Send-MailMessage replacement options for Microsoft 365](https://getrelaybridge.com/guides/powershell-send-mailmessage-replacement-microsoft-365/)
+- [Legacy appliance email alerts to Microsoft 365](https://getrelaybridge.com/guides/legacy-appliance-email-alerts-microsoft-365/)
 
 ## Local development
 
