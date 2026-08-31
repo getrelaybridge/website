@@ -85,7 +85,7 @@ const securitySections = [
         <section id="setup">
           <p class="eyebrow"><span></span> Privileged setup</p>
           <h2>Temporary privilege, not a runtime credential.</h2>
-          <div class="callout callout-development"><span>DEVELOPMENT STATUS</span><p>Native Microsoft setup is under final development and security validation for v1.0.</p></div>
+          <div class="callout callout-development"><span>PUBLIC RC STATUS</span><p>RelayBridge v1.0.0-rc.1 is available as an unsigned public pre-release. Its official GitHub Release includes checksums, a CycloneDX SBOM, release provenance, and third-party notices. It is not a signed stable release. <a href="/download/">Review the release status</a>.</p></div>
           <p>The planned model uses temporary Microsoft administrator authentication only during setup. The long-running RelayBridge service is not intended to retain Microsoft administrator credentials or delegated administrator tokens. Final public setup documentation will be published after the implementation and privilege boundaries are frozen.</p>
         </section>
 
@@ -94,7 +94,7 @@ const securitySections = [
           <h2>Current boundaries to plan for</h2>
           <div class="limitation-list">
             <article><span>01</span><div><h3>No inbound STARTTLS today</h3><p>Printer-to-RelayBridge SMTP is not currently TLS protected. Device intake must be placed on an explicitly trusted private network. RelayBridge-to-Microsoft 365 remains TLS protected.</p></div></article>
-            <article><span>02</span><div><h3>Platform support is not frozen</h3><p>RelayBridge is being developed primarily for Windows. The final compatibility matrix and packaging are not yet published.</p></div></article>
+            <article><span>02</span><div><h3>Platform support is not frozen</h3><p>The v1.0.0-rc.1 public release targets Windows x64. The final compatibility matrix and signed stable packaging are not yet available.</p></div></article>
             <article><span>03</span><div><h3>Microsoft acceptance is not inbox delivery</h3><p>A successful final SMTP response establishes acceptance by Microsoft 365. Filtering, policy, routing, and inbox placement happen after that boundary.</p></div></article>
           </div>
         </section>
@@ -122,5 +122,5 @@ const securitySections = [
     </div>
   </section>
 
-  <CallToAction eyebrow="Open development" title="Inspect the public source." description="Review RelayBridge under MPL-2.0 while official signed Windows binaries remain in release preparation." primaryHref="https://github.com/getrelaybridge/relaybridge" primaryLabel="View source" secondaryHref="/docs/" secondaryLabel="Documentation" />
+  <CallToAction eyebrow="Public source and RC" title="Review the security boundary." description="Inspect the public MPL-2.0 source and the evidence accompanying the unsigned v1.0.0-rc.1 evaluation release." primaryHref="/download/" primaryLabel="Release status" secondaryHref="https://github.com/getrelaybridge/relaybridge" secondaryLabel="View source" />
 </BaseLayout>

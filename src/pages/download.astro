@@ -3,30 +3,57 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import downloadArtwork from '../assets/page-art/download-status.webp';
 ---
 
-<BaseLayout title="RelayBridge downloads — Windows release in preparation" description="RelayBridge source is public under MPL-2.0. Official signed Windows binaries are not yet publicly released." image={downloadArtwork.src} imageAlt="RelayBridge release-status illustration showing a Windows service, local daemon, certificate keystore, and GitHub repository around an active-development package.">
+<BaseLayout title="RelayBridge v1.0.0-rc.1 — Public Windows release candidate" description="Download information for RelayBridge v1.0.0-rc.1, an unsigned Windows x64 pre-release for evaluation and community testing." image={downloadArtwork.src} imageAlt="RelayBridge release-status illustration showing a Windows service, local daemon, certificate keystore, and GitHub repository around an active-development package.">
   <section class="download-page section-dark">
     <div class="container download-grid">
       <div>
-        <p class="eyebrow eyebrow-light"><span></span> Downloads</p>
-        <h1>RelayBridge<br /><em>downloads.</em></h1>
-        <p class="download-lede">Official Windows binaries are not publicly released yet.</p>
-        <p>RelayBridge source is public under MPL-2.0. The official signed MSI and bootstrapper remain in release preparation and are not available as production downloads.</p>
-        <div class="button-row"><a class="button button-accent" href="https://github.com/getrelaybridge/relaybridge">View source on GitHub <span aria-hidden="true">→</span></a><a class="button button-ghost" href="/docs/">Read the docs status</a></div>
+        <p class="eyebrow eyebrow-light"><span></span> Downloads · Public RC</p>
+        <h1>RelayBridge<br /><em>v1.0.0-rc.1</em></h1>
+        <p class="download-lede">Public Windows release candidate for Windows x64.</p>
+        <p class="release-warning">RelayBridge v1.0.0-rc.1 is an unsigned public pre-release intended for evaluation and community testing. Windows may display Unknown Publisher and Microsoft Defender SmartScreen may show a warning.</p>
+        <p><strong>Verify the installer SHA-256 before running it.</strong></p>
+        <code class="release-hash">4667AD60376B2D29F6E368980F7A533AF8424951B5FB0D7412396E527D6360DC</code>
+        <div class="button-row"><a class="button button-accent" href="https://github.com/getrelaybridge/relaybridge/releases/tag/v1.0.0-rc.1">View v1.0.0-rc.1 on GitHub <span aria-hidden="true">→</span></a><a class="button button-ghost" href="https://github.com/getrelaybridge/relaybridge/tree/v1.0.0-rc.1">View tagged source</a></div>
       </div>
       <div class="release-card">
-        <div class="release-card-head"><span>RELEASE CHANNEL</span><b>WINDOWS</b></div>
+        <div class="release-card-head"><span>PUBLIC RC</span><b>WINDOWS X64</b></div>
         <div class="release-status-icon" aria-hidden="true"><i></i></div>
-        <h2>Release preparation</h2>
-        <p>No official Windows installer is publicly available.</p>
-        <dl><div><dt>Version</dt><dd>Not published</dd></div><div><dt>Platform</dt><dd>Primarily Windows</dd></div><div><dt>Status</dt><dd><span></span> Active development</dd></div></dl>
+        <h2>Unsigned pre-release</h2>
+        <p>For evaluation and community testing.</p>
+        <dl>
+          <div><dt>Version</dt><dd>1.0.0-rc.1</dd></div>
+          <div><dt>Platform</dt><dd>Windows x64</dd></div>
+          <div><dt>Authenticode</dt><dd>NotSigned</dd></div>
+          <div><dt>Signed stable release</dt><dd>Not yet available</dd></div>
+        </dl>
       </div>
     </div>
   </section>
+
   <section class="section section-white">
-    <div class="container narrow-copy">
-      <p class="eyebrow"><span></span> Before the first release</p>
-      <h2>Accurate instructions come before a download button.</h2>
-      <p class="section-lede">The release page will point to official GitHub Releases when public builds exist. Until then, we will not publish placeholder binaries, invented versions, or incomplete setup instructions.</p>
+    <div class="container release-detail-grid">
+      <article>
+        <p class="eyebrow"><span></span> Installation path</p>
+        <h2>Use the bootstrapper on a clean machine.</h2>
+        <p class="section-lede">The recommended installer is:</p>
+        <code class="release-installer">RelayBridge-Setup-1.0.0-rc.1-win-x64.exe</code>
+        <p>The bootstrapper is the supported clean-machine path and handles the expected prerequisite and setup flow. A standalone MSI is also available on the GitHub Release for advanced and support purposes; it is not the normal clean-machine installation path.</p>
+      </article>
+
+      <article>
+        <p class="eyebrow"><span></span> Release verification</p>
+        <h2>Evidence travels with the release.</h2>
+        <p>The GitHub Release includes SHA256SUMS, a CycloneDX SBOM, release provenance, third-party notices, and source and license material.</p>
+        <p>RC1 was built from the exact clean public source tag with <code>SourceTreeClean=true</code>, passed the release gates, was owner smoke-tested, uploaded without rebuilding, downloaded from GitHub, and re-hashed against the smoke-tested bytes.</p>
+        <dl class="release-validation">
+          <div><dt>Unit</dt><dd>86 / 86</dd></div>
+          <div><dt>Integration</dt><dd>497 / 497</dd></div>
+          <div><dt>Total</dt><dd>583 / 583</dd></div>
+          <div><dt>Failed / skipped</dt><dd>0 / 0</dd></div>
+          <div><dt>Build</dt><dd>0 warnings · 0 errors</dd></div>
+        </dl>
+        <p class="release-evidence-note">These checks do not make RC1 a stable, certified, vulnerability-free, or production-proven release. A signed stable RelayBridge release is not yet available.</p>
+      </article>
     </div>
   </section>
 </BaseLayout>
