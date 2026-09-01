@@ -1,0 +1,54 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Restart, upgrade, repair, and uninstall" description="Operate and service the RelayBridge Windows installation while preserving durable state and understanding what upgrade, repair, and uninstall do not remove." section="Operations">
+  <section>
+    <h2>Service restart and reboot</h2>
+    <p><code>RelayBridge</code> is an automatic per-machine Windows service running as LocalSystem. A normal stop is bounded and graceful: intake stops, active SMTP sessions receive a drain period, queue workers stop claiming new work, and durable state remains on disk.</p>
+    <p>On restart, the Host initializes storage, reconciles queue metadata and spool files, reloads active configuration, and resumes eligible work. Devices, queue data, certificates, and active configuration survive a normal restart or reboot.</p>
+    <p>Current-process Microsoft verification evidence intentionally resets. If the UI reports <strong>Verification required</strong>, use the Microsoft setup page's direct verification path.</p>
+    <p>Service recovery restarts after the first and second crashes with a 15-second delay and a one-day reset window. There is no third automatic restart. This crash policy does not apply to a normal administrative stop.</p>
+  </section>
+
+  <section>
+    <h2>Manual release awareness</h2>
+    <p>Settings shows the installed semantic version and channel. RC versions use <strong>Preview</strong>; stable versions use <strong>Stable</strong>. RC1 is version <code>1.0.0-rc.1</code> on the Preview channel.</p>
+    <p>RelayBridge checks only after an administrator selects <strong>Check for updates</strong> or <strong>Check again</strong>. It does not automatically check, download, execute, or install updates.</p>
+    <p>The bounded request goes to the fixed public GitHub Releases API. GitHub receives normal network metadata such as the source IP and a <code>RelayBridge/&lt;version&gt;</code> user agent. The application request does not include Microsoft tenant, device, message, RelayBridge configuration, credential, or machine-identity data.</p>
+  </section>
+
+  <section>
+    <h2>Upgrade</h2>
+    <p>Future upgrades are administrator-initiated through the supported Burn bootstrapper. MSI major-upgrade behavior preserves supported ProgramData state and blocks downgrades.</p>
+    <ol>
+      <li>Read the target release notes and verify the new bootstrapper and checksum.</li>
+      <li>Retain a system and data backup appropriate to the environment.</li>
+      <li>Run the supported bootstrapper as an administrator.</li>
+      <li>After servicing, confirm the service, listener, queue, Microsoft readiness, and version.</li>
+    </ol>
+    <p>Do not install an older package over a newer version or bypass the bootstrapper on a clean machine.</p>
+  </section>
+
+  <section>
+    <h2>Repair</h2>
+    <p>Run the same supported bootstrapper and choose Repair. Windows Installer repair restores installer-owned Program Files payloads, service registration, protocol handlers, private tooling, and the desktop shortcut without intentionally deleting durable ProgramData.</p>
+    <p>Installer Repair does not rerun Microsoft tenant administration or delete the active configuration. For Microsoft identity or RBAC problems, use <strong>Repair connection</strong> in the Microsoft setup wizard.</p>
+  </section>
+
+  <section>
+    <h2>Uninstall and retained resources</h2>
+    <p>Normal uninstall removes the RelayBridge service, installed application and tooling under Program Files, custom URI registrations, desktop shortcut, and installer-owned tooling and acceptance state.</p>
+    <p>It intentionally preserves <code>C:\ProgramData\RelayBridge</code> so queued mail, configuration, and local history are not silently destroyed. It also does not remove Windows certificates and private keys or Microsoft Entra and Exchange objects.</p>
+    <div class="docs-callout">
+      <strong>Review retained state deliberately</strong>
+      <p>Before deleting ProgramData manually, confirm that no queued mail or required records remain. Decide separately whether certificates and tenant objects should be retained or removed. Do not manually delete the service or protected data unless normal servicing has demonstrably failed and support guidance calls for it.</p>
+    </div>
+    <div class="docs-related">
+      <a href="/docs/reference/"><strong>Verified Windows paths</strong><span>Identify installed payloads, durable data, certificate, registry, and event-log locations.</span></a>
+      <a href="/docs/troubleshooting/#repair-uninstall"><strong>Repair or uninstall troubleshooting</strong><span>Preserve evidence and use the original supported bootstrapper.</span></a>
+      <a href="/download/"><strong>Current release status</strong><span>Acquire the supported RC1 bootstrapper and verify its published hash.</span></a>
+      <a href="https://github.com/getrelaybridge/relaybridge/releases/tag/v1.0.0-rc.1"><strong>RC1 release notes and assets</strong><span>Review the official release evidence and servicing materials.</span></a>
+    </div>
+  </section>
+</DocsLayout>

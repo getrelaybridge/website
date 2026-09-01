@@ -1,0 +1,52 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Add a printer or SMTP device" description="Create a restricted RelayBridge device, configure its SMTP client, protect one-time credentials, and test local acceptance separately from delivery." section="Devices">
+  <section>
+    <h2>Confirm prerequisites</h2>
+    <p>Before creating a device, Microsoft 365 must be active and verified during the current service start. Printer connectivity must show the intended private listener and queue as ready.</p>
+  </section>
+
+  <section>
+    <h2>Complete the device wizard</h2>
+    <ol class="docs-steps">
+      <li><strong>Name the device.</strong>Use a recognizable printer, scanner, appliance, or application name and an optional operational description.</li>
+      <li><strong>Choose authentication capability.</strong>Select Authenticated mode when the device supports SMTP AUTH LOGIN or AUTH PLAIN. Choose Legacy mode only when it cannot authenticate.</li>
+      <li><strong>Restrict the source.</strong>Enter the exact private source IP address or the narrowest required subnet.</li>
+      <li><strong>Review sender and endpoint.</strong>Confirm the one active authorized sender and the private RelayBridge address and port.</li>
+      <li><strong>Create and retain the setup values.</strong>Authenticated-mode credentials are shown once. Store the generated password securely before leaving the page.</li>
+    </ol>
+    <p>RelayBridge stores only a password verifier and cannot display the original password later. Resetting a password immediately invalidates the old one.</p>
+  </section>
+
+  <section>
+    <h2>Configure the SMTP client</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Device field</th><th>RelayBridge value</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">SMTP server</th><td>The private RelayBridge address displayed by the wizard</td></tr>
+          <tr><th scope="row">Port</th><td>The displayed printer SMTP port, normally 2525</td></tr>
+          <tr><th scope="row">Connection security</th><td>None; inbound STARTTLS is unavailable in RC1</td></tr>
+          <tr><th scope="row">Sender</th><td>The exact active Exchange Online sender mailbox</td></tr>
+          <tr><th scope="row">Authentication</th><td>Generated username and one-time password in Authenticated mode; none in Legacy mode</td></tr>
+          <tr><th scope="row">Source address</th><td>Must match the exact private address or subnet configured for this device</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Manufacturer field names differ. Use the device vendor's documentation to map these values without enabling unsupported TLS modes or changing the exact SMTP envelope sender.</p>
+  </section>
+
+  <section>
+    <h2>Test with non-sensitive mail</h2>
+    <p>Send a small synthetic message. A local SMTP success means RelayBridge durably accepted the message on this host. It does not mean Exchange Online or the inbox accepted it.</p>
+    <p>Use Diagnostics and queue state to confirm that a worker claimed the message and received a final Exchange response. Only a final Exchange <code>250</code> means Microsoft accepted the upstream SMTP transaction; later filtering, routing, quarantine, and inbox placement remain separate.</p>
+    <div class="docs-related">
+      <a href="/guides/microsoft-365-smtp-relay-legacy-printers/"><strong>Legacy printer background</strong><span>Understand the capability gap between printer SMTP and Microsoft OAuth.</span></a>
+      <a href="/guides/scan-to-email-microsoft-365/"><strong>Scan-to-email guide</strong><span>Follow the document, MIME, SMTP, queue, and Exchange acceptance boundaries.</span></a>
+      <a href="/guides/legacy-appliance-email-alerts-microsoft-365/"><strong>Appliance alert guide</strong><span>Evaluate native vendor OAuth before using a compatibility bridge.</span></a>
+      <a href="/docs/operations/queue-delivery/"><strong>Queue and delivery</strong><span>Interpret durable acceptance, retries, final failure, and possible duplication.</span></a>
+    </div>
+  </section>
+</DocsLayout>

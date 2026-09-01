@@ -1,0 +1,136 @@
+---
+import DocsLayout from '../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Troubleshooting RelayBridge" description="Diagnose RelayBridge service, local UI, printer SMTP, device authorization, Microsoft setup, Exchange 535, TLS, queue, firewall, update, and servicing symptoms." section="Troubleshooting">
+  <section>
+    <h2>Start with bounded evidence</h2>
+    <ol>
+      <li>Open Diagnostics locally and record the status and evidence source.</li>
+      <li>Confirm the <code>RelayBridge</code> Windows service is Running.</li>
+      <li>Check management, actual SMTP binding, queue worker, Microsoft runtime readiness, certificate, storage, and disk capacity separately.</li>
+      <li>Run the non-authenticated Exchange connectivity check for DNS, TCP, or TLS investigation.</li>
+      <li>Use Microsoft <strong>Verify connection</strong> for active certificate, token, TLS, and XOAUTH2 validation.</li>
+      <li>Generate and review a support bundle only when the collected evidence is needed for a report.</li>
+    </ol>
+    <nav aria-label="Troubleshooting topics">
+      <ul>
+        <li><a href="#service-not-running">Service not running</a></li>
+        <li><a href="#management-ui">Management UI unavailable</a></li>
+        <li><a href="#printer-connectivity">Printer cannot connect</a></li>
+        <li><a href="#device-authentication">Device authentication failure</a></li>
+        <li><a href="#sender-rejected">Sender rejected</a></li>
+        <li><a href="#microsoft-setup">Microsoft setup incomplete</a></li>
+        <li><a href="#exchange-smtp-535">Exchange SMTP 535</a></li>
+        <li><a href="#exchange-propagation">Waiting for Exchange authorization</a></li>
+        <li><a href="#queue-not-delivering">Queue not delivering</a></li>
+        <li><a href="#dns-tcp-tls">DNS, TCP, or TLS failure</a></li>
+        <li><a href="#firewall">Windows Firewall</a></li>
+        <li><a href="#update-check">Update check failure</a></li>
+        <li><a href="#repair-uninstall">Repair or uninstall</a></li>
+      </ul>
+    </nav>
+  </section>
+
+  <section id="service-not-running">
+    <h2>RelayBridge service is not running</h2>
+    <p><strong>Symptoms:</strong> the desktop shortcut cannot open the UI, Diagnostics is unavailable, or Windows Services shows RelayBridge stopped.</p>
+    <p><strong>Check:</strong> start the <code>RelayBridge</code> service in Windows Services; review the Windows Application event log for RelayBridge or .NET startup errors; verify the production override is valid; confirm ProgramData access and free space; use installer Repair if installed files are missing or altered.</p>
+    <p><strong>Do not:</strong> repeatedly delete and recreate the service, replace installed binaries manually, relax ProgramData ACLs, or erase the database or spool.</p>
+  </section>
+
+  <section id="management-ui">
+    <h2>Management UI is unavailable</h2>
+    <p><strong>Symptoms:</strong> the shortcut times out or the local page does not load.</p>
+    <p><strong>Check:</strong> service state; local <code>http://localhost:5080/health</code>; whether another process occupies the management port; Windows Application events; and installer Repair for opener or registry state.</p>
+    <p><strong>Do not:</strong> bind management to a LAN address or create a firewall rule for port 5080. Remote management is not supported.</p>
+  </section>
+
+  <section id="printer-connectivity">
+    <h2>Printer cannot connect or SMTP is refused</h2>
+    <p><strong>Symptoms:</strong> the device reports timeout or connection refused and no local acceptance appears.</p>
+    <p><strong>Check:</strong> the actual listener binding in Settings; whether the selected interface remains active; the device port; listener and queue readiness; trusted-LAN routing; the narrow Windows Firewall rule if required; and whether connection limits are exhausted.</p>
+    <p><strong>Do not:</strong> use <code>0.0.0.0</code>, a public address, an Internet-facing firewall rule, or expose the management endpoint.</p>
+  </section>
+
+  <section id="device-authentication">
+    <h2>Device authentication fails</h2>
+    <p><strong>Symptoms:</strong> the local SMTP session receives a 535-class authentication rejection.</p>
+    <p><strong>Check:</strong> the device is enabled; username and one-time password were copied exactly; the password was not reset; source IP matches the rule; the client uses AUTH LOGIN or AUTH PLAIN; and connection security is None.</p>
+    <p><strong>Do not:</strong> change to Legacy mode only to bypass a credential problem. Use Legacy mode only when the device truly lacks SMTP AUTH and strict source isolation is acceptable.</p>
+  </section>
+
+  <section id="sender-rejected">
+    <h2>Sender is rejected</h2>
+    <p><strong>Symptoms:</strong> MAIL FROM is rejected before durable queuing or upstream delivery.</p>
+    <p><strong>Check:</strong> the SMTP envelope sender—not just the header <code>From</code>—matches the device sender rule and active Microsoft sender; Microsoft setup is active and verified; and the sender is a real Exchange Online mailbox.</p>
+    <p><strong>Do not:</strong> broaden to a wildcard sender or add broad tenant permissions.</p>
+  </section>
+
+  <section id="microsoft-setup">
+    <h2>Microsoft setup is incomplete</h2>
+    <p><strong>Symptoms:</strong> the dashboard says Not configured, Verification required, or setup can be resumed.</p>
+    <p><strong>Check:</strong> return to Microsoft 365 setup; inspect the safe stage, substage, category, and code; confirm the original candidate, certificate, and sender are unchanged; and resume the wizard. After a service restart, use direct Verify connection for the active configuration.</p>
+    <p><strong>Do not:</strong> paste raw tokens or output into public reports, delete a working active configuration, or rerun tenant provisioning through unrelated scripts.</p>
+  </section>
+
+  <section id="exchange-smtp-535">
+    <h2>Exchange SMTP 535</h2>
+    <p><strong>Symptoms:</strong> Microsoft identity is ready but Exchange Online rejects XOAUTH2 authentication.</p>
+    <p><strong>Check:</strong> tenant and mailbox SMTP AUTH policy; application identity and certificate match; Exchange service-principal reference; effective <code>Application SMTP.SendAsApp</code> scope for the sender; certificate time validity; and the safe Step 5 details.</p>
+    <p>If this is the exact eligible post-provisioning case, allow the bounded Step 5 checks to run. SMTP 535 can also have permanent causes; propagation is not assumed.</p>
+    <p><strong>Do not:</strong> retry every 535 indefinitely, enable Basic Auth, grant Graph mail permissions, or replace the candidate during an automatic session.</p>
+  </section>
+
+  <section id="exchange-propagation">
+    <h2>Waiting for Exchange authorization</h2>
+    <p><strong>Symptoms:</strong> Step 5 shows an Active automatic verification session, attempt and next-check fields, and Authentication · SMTP 535.</p>
+    <p><strong>Check:</strong> leave the page open for the five-minute scheduled checks; use <strong>Check now</strong> for one non-overlapping immediate attempt; and confirm the candidate has not changed. The session ends after 12 automatic attempts or one hour.</p>
+    <p><strong>Do not:</strong> promise a propagation duration, continuously click controls, or assume success before normal verification activates the candidate.</p>
+  </section>
+
+  <section id="queue-not-delivering">
+    <h2>Queue is not delivering</h2>
+    <p><strong>Symptoms:</strong> local SMTP succeeds but ready, retrying, or permanent-failure counts remain, or the worker is not running.</p>
+    <p><strong>Check:</strong> Queue.Enabled and worker status; current-process Microsoft readiness; certificate access; oldest message and next retry; disk capacity; Exchange connectivity; and permanent-failure classification. Restart after changing deployment configuration.</p>
+    <p><strong>Do not:</strong> delete spool files or edit SQLite directly. Local <code>250</code> means RelayBridge owns a durable copy that must be handled deliberately.</p>
+  </section>
+
+  <section id="dns-tcp-tls">
+    <h2>DNS, TCP, or TLS verification fails</h2>
+    <p><strong>Symptoms:</strong> the Diagnostics connectivity probe stops at DNS, TCP 587, greeting, EHLO, STARTTLS, or TLS.</p>
+    <p><strong>Check:</strong> DNS resolution, outbound TCP 587, Windows system time and trust store, TLS inspection, proxy or firewall policy, and Exchange service availability. The probe does not authenticate or send mail.</p>
+    <p><strong>Do not:</strong> disable certificate or hostname validation or switch the Microsoft-facing hop to cleartext SMTP.</p>
+  </section>
+
+  <section id="firewall">
+    <h2>Windows Firewall blocks the printer</h2>
+    <p><strong>Symptoms:</strong> the service listens on the selected interface, but intended devices cannot reach it.</p>
+    <p><strong>Check:</strong> the network profile is Private; the rule targets the exact Host executable, local address, printer port, and source device or subnet; endpoint security has no conflicting policy; and VLAN routing permits the path.</p>
+    <p><strong>Do not:</strong> enable all profiles, ports, or programs or expose the listener to public networks.</p>
+  </section>
+
+  <section id="update-check">
+    <h2>Update check fails</h2>
+    <p><strong>Symptoms:</strong> Settings reports that it could not check for updates.</p>
+    <p><strong>Check:</strong> HTTPS access to the GitHub API, DNS, system time, proxy policy, GitHub availability, and a later manual retry.</p>
+    <p>The manual check is informational. Failure does not make the Windows service, SMTP listener, queue, Microsoft configuration, or delivery path unhealthy.</p>
+  </section>
+
+  <section id="repair-uninstall">
+    <h2>Repair or uninstall issue</h2>
+    <p><strong>Symptoms:</strong> installed files or shortcut remain missing after repair, or the service remains after normal uninstall.</p>
+    <p><strong>Check:</strong> use the original supported bootstrapper; review its log; reboot if Windows servicing requests it; and verify service, Program Files, URI registration, and shortcut state. Remember that ProgramData, certificates, and tenant objects are intentionally retained.</p>
+    <p><strong>Do not:</strong> manually delete the service or protected data before preserving evidence and confirming normal Windows servicing failed.</p>
+  </section>
+
+  <section>
+    <h2>Deeper diagnostic guides</h2>
+    <div class="docs-related">
+      <a href="/guides/troubleshooting-exchange-online-smtp-errors/"><strong>Exchange Online SMTP errors</strong><span>Preserve the complete response and diagnose the precise SMTP stage.</span></a>
+      <a href="/guides/legacy-printer-tls-cipher-suite-microsoft-365/"><strong>Legacy printer TLS failures</strong><span>Separate device firmware capability from the outbound Microsoft TLS path.</span></a>
+      <a href="/guides/security-defaults-smtp-auth-microsoft-365/"><strong>Security Defaults and SMTP AUTH</strong><span>Distinguish tenant policy from authentication and delivery method.</span></a>
+      <a href="/docs/operations/diagnostics/"><strong>Diagnostics and support bundles</strong><span>Collect the smallest useful evidence set and review it before sharing.</span></a>
+    </div>
+  </section>
+</DocsLayout>

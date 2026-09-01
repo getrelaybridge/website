@@ -59,7 +59,7 @@ const guideGroups = [
           <p class="eyebrow"><span></span> Thirteen starting points</p>
           <h2>Start with the problem<br /><em>in front of you.</em></h2>
         </div>
-        <p class="section-lede">Each guide explains the Microsoft boundary, verification steps, and neutral solution categories. They are not a substitute for vendor documentation, and RelayBridge remains pre-release.</p>
+        <p class="section-lede">Each guide explains the Microsoft boundary, verification steps, and neutral solution categories. They complement the RelayBridge administrator documentation and are not a substitute for vendor documentation.</p>
       </div>
       {guideGroups.map((group) => {
         const headingId = `guide-category-${group.title.toLowerCase().replaceAll(' ', '-')}`;
@@ -84,8 +84,8 @@ const guideGroups = [
 
   <section class="section guides-context">
     <div class="container two-column-copy">
-      <div><p class="eyebrow"><span></span> Scope</p><h2>Useful now.<br /><em>Not setup documentation.</em></h2></div>
-      <div><p class="section-lede">The guides describe current Microsoft 365 behavior and RelayBridge’s intended v1.0 boundaries. Final installation, provisioning, and device-configuration documentation will be published only after the release flow is frozen.</p><a class="button button-ink" href="/docs/">Documentation status <span aria-hidden="true">→</span></a></div>
+      <div><p class="eyebrow"><span></span> Scope</p><h2>Background here.<br /><em>Product procedures in docs.</em></h2></div>
+      <div><p class="section-lede">These guides explain broader Microsoft 365 SMTP decisions, migrations, and failure modes. For the released RelayBridge v1.0.0-rc.1 installation, setup, device, operations, and troubleshooting procedures, use the administrator documentation.</p><a class="button button-ink" href="/docs/">Administrator documentation <span aria-hidden="true">→</span></a></div>
     </div>
   </section>
 

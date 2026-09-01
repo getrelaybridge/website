@@ -1,0 +1,72 @@
+---
+import DocsLayout from '../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Security model and RC1 limitations" description="Review RelayBridge management, private-LAN SMTP, device authorization, queue, Microsoft identity, outbound TLS, support, and servicing boundaries." section="Security">
+  <section>
+    <h2>Security comes from several narrow boundaries</h2>
+    <p>RelayBridge does not rely on one control or claim that every risk is eliminated. RC1 combines a loopback management boundary, one explicit private SMTP listener, per-device authorization, durable local storage, certificate-based Microsoft identity, sender-scoped Exchange RBAC, and certificate-validated outbound TLS.</p>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Boundary</th><th>Implemented control</th><th>Administrator responsibility or residual risk</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Management</th><td>Fixed HTTP loopback binding; no remote management; opener accepts no arbitrary URL</td><td>Protect the Windows session and local Administrator access</td></tr>
+          <tr><th scope="row">Device LAN</th><td>One explicit private listener; no wildcard or public binding; source and sender allowlists</td><td>Isolate the LAN, restrict firewall scope, and accept that inbound TLS is absent</td></tr>
+          <tr><th scope="row">Authenticated devices</th><td>One-time generated secret, salted verifier, and bounded authentication attempts</td><td>Protect the displayed password and device configuration; credentials cross the private LAN in cleartext</td></tr>
+          <tr><th scope="row">Legacy devices</th><td>No password, but public and unrestricted source rules are rejected</td><td>Reserve stable private addresses and prevent spoofing or untrusted LAN access</td></tr>
+          <tr><th scope="row">Queue</th><td>Streamed spool, durable flush, atomic promotion, and SQLite commit before local <code>250</code></td><td>Protect ProgramData, monitor capacity, and plan backup and retention</td></tr>
+          <tr><th scope="row">Microsoft identity</th><td>Customer-owned single-tenant app and non-exportable local certificate; no client secret</td><td>Monitor certificate lifecycle and tenant-side changes</td></tr>
+          <tr><th scope="row">Exchange authorization</th><td>Sender group, management scope, and scoped <code>Application SMTP.SendAsApp</code></td><td>Keep the selected mailbox and RBAC objects under change control</td></tr>
+          <tr><th scope="row">Outbound SMTP</th><td>Fixed Exchange endpoint, mandatory STARTTLS, platform certificate validation, and XOAUTH2</td><td>Permit the required network path without bypassing TLS checks</td></tr>
+          <tr><th scope="row">Privileged operations</th><td>Short-lived fixed helpers, bounded one-shot state, and narrow allowlisted operations</td><td>Review each elevation prompt and recognize that a local Administrator can change installed state</td></tr>
+          <tr><th scope="row">Diagnostics/export</th><td>Bounded status schemas and a local allowlisted support bundle</td><td>Review operational metadata before sharing</td></tr>
+          <tr><th scope="row">Servicing</th><td>Per-machine WiX/MSI service, ACL, repair, upgrade, and uninstall behavior</td><td>Deliberately retain or remove ProgramData, certificates, and tenant objects</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Management and privileged actions</h2>
+    <p>Management is code-bound to loopback. The installed endpoint is normally <code>http://localhost:5080/</code>, and effective non-loopback overrides fail startup. There is no RC1 remote-management feature.</p>
+    <p>The LocalSystem Windows service and the signed-in user's browser remain separate. The desktop opener reads a protected machine registry value, validates an HTTP loopback root endpoint, waits for <code>/health</code>, and opens the dashboard or Microsoft setup without elevation.</p>
+    <p>Microsoft administration and printer Apply use fixed installed helpers with process, session, path, hash, and candidate checks. These controls reduce exposed functionality; they do not make a local Administrator untrusted.</p>
+  </section>
+
+  <section>
+    <h2>Mail and identity boundaries</h2>
+    <p>Device-to-RelayBridge SMTP is cleartext on one trusted private interface. Authenticated mode adds a device-specific credential, but that credential also crosses the private LAN without TLS. Legacy mode has no credential and therefore requires stricter private source isolation.</p>
+    <p>RelayBridge-to-Exchange Online is a different connection. It requires normal certificate-validated STARTTLS on TCP 587 and XOAUTH2 using the customer-owned application and local certificate.</p>
+    <p>Message content remains in the protected local spool while queued. An ambiguous upstream response can cause a retry and duplicate. A final Exchange <code>250</code> is acceptance by Microsoft at the SMTP boundary, not proof of inbox placement.</p>
+  </section>
+
+  <section id="rc1-limitations">
+    <h2>RC1 limitations</h2>
+    <ul>
+      <li><strong>Unsigned pre-release:</strong> Windows may show Unknown Publisher and SmartScreen may warn. RC1 is for evaluation and community testing, not the signed stable production release.</li>
+      <li><strong>Windows client scope:</strong> Windows 10/11 x64 with one locally interactive administrator is supported. Windows Server, Server Core, RDP native setup, simultaneous setup users, x86, and Arm64 are not claimed.</li>
+      <li><strong>No inbound STARTTLS:</strong> device SMTP, including reusable AUTH credentials, is cleartext on the trusted private LAN.</li>
+      <li><strong>Manual firewall boundary:</strong> RelayBridge generates guidance but does not create or modify Windows Firewall rules.</li>
+      <li><strong>One tenant, application, and sender:</strong> RC1 does not provide multi-tenant or multiple authorized-sender configuration.</li>
+      <li><strong>Variable Exchange propagation:</strong> Step 5 checks are bounded; no duration is guaranteed and not every SMTP 535 is propagation.</li>
+      <li><strong>No remote management:</strong> the management UI remains on local loopback.</li>
+      <li><strong>No automatic updater:</strong> release checking is manual and informational; there is no automatic check, download, or installation.</li>
+      <li><strong>No Graph delivery fallback:</strong> Exchange Online SMTP AUTH with OAuth/XOAUTH2 is the production delivery path.</li>
+      <li><strong>At-least-once delivery:</strong> an ambiguous upstream failure can result in a retry and possible duplicate.</li>
+      <li><strong>Acceptance is not inbox placement:</strong> Exchange <code>250</code> does not guarantee final delivery.</li>
+      <li><strong>No automatic cleanup:</strong> uninstall preserves ProgramData and does not remove certificates, private keys, or Microsoft tenant objects.</li>
+      <li><strong>No signed stable build:</strong> a signed stable RelayBridge v1.0.0 is not available.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Security reporting</h2>
+    <p>Use the application's private vulnerability-reporting process described in <a href="https://github.com/getrelaybridge/relaybridge/blob/main/SECURITY.md">SECURITY.md</a>. Do not publish suspected vulnerabilities or include tenant identifiers, mailbox or message data, credentials, tokens, certificates, private keys, raw configuration, databases, spool files, or unreviewed support bundles in a public issue.</p>
+    <div class="docs-related">
+      <a href="/security/"><strong>Microsoft 365 security architecture</strong><span>Read the site-wide explanation of the current Microsoft implementation.</span></a>
+      <a href="/docs/devices/security-modes/"><strong>Device security modes</strong><span>Apply the source, sender, credential, and trusted-LAN restrictions.</span></a>
+      <a href="/docs/operations/diagnostics/"><strong>Diagnostics and support</strong><span>Collect and share bounded evidence without claiming sanitization is infallible.</span></a>
+      <a href="/docs/microsoft-365/identity/"><strong>Identity and certificate</strong><span>Understand the local private-key and customer-owned application boundary.</span></a>
+    </div>
+  </section>
+</DocsLayout>

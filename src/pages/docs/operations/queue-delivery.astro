@@ -1,0 +1,57 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Queue and delivery" description="Understand RelayBridge durable local SMTP acceptance, queue persistence, retries, Microsoft token acquisition, TLS, XOAUTH2, and Exchange acceptance semantics." section="Operations">
+  <section>
+    <h2>Two separate SMTP connections</h2>
+    <pre><code>device or application
+  → private-LAN SMTP listener
+  → streamed incoming spool
+  → durable flush and pending promotion
+  → SQLite queue metadata commit
+  → local SMTP 250
+  → bounded queue claim and Microsoft token
+  → STARTTLS + XOAUTH2 to smtp.office365.com:587
+  → recipients, original MIME payload, final Exchange response</code></pre>
+    <p>The device-facing connection and Microsoft-facing connection are independent. A legacy device does not gain OAuth or TLS capability; RelayBridge owns a separate modern connection upstream.</p>
+  </section>
+
+  <section>
+    <h2>What durable local acceptance means</h2>
+    <p>During SMTP DATA, RelayBridge streams the original RFC 5322/MIME payload into <code>spool\incoming</code>, durably flushes it, atomically promotes it to <code>spool\pending</code>, commits SQLite metadata, and only then returns local SMTP <code>250</code>.</p>
+    <p>That response means RelayBridge owns a durable copy on this Windows host. Queue data and messages survive a normal service restart or Windows reboot. It does not mean Exchange Online or a recipient inbox has accepted the message.</p>
+  </section>
+
+  <section>
+    <h2>Microsoft delivery attempt</h2>
+    <ol class="docs-steps">
+      <li><strong>Validate current configuration and sender.</strong>The worker refuses to deliver through an invalid or unready Microsoft configuration.</li>
+      <li><strong>Acquire an application token.</strong>The Windows service uses the customer-owned Entra application and local certificate private key.</li>
+      <li><strong>Connect to Exchange Online.</strong>RelayBridge uses the fixed SMTP endpoint on TCP 587.</li>
+      <li><strong>Require STARTTLS.</strong>Normal platform certificate and hostname validation must succeed.</li>
+      <li><strong>Authenticate with XOAUTH2.</strong>RelayBridge does not use Basic Auth and does not fall back to Graph mail delivery.</li>
+      <li><strong>Submit all recipients and the original payload.</strong>The worker streams MIME with SMTP dot-stuffing and waits for the final Exchange response.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Acceptance, retries, and duplicates</h2>
+    <p>Only the final Exchange <code>250</code> marks the queue item delivered. It proves Microsoft accepted the SMTP transaction; it does not guarantee inbox placement, downstream delivery, or the absence of later Microsoft filtering or policy handling.</p>
+    <p>The worker uses bounded concurrency, retry delay with jitter, maximum attempt and age policies, and permanent-failure classification. Startup reconciliation repairs safe database/spool inconsistencies before work resumes. Successfully delivered payloads are deleted under the default policy.</p>
+    <div class="docs-callout">
+      <strong>Delivery is at-least-once</strong>
+      <p>If a connection fails after the DATA terminator but before RelayBridge receives Exchange's final response, the result is ambiguous. RelayBridge may retry, so duplicates remain possible. Exactly-once delivery is not promised.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Related delivery guidance</h2>
+    <div class="docs-related">
+      <a href="/docs/operations/diagnostics/"><strong>Diagnostics and support</strong><span>Inspect queue counts, oldest message, next retry, worker state, and Microsoft readiness.</span></a>
+      <a href="/docs/troubleshooting/#queue-not-delivering"><strong>Queue troubleshooting</strong><span>Check the worker, certificate, Microsoft readiness, storage, and retry evidence.</span></a>
+      <a href="/guides/exchange-online-smtp-auth-rate-limits/"><strong>Exchange SMTP AUTH limits</strong><span>Understand why durable pacing does not bypass Microsoft connection or message limits.</span></a>
+      <a href="/guides/troubleshooting-exchange-online-smtp-errors/"><strong>Exchange SMTP errors</strong><span>Preserve and interpret the complete server response for failed attempts.</span></a>
+    </div>
+  </section>
+</DocsLayout>

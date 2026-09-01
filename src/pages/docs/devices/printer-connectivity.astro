@@ -1,0 +1,46 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Prepare printer connectivity" description="Bind RelayBridge to one trusted private LAN interface, enable queue processing, restart safely, and apply a narrow manual Windows Firewall rule if required." section="Devices">
+  <section>
+    <h2>Start from the safe default</h2>
+    <p>Before printer connectivity is applied, RelayBridge keeps management on loopback, the SMTP source configuration on loopback port 2525, cleartext device authentication disabled, and queue processing disabled.</p>
+    <p>Microsoft 365 must be active and verified before devices can be added. Select only a private interface that the intended printers can reach.</p>
+  </section>
+
+  <section>
+    <h2>Apply the private listener</h2>
+    <ol class="docs-steps">
+      <li><strong>Open Settings → Printer connectivity.</strong>Select the active private LAN interface intended for device submissions.</li>
+      <li><strong>Review the generated configuration.</strong>Confirm the exact private binding and that queue processing will be enabled.</li>
+      <li><strong>Select Apply printer connectivity.</strong>Approve the Windows elevation prompt for the fixed installed helper.</li>
+      <li><strong>Wait for the controlled restart.</strong>The helper saves the protected configuration, stops RelayBridge, confirms the old service process exited, starts the service, waits for management readiness, and verifies the selected listener and queue state.</li>
+      <li><strong>Allow the browser to reconnect.</strong>Confirm that Settings reports the listener and queue as ready before adding a device.</li>
+    </ol>
+    <p>The helper writes only <code>C:\Program Files\RelayBridge\Host\appsettings.Production.json</code> and controls only the <code>RelayBridge</code> service. It accepts a one-shot approved revision and a narrow listener/queue schema.</p>
+    <p>Apply distinguishes configuration-not-saved, configuration-saved-but-restart-failed, service-started-but-readiness-unconfirmed, and successful outcomes. If writing succeeded but restart failed, start or restart the service and verify readiness instead of replacing the JSON again.</p>
+  </section>
+
+  <section>
+    <h2>Windows Firewall remains manual</h2>
+    <div class="docs-callout">
+      <strong>RC1 does not create or modify Windows Firewall rules</strong>
+      <p>Settings generates guidance scoped to the RelayBridge Host executable, selected local address and port, Private profile, and local subnet. Narrow the remote scope to the exact printer address or trusted subnet whenever practical.</p>
+    </div>
+    <p>Do not use an all-programs or all-ports rule, enable public profiles, bind to <code>0.0.0.0</code>, expose the listener to the Internet, or create any LAN firewall rule for management port 5080.</p>
+    <p>RelayBridge does not probe whether a particular printer can reach the selected host interface. Interface choice, VLAN routing, endpoint security, and firewall scope remain administrator responsibilities.</p>
+  </section>
+
+  <section>
+    <h2>Transport boundary</h2>
+    <p>The device-facing SMTP connection uses connection security <strong>None</strong>. RC1 does not advertise or implement inbound STARTTLS. The listener must remain on one trusted private interface with access restricted to intended devices.</p>
+    <p>The Microsoft-facing hop is separate: RelayBridge connects to <code>smtp.office365.com:587</code>, requires STARTTLS with normal certificate and hostname validation, then authenticates with XOAUTH2.</p>
+    <div class="docs-related">
+      <a href="/docs/devices/add-device/"><strong>Add a device</strong><span>Create the device record after listener and queue readiness are confirmed.</span></a>
+      <a href="/docs/devices/security-modes/"><strong>Authenticated and Legacy modes</strong><span>Choose the narrowest mode the client can support.</span></a>
+      <a href="/guides/office-365-smtp-relay-dynamic-ip-branch-offices/"><strong>Branch-office topology guide</strong><span>Compare local instances with a central instance reached over site-to-site VPN.</span></a>
+      <a href="/guides/legacy-printer-tls-cipher-suite-microsoft-365/"><strong>Printer TLS diagnostics</strong><span>Understand why the local cleartext hop and Microsoft TLS hop are different connections.</span></a>
+    </div>
+  </section>
+</DocsLayout>

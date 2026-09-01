@@ -1,0 +1,55 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Diagnostics and support bundles" description="Use RelayBridge diagnostics to separate service, listener, queue, Microsoft, certificate, storage, and connectivity evidence, then review a sanitized local support bundle." section="Operations">
+  <section>
+    <h2>Read evidence by source</h2>
+    <p>Diagnostics reports <strong>Healthy</strong>, <strong>Needs attention</strong>, <strong>Unavailable</strong>, <strong>Not configured</strong>, or <strong>Unknown</strong> rather than collapsing unrelated state into one boolean.</p>
+    <ul>
+      <li>service version, build, uptime, operating system, runtime, and hosting mode;</li>
+      <li>SMTP listener state, actual binding, mode, enabled devices, and last local acceptance;</li>
+      <li>queue counts, oldest message, next retry, and worker state;</li>
+      <li>persisted and current-process Microsoft readiness;</li>
+      <li>certificate presence, private-key accessibility, validity, and expiry;</li>
+      <li>the last sanitized Microsoft setup stage, substage, category, and code;</li>
+      <li>storage availability, schema, free space, and SQLite quick-check evidence; and</li>
+      <li>management, LAN SMTP, tooling, certificate, and setup-scratch boundaries.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Choose the correct check</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Action</th><th>What it checks</th><th>What it does not do</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Run connectivity checks</th><td>DNS, TCP 587, SMTP greeting, EHLO, STARTTLS, and certificate-validated TLS</td><td>Acquire a token, authenticate, mutate the tenant, or submit mail</td></tr>
+          <tr><th scope="row">Database quick check</th><td>SQLite <code>PRAGMA quick_check</code></td><td>Edit, vacuum, or recreate the live database</td></tr>
+          <tr><th scope="row">Microsoft Verify connection</th><td>Active certificate, token acquisition, TLS, XOAUTH2, and QUIT</td><td>Provision the tenant, activate a candidate, or send a mail transaction</td></tr>
+          <tr><th scope="row">Repair connection</th><td>The controlled Microsoft identity and RBAC repair flow</td><td>Replace Windows Installer repair or justify broad permissions</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Generate and review a support bundle</h2>
+    <p>RelayBridge creates the ZIP locally and does not upload it. Bundle schema v1 uses a fixed allowlist and a 1 MiB compressed-size cap.</p>
+    <p>The implemented exclusions cover raw configuration, database files, logs, spool files, message content, mailbox addresses, device credentials and verifiers, OAuth tokens, private keys, certificate references, and detailed raw setup output.</p>
+    <div class="docs-callout">
+      <strong>Review before sharing</strong>
+      <p>The bundle still includes operational metadata such as versions, timestamps, counts, listener and network information, storage capacity, and sanitized status summaries. Review it for your environment before attaching it to any report. Sanitization reduces risk; it is not a guarantee that sensitive information can never appear under every defect or environmental condition.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Report the problem safely</h2>
+    <p>Use GitHub Issues for reproducible non-security defects. Do not publish tenant identifiers, mailbox or message data, credentials, tokens, certificates, private keys, raw configuration, databases, spool files, or an unreviewed support bundle.</p>
+    <p>Report suspected vulnerabilities through the repository's private security-reporting process described in <a href="https://github.com/getrelaybridge/relaybridge/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+    <div class="docs-related">
+      <a href="/docs/troubleshooting/"><strong>Troubleshooting</strong><span>Map symptoms to the smallest useful evidence set and avoid unsafe workarounds.</span></a>
+      <a href="/docs/reference/"><strong>Administrator reference</strong><span>Find service, endpoint, path, event log, and release information.</span></a>
+    </div>
+  </section>
+</DocsLayout>

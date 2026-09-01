@@ -10,10 +10,10 @@ const securitySections = [
   ['Microsoft identity', 'The architecture uses a dedicated Entra application, a certificate-based client credential, an Exchange resource OAuth token, XOAUTH2, and mandatory outbound TLS. It does not use a permanent client secret.'],
   ['Certificate and private key', 'The certificate private key remains local to the RelayBridge system. Microsoft receives the public certificate material needed to verify application identity—not the private key. Administrators remain responsible for securing and rotating local key material.'],
   ['Microsoft authorization', 'Exchange Application RBAC is used with Application SMTP.SendAsApp, scoped to the configured sender. The goal is sender-specific SMTP authorization rather than broad tenant mailbox access; the effective boundary still depends on correct Exchange configuration.'],
-  ['Device intake restrictions', 'A device is allowed to submit only under configured restrictions. Because inbound STARTTLS is not currently available, authenticated device intake requires an explicitly trusted private-network address in the current design.'],
+  ['Device intake restrictions', 'A device is allowed to submit only under configured source, sender, and mode restrictions. RC1 has no inbound STARTTLS, so device SMTP—including reusable authenticated-mode credentials—must remain on an explicitly trusted private network.'],
   ['Queue and durability', 'The message payload and its queue metadata are retained locally. RelayBridge considers a message locally accepted only after the durable persistence boundary. Temporary failures retry, and queued work can recover after an unexpected restart.'],
-  ['Management interface', 'Normal local management is designed to remain loopback-only in the current architecture. RelayBridge does not claim LAN web management or a cloud management plane.'],
-  ['Secret handling', 'The long-running service is designed not to retain Microsoft administrator passwords or delegated administrator tokens. Native Microsoft setup behavior is under final development and security validation for v1.0.'],
+  ['Management interface', 'RC1 management is bound to local loopback and does not provide LAN web management, remote management, or a cloud management plane.'],
+  ['Secret handling', 'The released setup flow uses short-lived interactive Microsoft administrator authentication. The long-running service does not retain Microsoft administrator passwords or delegated administrator tokens.'],
 ];
 ---
 
@@ -86,7 +86,7 @@ const securitySections = [
           <p class="eyebrow"><span></span> Privileged setup</p>
           <h2>Temporary privilege, not a runtime credential.</h2>
           <div class="callout callout-development"><span>PUBLIC RC STATUS</span><p>RelayBridge v1.0.0-rc.1 is available as an unsigned public pre-release. Its official GitHub Release includes checksums, a CycloneDX SBOM, release provenance, and third-party notices. It is not a signed stable release. <a href="/download/">Review the release status</a>.</p></div>
-          <p>The planned model uses temporary Microsoft administrator authentication only during setup. The long-running RelayBridge service is not intended to retain Microsoft administrator credentials or delegated administrator tokens. Final public setup documentation will be published after the implementation and privilege boundaries are frozen.</p>
+          <p>The released RC1 flow uses temporary Microsoft administrator authentication only during setup. The long-running RelayBridge service does not retain Microsoft administrator credentials or delegated administrator tokens. See the <a href="/docs/microsoft-365/setup/">Microsoft 365 setup documentation</a> for the current candidate, certificate, Entra, Exchange RBAC, verification, and activation sequence.</p>
         </section>
 
         <section id="limitations">
@@ -94,7 +94,7 @@ const securitySections = [
           <h2>Current boundaries to plan for</h2>
           <div class="limitation-list">
             <article><span>01</span><div><h3>No inbound STARTTLS today</h3><p>Printer-to-RelayBridge SMTP is not currently TLS protected. Device intake must be placed on an explicitly trusted private network. RelayBridge-to-Microsoft 365 remains TLS protected.</p></div></article>
-            <article><span>02</span><div><h3>Platform support is not frozen</h3><p>The v1.0.0-rc.1 public release targets Windows x64. The final compatibility matrix and signed stable packaging are not yet available.</p></div></article>
+            <article><span>02</span><div><h3>Windows client scope</h3><p>RC1 supports Windows 10/11 x64 with one locally interactive administrator. Windows Server, Server Core, RDP-native setup, x86, and Arm64 are not claimed. A signed stable release is not yet available.</p></div></article>
             <article><span>03</span><div><h3>Microsoft acceptance is not inbox delivery</h3><p>A successful final SMTP response establishes acceptance by Microsoft 365. Filtering, policy, routing, and inbox placement happen after that boundary.</p></div></article>
           </div>
         </section>

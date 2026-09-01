@@ -1,0 +1,58 @@
+---
+import DocsLayout from '../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Requirements and planning" description="Prepare the Windows host, Microsoft 365 tenant, sender mailbox, private network, and SMTP devices required for RelayBridge v1.0.0-rc.1." section="Getting started">
+  <section>
+    <h2>Confirm that RelayBridge fits the deployment</h2>
+    <p>RelayBridge is intended for printers, MFPs, scanners, NAS devices, monitoring systems, and legacy applications that can submit basic SMTP but cannot perform modern Microsoft 365 OAuth themselves.</p>
+    <p>Use it when a continuously available Windows client can sit on the trusted device network, one real Exchange Online mailbox can be authorized as the sender, and every device can be restricted by source address and SMTP envelope sender.</p>
+    <div class="docs-callout">
+      <strong>Not a fit for every environment</strong>
+      <p>RC1 is not suitable when the device-facing hop must use TLS, the listener would be Internet-facing, remote management is required, multiple tenants or authorized senders are required, or policy requires a signed stable production release.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>RC1 requirements</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Area</th><th>Requirement</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Operating system</th><td>Windows 10 or Windows 11 x64</td></tr>
+          <tr><th scope="row">Installation</th><td>A local administrator on the RelayBridge machine</td></tr>
+          <tr><th scope="row">Microsoft setup</th><td>One locally interactive administrator with tenant access capable of Entra application and Exchange RBAC setup</td></tr>
+          <tr><th scope="row">Internet access</th><td>Required during installation for exact Graph/Entra package acquisition and any missing prerequisites</td></tr>
+          <tr><th scope="row">Sender</th><td>One real Exchange Online mailbox selected for RelayBridge</td></tr>
+          <tr><th scope="row">Network</th><td>A trusted private LAN between devices and RelayBridge, plus required outbound DNS, HTTPS, and TCP 587</td></tr>
+          <tr><th scope="row">Device</th><td>An SMTP client with a fixed source address or narrow subnet and a controllable envelope sender; SMTP AUTH is preferred</td></tr>
+          <tr><th scope="row">Browser</th><td>The default browser on the local RelayBridge machine</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>RC1 does not claim support for Windows Server, Server Core, x86, Arm64, RDP-based native setup, or simultaneous setup users.</p>
+  </section>
+
+  <section>
+    <h2>Plan before installation</h2>
+    <ol class="docs-steps">
+      <li><strong>Select the Windows host.</strong>Use a Windows 10 or 11 x64 machine that can run continuously on the intended private device network.</li>
+      <li><strong>Choose the private interface.</strong>Identify the exact private address printers will reach. Do not plan a wildcard, public, or Internet-facing listener.</li>
+      <li><strong>Select one sender mailbox.</strong>The SMTP envelope sender must be a real Exchange Online mailbox that the administrator will authorize.</li>
+      <li><strong>Inventory devices.</strong>Record each source IP or narrow subnet, exact sender, SMTP AUTH LOGIN/PLAIN capability, and ability to use connection security None.</li>
+      <li><strong>Confirm outbound access.</strong>Permit the RelayBridge host to resolve Microsoft and GitHub endpoints and connect to Exchange Online on TCP 587 without disabling TLS validation.</li>
+      <li><strong>Accept the evaluation boundary.</strong>RC1 is an unsigned public pre-release. A signed stable release is not yet available.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Related planning guides</h2>
+    <div class="docs-related">
+      <a href="/guides/microsoft-365-smtp-options-compared/"><strong>Microsoft 365 SMTP options compared</strong><span>Confirm that a local compatibility bridge is the right mail-flow choice.</span></a>
+      <a href="/guides/windows-server-2025-smtp-server-replacement/"><strong>Windows Server SMTP replacement</strong><span>Inventory IIS SMTP dependencies and compare replacement categories.</span></a>
+      <a href="/guides/powershell-send-mailmessage-replacement-microsoft-365/"><strong>Send-MailMessage migration</strong><span>Separate PowerShell modernization from device and application SMTP compatibility needs.</span></a>
+      <a href="/guides/legacy-appliance-email-alerts-microsoft-365/"><strong>Legacy appliance email alerts</strong><span>Prefer supported vendor OAuth when available and evaluate a bridge only where needed.</span></a>
+      <a href="/docs/security/"><strong>Security model and limitations</strong><span>Review the trusted-LAN, identity, queue, and servicing boundaries before testing.</span></a>
+    </div>
+  </section>
+</DocsLayout>

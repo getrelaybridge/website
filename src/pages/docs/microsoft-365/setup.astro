@@ -1,0 +1,47 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Microsoft 365 setup" description="Use the released RelayBridge wizard to create or verify a customer-owned Entra application, certificate identity, Exchange RBAC scope, and one authorized sender." section="Microsoft 365">
+  <section>
+    <h2>Open setup locally</h2>
+    <p>Use the RelayBridge desktop shortcut on the installed machine. The wizard is served from the loopback management interface; the usual setup route is <code>http://localhost:5080/setup/microsoft</code>, but administrators should let the installed opener resolve the published endpoint rather than construct URLs manually.</p>
+    <div class="docs-callout-security docs-callout">
+      <strong>Administrator authentication is not the runtime credential</strong>
+      <p>Microsoft administration uses interactive Microsoft authentication in a short-lived setup chain. RelayBridge does not ask for or persist the administrator password or delegated administrator token. The Windows service later authenticates as the customer-owned application with the local certificate.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Complete the new-application flow</h2>
+    <ol class="docs-steps">
+      <li><strong>Review the welcome and current state.</strong>Confirm whether you are creating the first configuration or preparing a replacement candidate.</li>
+      <li><strong>Create or select the local certificate.</strong>Only the public certificate is exported for Entra registration.</li>
+      <li><strong>Enter one authorized sender.</strong>Choose a real Exchange Online mailbox that RelayBridge will be allowed to send as.</li>
+      <li><strong>Approve the candidate summary.</strong>Start the native setup experience only after reviewing the fixed tenant, application, certificate, and sender candidate.</li>
+      <li><strong>Authenticate for Entra.</strong>Use interactive Windows Web Account Manager authentication when prompted.</li>
+      <li><strong>Let RelayBridge create or verify the application identity.</strong>The wizard handles the customer-owned single-tenant application and tenant-local service principal.</li>
+      <li><strong>Authenticate for Exchange when required.</strong>The Exchange administration stage is separate and can present its own Microsoft authentication UI.</li>
+      <li><strong>Create or verify sender-scoped authorization.</strong>The wizard manages the Exchange service-principal reference, sender group, management scope, and scoped <code>Application SMTP.SendAsApp</code> assignment.</li>
+      <li><strong>Verify the complete path.</strong>RelayBridge validates the certificate, application token, TLS, XOAUTH2, sender authorization, and final SMTP acceptance.</li>
+      <li><strong>Activate only after success.</strong>The successfully verified candidate becomes active atomically.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Candidate and resume safety</h2>
+    <p>A working active configuration remains active while a replacement or repair candidate is incomplete. Canceling setup does not delete the active configuration or its certificates.</p>
+    <p>A completed Entra result can be reused only for the exact unchanged candidate. Exchange remains a separate stage. Setup validates object identity and RelayBridge ownership markers before reuse, and conflicting or unexpectedly broadened objects fail instead of being silently overwritten.</p>
+    <p>After a normal service restart, persisted Microsoft configuration remains, but current-process verification evidence resets. If the UI reports <strong>Verification required</strong>, use the direct verification path for the active configuration.</p>
+  </section>
+
+  <section>
+    <h2>Related explanations</h2>
+    <div class="docs-related">
+      <a href="/docs/microsoft-365/identity/"><strong>Identity and certificate</strong><span>Understand the Entra application, service principal, certificate, and runtime boundary.</span></a>
+      <a href="/docs/microsoft-365/exchange-rbac/"><strong>Exchange RBAC</strong><span>See how RelayBridge scopes SMTP authorization to the selected sender.</span></a>
+      <a href="/docs/microsoft-365/verification/"><strong>Step 5 verification</strong><span>Use the bounded automatic session when the exact eligible SMTP 535 condition occurs.</span></a>
+      <a href="/guides/security-defaults-smtp-auth-microsoft-365/"><strong>Security Defaults and SMTP AUTH</strong><span>Understand tenant policy independently from OAuth and RelayBridge setup.</span></a>
+    </div>
+  </section>
+</DocsLayout>

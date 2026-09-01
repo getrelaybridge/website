@@ -1,0 +1,41 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Exchange RBAC and sender authorization" description="Understand how RelayBridge uses Exchange Application RBAC to scope SMTP authorization to one selected Exchange Online sender mailbox." section="Microsoft 365">
+  <section>
+    <h2>Identity and authorization are separate</h2>
+    <p>The certificate-backed Entra application proves which software requests a Microsoft token. Exchange Application RBAC determines what that application may do. RelayBridge uses sender-scoped RBAC rather than a broad Entra mail permission.</p>
+  </section>
+
+  <section>
+    <h2>Objects created or verified by setup</h2>
+    <ul>
+      <li>the Exchange service-principal reference for the customer-owned Entra application;</li>
+      <li>a RelayBridge-marked distribution group containing only the selected sender mailbox;</li>
+      <li>a management scope whose recipient filter is tied to that group; and</li>
+      <li>exactly one scoped <code>Application SMTP.SendAsApp</code> assignment for the application.</li>
+    </ul>
+    <p>Setup verifies that the selected mailbox is in scope and that conflicting or extra grants are absent. Unexpected broadening fails validation instead of being silently accepted.</p>
+  </section>
+
+  <section>
+    <h2>Sender boundary during delivery</h2>
+    <p>The active sender must be a real Exchange Online mailbox. Every queued envelope sender must match that active sender, and every local device also has an exact sender allowlist.</p>
+    <div class="docs-callout-security docs-callout">
+      <strong>Authorize the SMTP envelope, not the display header</strong>
+      <p>Do not rely on the message-header <code>From</code> value or display name as the authorization boundary. RelayBridge evaluates the SMTP envelope sender before durable acceptance and uses that queued envelope sender for Exchange delivery.</p>
+    </div>
+    <p>RelayBridge does not request mailbox-reading access. Tenant-side edits to the sender group, management scope, service-principal reference, or role assignment can invalidate prior evidence and require repair or verification.</p>
+  </section>
+
+  <section>
+    <h2>Related documentation</h2>
+    <div class="docs-related">
+      <a href="/docs/microsoft-365/setup/"><strong>Microsoft 365 setup</strong><span>Follow the canonical provisioning and candidate-activation sequence.</span></a>
+      <a href="/docs/microsoft-365/verification/"><strong>Step 5 verification</strong><span>Handle possible Exchange authorization propagation without broadening permissions.</span></a>
+      <a href="/docs/devices/security-modes/"><strong>Device security modes</strong><span>See how local source and sender rules complement Exchange authorization.</span></a>
+      <a href="/guides/exchange-online-smtp-oauth-legacy-apps/"><strong>OAuth architecture guide</strong><span>Read the deeper explanation of identity, XOAUTH2, and App RBAC.</span></a>
+    </div>
+  </section>
+</DocsLayout>

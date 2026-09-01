@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { docsPages, docsSections } from '../data/docs';
+
+interface Props {
+  title: string;
+  description: string;
+  section: string;
+}
+
+const { title, description, section } = Astro.props;
+const pathname = Astro.url.pathname;
+const currentIndex = docsPages.findIndex((page) => page.href === pathname);
+const previous = currentIndex > 0 ? docsPages[currentIndex - 1] : undefined;
+const next = currentIndex >= 0 && currentIndex < docsPages.length - 1 ? docsPages[currentIndex + 1] : undefined;
+---
+
+<BaseLayout title={`${title} — RelayBridge documentation`} description={description}>
+  <section class="docs-article-hero section-dark">
+    <div class="container">
+      <nav class="docs-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs/">Documentation</a>
+        <span aria-hidden="true">/</span>
+        <span>{section}</span>
+      </nav>
+      <p class="eyebrow eyebrow-light"><span></span> {section}</p>
+      <h1>{title}</h1>
+      <p class="docs-article-summary">{description}</p>
+    </div>
+  </section>
+
+  <section class="docs-release-context" aria-label="Current documentation release">
+    <div class="container">
+      <strong>v1.0.0-rc.1 · Preview</strong>
+      <span>Unsigned public release candidate for evaluation and community testing. A signed stable release is not yet available.</span>
+      <a href="/download/">Release status</a>
+    </div>
+  </section>
+
+  <section class="section section-white docs-document">
+    <div class="container docs-shell">
+      <aside class="docs-sidebar section-aside">
+        <nav aria-label="Documentation sections">
+          {docsSections.map((group) => (
+            <section>
+              <h2>{group.title}</h2>
+              <div>
+                {group.pages.map((page) => (
+                  <a href={page.href} aria-current={page.href === pathname ? 'page' : undefined}>{page.label}</a>
+                ))}
+              </div>
+            </section>
+          ))}
+        </nav>
+      </aside>
+
+      <article class="docs-prose">
+        <slot />
+
+        <nav class="docs-pagination" aria-label="Documentation pagination">
+          {previous ? <a href={previous.href}><span>Previous</span><strong>{previous.label}</strong></a> : <span></span>}
+          {next ? <a href={next.href}><span>Next</span><strong>{next.label}</strong></a> : <span></span>}
+        </nav>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

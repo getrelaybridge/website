@@ -1,0 +1,51 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Step 5 automatic verification" description="Use RelayBridge's bounded Step-5 verification session when the exact eligible Exchange SMTP 535 condition persists after validated administration." section="Microsoft 365">
+  <section>
+    <h2>Propagation is possible, not assumed</h2>
+    <p>New Exchange authorization may take time to become effective. RelayBridge treats propagation as one possibility after validated administration; it does not classify every SMTP 535 as propagation and does not promise a completion time.</p>
+    <p>For the exact eligible Step 5 SMTP authentication denial, RelayBridge first performs up to four total attempts: the initial attempt, then retries after 2, 5, and 10 seconds while the same eligible condition persists.</p>
+  </section>
+
+  <section>
+    <h2>Automatic session limits</h2>
+    <p>If the short bounded sequence still receives the eligible SMTP 535, the active Step 5 page can start an automatic verification session.</p>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Control</th><th>Released behavior</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Interval</th><td>Every five minutes</td></tr>
+          <tr><th scope="row">Attempt limit</th><td>12 automatic attempts</td></tr>
+          <tr><th scope="row">Elapsed limit</th><td>One hour</td></tr>
+          <tr><th scope="row">Check now</th><td>Schedules one immediate check in the same session without overlapping work</td></tr>
+          <tr><th scope="row">Stop automatic checks</th><td>Stops future verification checks without canceling the setup candidate</td></tr>
+          <tr><th scope="row">Leave or close page</th><td>Disposes the page-scoped session and cancels its future checks</td></tr>
+          <tr><th scope="row">Candidate change</th><td>The session cannot adopt or activate a different candidate</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>What each attempt does</h2>
+    <p>Every attempt revalidates the candidate identity, revision, and fingerprint. It uses the existing certificate and application identity, performs no tenant mutation or permission broadening, and requires no additional administrator authentication.</p>
+    <p>While authentication is rejected, RelayBridge sends no <code>MAIL</code>, <code>RCPT</code>, or <code>DATA</code>. Once authentication succeeds, the normal verification path performs the existing final acceptance test and atomically activates the candidate.</p>
+  </section>
+
+  <section>
+    <h2>If verification expires</h2>
+    <p>Use the displayed safe error and Diagnostics to review tenant and mailbox SMTP AUTH policy, application identity, certificate validity, the Exchange service-principal reference, and effective RBAC scope.</p>
+    <div class="docs-callout">
+      <strong>Do not weaken the boundary</strong>
+      <p>Do not enable Basic Auth, grant broad Graph mail permissions, disable TLS validation, replace the candidate during an active session, or retry every SMTP 535 indefinitely.</p>
+    </div>
+    <div class="docs-related">
+      <a href="/docs/troubleshooting/#exchange-smtp-535"><strong>Troubleshoot Exchange SMTP 535</strong><span>Check permanent causes as well as the eligible propagation case.</span></a>
+      <a href="/docs/operations/diagnostics/"><strong>Diagnostics</strong><span>Separate DNS, TCP, TLS, identity, certificate, RBAC, and queue evidence.</span></a>
+      <a href="/guides/troubleshooting-exchange-online-smtp-errors/"><strong>Exchange SMTP error guide</strong><span>Interpret the complete server response instead of only the status class.</span></a>
+      <a href="/guides/exchange-online-smtp-basic-auth-deprecation-2026/"><strong>Basic Auth migration context</strong><span>Understand why enabling Basic Auth is not the corrective path.</span></a>
+    </div>
+  </section>
+</DocsLayout>

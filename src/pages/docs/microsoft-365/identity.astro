@@ -1,0 +1,37 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Entra application and certificate" description="Understand the customer-owned single-tenant Entra application, service principal, non-exportable local certificate, and RelayBridge runtime identity." section="Microsoft 365">
+  <section>
+    <h2>Customer-owned application identity</h2>
+    <p>RelayBridge creates or verifies a single-tenant Entra application owned by the customer tenant. The tenant-local service principal represents that application to Exchange. RC1 supports one tenant, one active application identity, and one authorized sender.</p>
+    <p>The application has one matching public certificate credential and no client secret. Runtime delivery does not require Graph application permissions or service-principal app-role assignments. Microsoft Graph participates in installer-provisioned administration; it is not the RC1 mail-delivery path or fallback.</p>
+  </section>
+
+  <section>
+    <h2>Local certificate lifecycle</h2>
+    <p>The wizard can generate an RSA-2048 SHA-256 certificate with a one-year default validity. On an installed system, it is placed in the Local Computer Personal certificate store, <code>LocalMachine\My</code>. Its CNG private key is created non-exportable.</p>
+    <p>RelayBridge stores a certificate reference rather than a PFX or private-key copy. The exported <code>.cer</code> contains only public certificate material and is used to register the public credential with Entra. Runtime token acquisition uses the installed certificate and the private key that remains on the RelayBridge machine.</p>
+    <div class="docs-callout-security docs-callout">
+      <strong>Do not replace the certificate boundary with a shortcut</strong>
+      <p>If the certificate expires, is removed, or becomes inaccessible to the service, use the Microsoft setup repair flow. Do not work around the failure with a client secret or exported private key.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What Diagnostics can show</h2>
+    <p>Diagnostics reports certificate presence, private-key accessibility, validity, expiry, and only an abbreviated reference. It does not place a private key or complete certificate reference in the support bundle.</p>
+    <p>Tenant administrators can later alter the application, service principal, certificate registration, or Exchange authorization. Such changes can invalidate earlier RelayBridge evidence and require verification or repair.</p>
+  </section>
+
+  <section>
+    <h2>Deeper identity background</h2>
+    <div class="docs-related">
+      <a href="/guides/exchange-online-smtp-oauth-legacy-apps/"><strong>SMTP OAuth for legacy applications</strong><span>See how application tokens and XOAUTH2 fit around a legacy SMTP client.</span></a>
+      <a href="/docs/microsoft-365/exchange-rbac/"><strong>Exchange RBAC</strong><span>Separate proof of application identity from sender authorization.</span></a>
+      <a href="/docs/security/"><strong>Security model</strong><span>Review the identity control alongside LAN, queue, management, and servicing boundaries.</span></a>
+      <a href="/security/"><strong>Current Microsoft 365 security model</strong><span>Read the public architecture-level security explanation.</span></a>
+    </div>
+  </section>
+</DocsLayout>

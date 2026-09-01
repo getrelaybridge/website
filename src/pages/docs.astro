@@ -1,53 +1,67 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
+import { docsSections } from '../data/docs';
 
-const topics = [
-  ['01', 'Getting started', 'Install, configure, and verify a RelayBridge instance.', 'In preparation'],
-  ['02', 'Microsoft 365 setup', 'Create and scope the Microsoft identity used for SMTP submission.', 'In preparation'],
-  ['03', 'Adding a device', 'Authorize a printer, scanner, appliance, or legacy application.', 'In preparation'],
-  ['04', 'Printer SMTP settings', 'Map common device fields to the local RelayBridge listener.', 'In preparation'],
-  ['05', 'Security', 'Understand the data path, identity, authorization, and current limitations.', 'Available', '/security/'],
-  ['06', 'Troubleshooting', 'Diagnose local submission, queue, OAuth, and Microsoft SMTP issues.', 'In preparation'],
-  ['07', 'Upgrading', 'Move between RelayBridge versions while preserving safe local state.', 'In preparation'],
+const journey = [
+  ['01', 'Install RelayBridge', '/docs/install/'],
+  ['02', 'Set up Microsoft 365', '/docs/microsoft-365/setup/'],
+  ['03', 'Prepare printer connectivity', '/docs/devices/printer-connectivity/'],
+  ['04', 'Add and configure a device', '/docs/devices/add-device/'],
+  ['05', 'Test local and upstream delivery', '/docs/operations/queue-delivery/'],
+  ['06', 'Operate and troubleshoot', '/docs/troubleshooting/'],
 ];
 ---
 
-<BaseLayout title="RelayBridge documentation" description="RelayBridge documentation for Microsoft 365 setup, legacy SMTP devices, security, troubleshooting, and upgrades.">
-  <PageHero eyebrow="Documentation" title="Clear guidance for" accent="a careful deployment." description="Operational documentation is being prepared alongside the public v1.0.0-rc.1 evaluation release so that instructions match the final setup flow and security boundaries." />
+<BaseLayout title="RelayBridge administrator documentation" description="Install, configure, secure, operate, and troubleshoot RelayBridge v1.0.0-rc.1 with administrator documentation for Windows and Microsoft 365.">
+  <PageHero eyebrow="Administrator documentation" title="Operate RelayBridge" accent="with the boundaries visible." description="Product procedures for RelayBridge v1.0.0-rc.1—from the supported Windows installer through Microsoft 365 setup, device intake, durable delivery, diagnostics, and servicing." />
 
-  <section class="docs-status">
-    <div class="container docs-status-inner"><span></span><p><strong>Documentation status</strong> Problem-solving guides and the public security architecture are available now. Full product setup documentation is still being prepared beyond the v1.0.0-rc.1 evaluation release.</p></div>
+  <section class="docs-status" aria-label="Current documentation release">
+    <div class="container docs-status-inner"><span></span><p><strong>Current release</strong> v1.0.0-rc.1 · Preview · Unsigned public release candidate for evaluation and community testing. A signed stable release is not yet available. <a href="/download/">Review release status</a>.</p></div>
   </section>
 
   <section class="section section-white">
     <div class="container">
-      <a class="docs-guides-promo" href="/guides/">
-        <span>GUIDES · AVAILABLE NOW</span>
-        <div><h2>Microsoft 365 SMTP problem-solving guides</h2><p>Read practical explanations for legacy printers, scan-to-email workflows, and applications that cannot use modern authentication directly.</p></div>
-        <b aria-hidden="true">→</b>
-      </a>
       <div class="section-intro section-intro-row docs-intro">
-        <div><p class="eyebrow"><span></span> Product documentation</p><h2>Installation guidance<br /><em>is still in preparation.</em></h2></div>
-        <p class="section-lede">Unlike the explanatory guides above, these topics will describe RelayBridge installation and configuration. The public RC is available, but detailed steps will remain in preparation until packaging and native Microsoft setup are frozen.</p>
+        <div><p class="eyebrow"><span></span> First-time path</p><h2>From installer<br /><em>to a verified test.</em></h2></div>
+        <p class="section-lede">RelayBridge runs locally on Windows, accepts deliberately restricted SMTP from a trusted private LAN, and delivers to Exchange Online using certificate-based application identity, STARTTLS, and XOAUTH2.</p>
       </div>
-      <div class="docs-grid">
-        {topics.map(([number, title, description, status, href]) => (
-          <article>
-            <div><span class="topic-number">{number}</span><span class:list={['topic-status', status === 'Available' && 'is-available']}>{status}</span></div>
-            <h3>{title}</h3>
-            <p>{description}</p>
-            {href ? <a class="text-link" href={href}>Read now <span aria-hidden="true">→</span></a> : <span class="topic-pending">In preparation</span>}
-          </article>
+
+      <ol class="docs-journey">
+        {journey.map(([number, label, href]) => (
+          <li><span>{number}</span><strong>{label}</strong><a href={href}>Open procedure <span aria-hidden="true">→</span></a></li>
         ))}
+      </ol>
+
+      <div class="docs-callout">
+        <strong>Know the RC1 boundaries before testing</strong>
+        <p>Inbound device SMTP has no STARTTLS, Windows Firewall configuration is manual, management is loopback-only, release checking is manual, delivery is at-least-once, and this build is unsigned. Read the complete <a href="/docs/security/#rc1-limitations">RC1 limitations</a> before connecting devices.</p>
       </div>
+
+      {docsSections.map((group) => {
+        const pages = group.pages.filter((page) => page.href !== '/docs/');
+        if (pages.length === 0) return null;
+        return (
+          <section class="docs-category" aria-labelledby={`docs-${group.title.toLowerCase().replaceAll(' ', '-')}`}>
+            <div class="docs-category-heading">
+              <h2 id={`docs-${group.title.toLowerCase().replaceAll(' ', '-')}`}>{group.title}</h2>
+              <p>{group.title === 'Getting started' && 'Prepare the host and complete the supported RC1 installation and first-run sequence.'}{group.title === 'Microsoft 365' && 'Provision a customer-owned identity and sender-scoped Exchange authorization through the released wizard.'}{group.title === 'Devices' && 'Expose one narrow private listener and authorize each printer, appliance, or legacy application.'}{group.title === 'Operations' && 'Interpret queue state, collect evidence, and service the installed Windows application.'}{group.title === 'Security' && 'Understand implemented controls, administrator responsibilities, residual risks, and current limitations.'}{group.title === 'Troubleshooting' && 'Start from the symptom and preserve the security boundaries while collecting evidence.'}{group.title === 'Reference' && 'Use verified Windows paths, ports, versions, release links, and reporting channels.'}</p>
+            </div>
+            <div class="docs-hub-grid">
+              {pages.map((page) => (
+                <article><span class="topic-number">DOCUMENTATION</span><h3>{page.label}</h3><p>{page.description}</p><a class="text-link" href={page.href}>Read documentation <span aria-hidden="true">→</span></a></article>
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   </section>
 
   <section class="section docs-bottom">
     <div class="container two-column-copy">
-      <div><p class="eyebrow"><span></span> Follow development</p><h2>Need the latest<br /><em>project status?</em></h2></div>
-      <div><p class="section-lede">RelayBridge source is public on GitHub under MPL-2.0. An unsigned Windows x64 release candidate is available for evaluation and community testing; full deployment guidance and a signed stable release are not yet available.</p><div class="button-row"><a class="button button-ink" href="/download/">Review release status <span aria-hidden="true">→</span></a><a class="text-link" href="https://github.com/getrelaybridge/relaybridge">View source</a></div></div>
+      <div><p class="eyebrow"><span></span> Deeper background</p><h2>Product procedures here.<br /><em>Problem-solving guides there.</em></h2></div>
+      <div><p class="section-lede">The documentation describes the released RelayBridge workflow. The guides explain broader Microsoft 365 SMTP choices, migrations, device limitations, TLS failures, and Exchange responses without duplicating the product procedures.</p><div class="button-row"><a class="button button-ink" href="/guides/">Browse technical guides <span aria-hidden="true">→</span></a><a class="text-link" href="/security/">Microsoft 365 security model</a></div></div>
     </div>
   </section>
 </BaseLayout>

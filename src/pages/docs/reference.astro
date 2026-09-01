@@ -1,0 +1,111 @@
+---
+import DocsLayout from '../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Administrator reference" description="Find verified RelayBridge Windows paths, service and network endpoints, RC1 component versions, release links, licenses, and support channels." section="Reference">
+  <section>
+    <h2>Current release and channel</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <tbody>
+          <tr><th scope="row">Installed version</th><td><code>1.0.0-rc.1</code></td></tr>
+          <tr><th scope="row">Channel</th><td>Preview</td></tr>
+          <tr><th scope="row">Classification</th><td>Unsigned public pre-release for evaluation and community testing</td></tr>
+          <tr><th scope="row">Signed stable release</th><td>Not yet available</td></tr>
+          <tr><th scope="row">Update behavior</th><td>Manual release check only; no automatic check, download, execution, or installation</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Windows service and paths</h2>
+    <p>Use the product UI and supported bootstrapper rather than hand-editing installed state, SQLite, spool payloads, tooling, or registry values.</p>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Item</th><th>Verified location</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Windows service</th><td><code>RelayBridge</code></td><td>Automatic per-machine LocalSystem service</td></tr>
+          <tr><th scope="row">Installation root</th><td><code>C:\Program Files\RelayBridge</code></td><td>Protected per-machine installation</td></tr>
+          <tr><th scope="row">Host</th><td><code>C:\Program Files\RelayBridge\Host</code></td><td>Windows service payload</td></tr>
+          <tr><th scope="row">Production override</th><td><code>C:\Program Files\RelayBridge\Host\appsettings.Production.json</code></td><td>Fixed printer Apply target; use Settings rather than hand-editing</td></tr>
+          <tr><th scope="row">Setup helpers</th><td><code>C:\Program Files\RelayBridge\Setup</code></td><td>Native launcher, managed worker, printer configurator, and management opener</td></tr>
+          <tr><th scope="row">Private tooling</th><td><code>C:\Program Files\RelayBridge\Tooling</code></td><td>Pinned PowerShell, Exchange, Graph, and Entra setup closure</td></tr>
+          <tr><th scope="row">Installed documentation</th><td><code>C:\Program Files\RelayBridge\Docs</code></td><td>Getting Started, MPL license, and third-party notices</td></tr>
+          <tr><th scope="row">Durable state root</th><td><code>C:\ProgramData\RelayBridge</code></td><td>Preserved by uninstall</td></tr>
+          <tr><th scope="row">Database</th><td><code>C:\ProgramData\RelayBridge\Data\relaybridge.db</code></td><td>SQLite metadata; do not edit live</td></tr>
+          <tr><th scope="row">Spool root</th><td><code>C:\ProgramData\RelayBridge\Data\spool</code></td><td>Protected queued MIME data</td></tr>
+          <tr><th scope="row">Incoming spool</th><td><code>C:\ProgramData\RelayBridge\Data\spool\incoming</code></td><td>Temporary intake stage</td></tr>
+          <tr><th scope="row">Pending spool</th><td><code>C:\ProgramData\RelayBridge\Data\spool\pending</code></td><td>Durable queued <code>.eml</code> payloads</td></tr>
+          <tr><th scope="row">Public certificate exports</th><td><code>C:\ProgramData\RelayBridge\Data\exports</code></td><td>Public <code>.cer</code> files only; no private-key export</td></tr>
+          <tr><th scope="row">Provisioning scratch</th><td><code>C:\ProgramData\RelayBridge\SetupScratch</code></td><td>Protected short-lived Microsoft setup sessions</td></tr>
+          <tr><th scope="row">Installer staging</th><td><code>C:\ProgramData\RelayBridge\InstallerStaging</code></td><td>Installer-owned external package state</td></tr>
+          <tr><th scope="row">Installer state</th><td><code>C:\ProgramData\RelayBridge\InstallerState</code></td><td>Installer-owned provisioning state</td></tr>
+          <tr><th scope="row">Certificate store</th><td><code>LocalMachine\My</code></td><td>Local Computer → Personal; non-exportable application private key</td></tr>
+          <tr><th scope="row">Management endpoint state</th><td><code>HKLM\SOFTWARE\RelayBridge\ManagementEndpoint</code></td><td>Protected loopback URL used by the desktop opener</td></tr>
+          <tr><th scope="row">Operational events</th><td>Windows Application event log</td><td>RelayBridge source; runtime events are not included in support bundles</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Network and protocol reference</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Purpose</th><th>Endpoint or port</th><th>Direction</th><th>Boundary</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Local management</th><td><code>http://localhost:5080/</code></td><td>Local browser only</td><td>Loopback; no remote management</td></tr>
+          <tr><th scope="row">Health</th><td><code>/health</code></td><td>Local browser or tool</td><td>Queue and storage health endpoint</td></tr>
+          <tr><th scope="row">Printer SMTP</th><td>Selected private address, normally port 2525</td><td>Device → RelayBridge</td><td>No inbound STARTTLS</td></tr>
+          <tr><th scope="row">Exchange SMTP</th><td><code>smtp.office365.com:587</code></td><td>RelayBridge → Microsoft</td><td>Mandatory STARTTLS and XOAUTH2</td></tr>
+          <tr><th scope="row">Release awareness</th><td>GitHub Releases API for <code>getrelaybridge/relaybridge</code></td><td>RelayBridge → GitHub</td><td>Manual metadata check only; no download or installation</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>RC1 pinned components</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Component</th><th>Version or model</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">RelayBridge</th><td>1.0.0-rc.1</td></tr>
+          <tr><th scope="row">WiX Toolset</th><td>6.0.2</td></tr>
+          <tr><th scope="row">.NET Runtime</th><td>10.0.11, embedded prerequisite installer</td></tr>
+          <tr><th scope="row">ASP.NET Core Runtime</th><td>10.0.11, embedded prerequisite installer</td></tr>
+          <tr><th scope="row">PowerShell</th><td>7.6.4, packaged private tooling</td></tr>
+          <tr><th scope="row">ExchangeOnlineManagement</th><td>3.9.2, packaged private module</td></tr>
+          <tr><th scope="row">Microsoft.Graph.Authentication</th><td>2.25.0, exact installer-time Gallery acquisition</td></tr>
+          <tr><th scope="row">Microsoft.Graph.Applications</th><td>2.25.0, exact installer-time Gallery acquisition</td></tr>
+          <tr><th scope="row">Microsoft.Entra.Authentication</th><td>1.3.0, exact installer-time Gallery acquisition</td></tr>
+          <tr><th scope="row">Microsoft.Entra.Applications</th><td>1.3.0, exact installer-time Gallery acquisition</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Release, source, and licenses</h2>
+    <ul>
+      <li><a href="https://github.com/getrelaybridge/relaybridge/releases/tag/v1.0.0-rc.1">RelayBridge v1.0.0-rc.1 GitHub Release</a></li>
+      <li><a href="https://github.com/getrelaybridge/relaybridge/tree/v1.0.0-rc.1">Exact v1.0.0-rc.1 tagged source</a></li>
+      <li><a href="https://github.com/getrelaybridge/relaybridge">RelayBridge application repository</a></li>
+      <li><a href="https://github.com/getrelaybridge/website">RelayBridge website repository</a></li>
+    </ul>
+    <p>RelayBridge-owned application source is MPL-2.0. The separate website repository is MIT-licensed. Microsoft, WiX, .NET, PowerShell, ExchangeOnlineManagement, Graph, Entra, and other third-party components retain their respective licenses.</p>
+    <p>Installed reference documents are available under <code>C:\Program Files\RelayBridge\Docs</code> as <code>GETTING-STARTED.md</code>, <code>LICENSE</code>, and <code>THIRD-PARTY-NOTICES.md</code>.</p>
+  </section>
+
+  <section>
+    <h2>Support, security, and contributions</h2>
+    <p>Use <a href="https://github.com/getrelaybridge/relaybridge/issues">GitHub Issues</a> for reproducible non-security bugs and feature discussions. Report suspected vulnerabilities privately as directed by <a href="https://github.com/getrelaybridge/relaybridge/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+    <p>Do not publish tenant identifiers, mailbox or message data, credentials, tokens, certificates, private keys, raw configuration, databases, spool files, or unreviewed support bundles.</p>
+    <p>Public application contributions use a focused branch, tests, a DCO <code>Signed-off-by</code> trailer, CI, and a pull request. RelayBridge uses DCO 1.1 and does not require a CLA.</p>
+    <div class="docs-related">
+      <a href="/docs/operations/diagnostics/"><strong>Diagnostics and support bundles</strong><span>Collect and review the implemented bounded evidence export.</span></a>
+      <a href="/docs/security/"><strong>Security and limitations</strong><span>Review the residual risks and current RC1 product boundaries.</span></a>
+    </div>
+  </section>
+</DocsLayout>

@@ -1,0 +1,43 @@
+---
+import DocsLayout from '../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="First-run checklist" description="Complete RelayBridge Microsoft 365 setup, enable private printer connectivity, add a device, and verify local and upstream delivery." section="Getting started">
+  <section>
+    <h2>Follow the released sequence</h2>
+    <p>Complete first run from the RelayBridge machine in one locally interactive Windows session. The management UI remains loopback-only; do not expose it to the LAN.</p>
+    <ol class="docs-steps">
+      <li><strong>Configure Microsoft 365.</strong>Create or verify the customer-owned Entra application, local certificate, Exchange service-principal reference, sender group, management scope, and scoped SMTP role. Activate only the verified candidate.</li>
+      <li><strong>Prepare printer connectivity.</strong>Open Settings, select the private LAN interface that devices can reach, review the generated configuration, and apply it through the UAC-elevated helper.</li>
+      <li><strong>Handle Windows Firewall manually.</strong>If a rule is required, use the generated narrow guidance for the Host executable, exact local address and port, Private profile, and device address or subnet.</li>
+      <li><strong>Add a device.</strong>Prefer Authenticated mode when the client supports AUTH LOGIN or AUTH PLAIN. Use Legacy mode only for a device that cannot authenticate and can be tightly isolated by source and sender.</li>
+      <li><strong>Configure the device.</strong>Use the displayed private server address, normally port 2525, connection security None, the exact authorized sender, and the one-time credentials when applicable.</li>
+      <li><strong>Send synthetic test mail.</strong>Use non-sensitive content. Confirm the device receives local SMTP acceptance, then separately confirm queue processing and the Exchange delivery result.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Understand the two success boundaries</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Observed result</th><th>What it means</th><th>What it does not mean</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Local SMTP <code>250</code></th><td>RelayBridge durably stored the MIME payload and committed queue metadata on this host.</td><td>Exchange Online or the recipient inbox has accepted the message.</td></tr>
+          <tr><th scope="row">Final Exchange <code>250</code></th><td>Exchange Online accepted the upstream SMTP transaction.</td><td>Inbox placement, downstream delivery, or absence of later Microsoft policy handling is guaranteed.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>If first run stops</h2>
+    <p>An existing active configuration remains in place while a replacement candidate is incomplete. Canceling Microsoft setup does not delete the active configuration or certificates. Resume only the exact unchanged candidate, and use the displayed safe stage, substage, category, and code as diagnostic evidence.</p>
+    <p>If printer Apply saved the configuration but did not confirm restart readiness, start or restart the <code>RelayBridge</code> Windows service and verify the selected listener and queue state. Do not repeatedly overwrite the production JSON.</p>
+    <div class="docs-related">
+      <a href="/docs/microsoft-365/setup/"><strong>Microsoft 365 setup</strong><span>Follow the complete released wizard and candidate-activation sequence.</span></a>
+      <a href="/docs/devices/printer-connectivity/"><strong>Printer connectivity</strong><span>Apply the private listener and handle the manual firewall boundary.</span></a>
+      <a href="/docs/devices/add-device/"><strong>Add a device</strong><span>Create a restricted device and configure its SMTP client.</span></a>
+      <a href="/docs/troubleshooting/"><strong>Troubleshooting</strong><span>Start from a symptom without weakening the documented controls.</span></a>
+    </div>
+  </section>
+</DocsLayout>

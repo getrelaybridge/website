@@ -1,0 +1,55 @@
+---
+import DocsLayout from '../../../components/DocsLayout.astro';
+---
+
+<DocsLayout title="Authenticated and Legacy device modes" description="Choose the released RelayBridge intake mode and enforce source, sender, credential, private-network, and inbound SMTP security boundaries." section="Devices">
+  <section>
+    <h2>Use Authenticated mode when possible</h2>
+    <p>Authenticated mode supports SMTP AUTH LOGIN and AUTH PLAIN. RelayBridge generates a device-specific username and a 192-bit one-time password. It stores a salted PBKDF2-HMAC-SHA256 verifier rather than the plaintext password.</p>
+    <p>Authentication is only one control. The connection must also originate from the configured source address or subnet, and the SMTP envelope sender must match the device's exact sender allowlist.</p>
+    <ul>
+      <li>The generated password is displayed once and cannot be recovered later.</li>
+      <li>Password reset immediately invalidates the previous password.</li>
+      <li>Disabling a device rejects new sessions while retaining its configuration and history.</li>
+      <li>Inbound STARTTLS is unavailable, so the reusable credential crosses the trusted device LAN in cleartext.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Use Legacy mode only when authentication is impossible</h2>
+    <p>Legacy mode accepts no password. It therefore depends on a stable private source address or narrow subnet and an exact sender restriction. RC1 rejects public, wildcard, and unrestricted Legacy rules.</p>
+    <div class="docs-callout">
+      <strong>Legacy does not mean anonymous open relay</strong>
+      <p>Reserve a stable private address for the device, keep the envelope sender exact, and prevent untrusted systems from reaching the listener. Do not switch to Legacy merely to work around a credential configuration error.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Authorization checks before acceptance</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Control</th><th>Authenticated</th><th>Legacy</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Private source rule</th><td>Required</td><td>Required; public and unrestricted rules rejected</td></tr>
+          <tr><th scope="row">Envelope sender rule</th><td>Required</td><td>Required</td></tr>
+          <tr><th scope="row">Device credential</th><td>Required</td><td>Not used</td></tr>
+          <tr><th scope="row">Inbound TLS</th><td>Not available</td><td>Not available</td></tr>
+          <tr><th scope="row">Appropriate network</th><td>Trusted private LAN</td><td>Tightly controlled trusted private LAN</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>RelayBridge evaluates the actual connection source and SMTP envelope sender, not only the message-header <code>From</code> value. The queued envelope sender must also match the active sender authorized through Exchange Application RBAC.</p>
+  </section>
+
+  <section>
+    <h2>Listener scope</h2>
+    <p>RC1 implements bounded HELO/EHLO, AUTH LOGIN, AUTH PLAIN, MAIL, RCPT, DATA, RSET, NOOP, QUIT, and SIZE handling. It does not advertise inbound STARTTLS, 8BITMIME, or SMTPUTF8.</p>
+    <p>Keep the listener bound to the one selected private interface and use a narrow firewall rule if required. Management remains on loopback and must not be opened to devices.</p>
+    <div class="docs-related">
+      <a href="/docs/security/"><strong>Security model</strong><span>Review the complete management, LAN, identity, queue, and servicing boundaries.</span></a>
+      <a href="/docs/troubleshooting/#device-authentication"><strong>Device authentication troubleshooting</strong><span>Check credentials, source rules, mode, and connection security without weakening controls.</span></a>
+      <a href="/guides/legacy-printer-tls-cipher-suite-microsoft-365/"><strong>Legacy TLS guide</strong><span>Separate device firmware TLS capability from RelayBridge's current local intake boundary.</span></a>
+      <a href="/guides/security-defaults-smtp-auth-microsoft-365/"><strong>Microsoft Security Defaults</strong><span>Do not confuse RelayBridge local device authentication with Exchange Online tenant policy.</span></a>
+    </div>
+  </section>
+</DocsLayout>
