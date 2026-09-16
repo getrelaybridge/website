@@ -66,8 +66,8 @@ const toc = [
 
   <section id="relaybridge">
     <h2>How RelayBridge approaches the problem</h2>
-    <p>RelayBridge’s v1.0 target is a local-first compatibility bridge for Microsoft 365 / Exchange Online. It is designed to accept mail only from explicitly configured local devices, persist accepted messages in a durable local queue, and deliver directly to Exchange Online using outbound TLS, OAuth, and XOAUTH2.</p>
-    <p>The planned Microsoft identity is certificate-based rather than a permanent client secret. Exchange Application RBAC is intended to scope the <code>Application SMTP.SendAsApp</code> role to the configured sender boundary. RelayBridge does not operate a hosted SMTP relay, so mail is not routed through a RelayBridge-controlled cloud delivery service. See the full <a href="/how-it-works/">message flow</a> for the architectural boundary.</p>
+    <p>RelayBridge v1.0.0-rc.1 is a local-first compatibility bridge for Microsoft 365 / Exchange Online. It accepts mail only from explicitly configured local devices, persists accepted messages in a durable local queue, and delivers directly to Exchange Online using outbound TLS, OAuth, and XOAUTH2.</p>
+    <p>The Microsoft identity is certificate-based rather than a permanent client secret. Exchange Application RBAC scopes the <code>Application SMTP.SendAsApp</code> role to the configured sender boundary. RelayBridge does not operate a hosted SMTP relay, so mail is not routed through a RelayBridge-controlled cloud delivery service. See the full <a href="/how-it-works/">message flow</a> for the architectural boundary.</p>
   </section>
 
   <section id="security">
@@ -82,7 +82,7 @@ const toc = [
 
   <section id="limitations">
     <h2>Current RelayBridge limitations</h2>
-    <p>RelayBridge source is public under MPL-2.0 and available in the <a href="https://github.com/getrelaybridge/relaybridge">source repository</a>. The unsigned v1.0.0-rc.1 Windows release candidate is available for evaluation and community testing. A finalized setup guide, signed stable release, and final platform compatibility matrix are not yet available.</p>
+    <p>RelayBridge source is public under MPL-2.0 and available in the <a href="https://github.com/getrelaybridge/relaybridge">source repository</a>. The unsigned v1.0.0-rc.1 Windows release candidate and its administrator documentation are available for evaluation and community testing. A signed stable release and final platform compatibility matrix are not yet available.</p>
     <p>No vendor-wide printer compatibility is claimed. Administrators will need to validate that a specific device can reach the local listener and produce the required message envelope and content. Follow the <a href="/download/">release-status page</a> rather than treating this article as deployment instructions.</p>
   </section>
 

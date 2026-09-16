@@ -79,8 +79,8 @@ const toc = [
   <section id="relaybridge">
     <p class="guide-kicker">Compatibility-layer option</p>
     <h2>How RelayBridge fits</h2>
-    <p>RelayBridge v1.0 is being designed as a local bridge for devices that cannot implement the required Microsoft authentication and transport themselves. A restricted device submits SMTP to RelayBridge; RelayBridge durably persists the accepted message and sends it to Exchange Online using certificate-based OAuth, XOAUTH2, mandatory TLS, and outbound port 587.</p>
-    <p>This intended Microsoft-facing path does not use a source-IP connector. Microsoft authorizes the application identity and scoped sender rather than treating a branch public IP as the credential. It also avoids a branch port 25 dependency.</p>
+    <p>RelayBridge v1.0.0-rc.1 is available as an unsigned local bridge for devices that cannot implement the required Microsoft authentication and transport themselves. A restricted device submits SMTP to RelayBridge; RelayBridge durably persists the accepted message and sends it to Exchange Online using certificate-based OAuth, XOAUTH2, mandatory TLS, and outbound port 587.</p>
+    <p>The RC1 Microsoft-facing path does not use a source-IP connector. Microsoft authorizes the application identity and scoped sender rather than treating a branch public IP as the credential. It also avoids a branch port 25 dependency.</p>
     <p>After selecting RelayBridge as the compatibility layer, the next question is where the trusted listener and durable queue should run: at every branch, or centrally at headquarters or in a data center.</p>
     <div class="guide-option-list">
       <article><h3>Option A: RelayBridge at each branch</h3><p>Devices submit across the local branch network. Each site owns its RelayBridge host, queue, certificate lifecycle, monitoring, and direct Microsoft 365 connection.</p></article>
