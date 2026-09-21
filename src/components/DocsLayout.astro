@@ -4,18 +4,19 @@ import { docsPages, docsSections } from '../data/docs';
 
 interface Props {
   title: string;
+  seoTitle?: string;
   description: string;
   section: string;
 }
 
-const { title, description, section } = Astro.props;
+const { title, seoTitle = title, description, section } = Astro.props;
 const pathname = Astro.url.pathname;
 const currentIndex = docsPages.findIndex((page) => page.href === pathname);
 const previous = currentIndex > 0 ? docsPages[currentIndex - 1] : undefined;
 const next = currentIndex >= 0 && currentIndex < docsPages.length - 1 ? docsPages[currentIndex + 1] : undefined;
 ---
 
-<BaseLayout title={`${title} — RelayBridge documentation`} description={description}>
+<BaseLayout title={`${seoTitle} — RelayBridge documentation`} description={description}>
   <section class="docs-article-hero section-dark">
     <div class="container">
       <nav class="docs-breadcrumbs" aria-label="Breadcrumb">
