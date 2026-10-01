@@ -1,0 +1,106 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-exchange-terrl.webp';
+
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#boundaries', label: 'Which limit applies' },
+  { href: '#errors', label: '550 errors' }, { href: '#measure', label: 'Measure usage' },
+  { href: '#design', label: 'Reliable design' }, { href: '#relaybridge', label: 'Where RelayBridge fits' },
+  { href: '#checklist', label: 'Response checklist' }, { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout
+  title="Exchange Online TERRL: 550 5.7.233 and External Recipient Limits — RelayBridge"
+  description="Understand Exchange Online's Tenant External Recipient Rate Limit, errors 550 5.7.233 and 550 5.7.236, reporting, and application-mail impact."
+  eyebrow="Exchange Online capacity"
+  heading="Exchange Online TERRL: tenant external recipient limits and SMTP relay impact"
+  summary="The Tenant External Recipient Rate Limit is a tenant-wide rolling limit on external recipients. It is separate from per-mailbox message and recipient limits, and repeatedly retrying a rejected message does not create more capacity."
+  toc={toc}
+  image={guideImage}
+  imageAlt="Printers, applications, and alerts feed a controlled queue and 24-hour capacity gauge; internal mail continues while external recipients pass through a tenant limit."
+  imageCaption="A queue can absorb bursts and pace retries, but it cannot bypass an Exchange Online tenant limit."
+  verified="October 2026" verifiedISO="2026-10"
+>
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>TERRL is a tenant boundary, not a mailbox setting.</h2>
+    <p class="guide-lede">Exchange Online's Tenant External Recipient Rate Limit—TERRL—counts external recipients across the tenant in a rolling 24-hour window. Microsoft calculates the available quota from the tenant's eligible email licenses and exposes the current value and usage through Exchange reporting.</p>
+    <p>Application mail, scheduled reports, printers, scanners, connector relay, and ordinary user mail can all contribute when Exchange Online delivers to recipients outside the tenant. Moving the same traffic between mailboxes does not turn a tenant-wide limit into separate capacity.</p>
+    <div class="guide-callout guide-callout-boundary"><span>Current-change boundary</span><p>Microsoft updated the TERRL calculation and rollout information in August 2026, with the revised rollout beginning in September 2026. Treat older fixed-limit articles as historical and verify the value shown for your tenant.</p></div>
+  </section>
+
+  <section id="boundaries">
+    <p class="guide-kicker">Limit layers</p><h2>Identify the counter that actually stopped the message.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Boundary</th><th>Scope</th><th>Typical evidence</th></tr></thead><tbody>
+      <tr><th>TERRL</th><td>External recipients across the tenant over a rolling 24 hours</td><td><code>550 5.7.233</code> and the Tenant Outbound External Recipients report</td></tr>
+      <tr><th>Mailbox recipient rate</th><td>Recipients submitted by one mailbox over a rolling day</td><td>Per-sender throttling or outbound restriction evidence</td></tr>
+      <tr><th>SMTP message rate</th><td>Client-submission messages from one mailbox</td><td>Submission throttling around the documented messages-per-minute boundary</td></tr>
+      <tr><th>Outbound spam policy</th><td>Configured internal, external, and daily recipient thresholds</td><td>Policy action and restricted-entity evidence</td></tr>
+      <tr><th><code>onmicrosoft.com</code> domain limit</th><td>External recipients sent from the tenant's default MOERA domains</td><td><code>550 5.7.236</code></td></tr>
+    </tbody></table></div>
+    <p>One delivery can encounter more than one layer. Diagnose the complete SMTP response and the reporting data rather than assuming every capacity error is the familiar 30-messages-per-minute SMTP AUTH limit.</p>
+  </section>
+
+  <section id="errors">
+    <p class="guide-kicker">Error identity</p><h2>Do not treat 5.7.233 and 5.7.236 as the same problem.</h2>
+    <div class="guide-option-list">
+      <article><h3>550 5.7.233</h3><p>The tenant exceeded its external-recipient quota. The count uses a rolling 24-hour window, so service resumes as older recipients fall outside that window.</p></article>
+      <article><h3>550 5.7.236</h3><p>The tenant exceeded the separate limit for external mail sent from its default <code>onmicrosoft.com</code> domains. Microsoft documents a tenant-wide maximum of 100 external recipients in a rolling 24-hour window for that boundary.</p></article>
+    </div>
+    <p>Distribution-list expansion matters: a group can represent many external recipients after expansion. Preserve the original NDR, timestamp, envelope sender, recipient set, submission method, and message trace evidence before changing configuration.</p>
+  </section>
+
+  <section id="measure">
+    <p class="guide-kicker">Tenant evidence</p><h2>Measure the shared demand before choosing a remedy.</h2>
+    <p>Use the Exchange admin center's <strong>Tenant Outbound External Recipients</strong> report to see the tenant limit and usage. Use message trace and sender reports to identify the workflows contributing to the count. Review enough history to include monthly reporting, monitoring storms, payroll runs, and other uneven workloads.</p>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Separate internal and external demand</h3><p>HVE can address high-volume internal mail, but it does not provide external delivery.</p></div></li>
+      <li><span>02</span><div><h3>Find expansions and fan-out</h3><p>Count delivered recipients, not merely the number of submitted messages or visible distribution-list addresses.</p></div></li>
+      <li><span>03</span><div><h3>Attribute automated senders</h3><p>Map each mailbox or relay identity to applications, devices, owners, peaks, and business purpose.</p></div></li>
+      <li><span>04</span><div><h3>Classify the workload</h3><p>Separate ordinary operational notifications from bulk, marketing, or externally scaled transactional email that needs a different service.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="design">
+    <p class="guide-kicker">Delivery engineering</p><h2>Back pressure should be visible and bounded.</h2>
+    <p>A durable sender can retain eligible work during a temporary capacity condition and retry with bounded delay. It should not hammer Exchange, create parallel identities to evade limits, or hide a permanent design mismatch. Operators need queue age, failure classification, affected recipients, and a safe way to stop or reroute inappropriate traffic.</p>
+    <p>For high-volume internal mail, evaluate Microsoft 365 High Volume Email. For high-volume external application email, Microsoft points customers toward Azure Communication Services Email or an appropriate specialist service. The correct choice depends on identity, recipient scope, volume, data path, and operational ownership.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Product boundary</p><h2>RelayBridge improves resilience, not quota.</h2>
+    <p>RelayBridge can durably queue messages accepted from explicitly configured local clients and retry temporary Microsoft-facing failures. It does not raise TERRL, divide one tenant into independent quotas, or turn Exchange Online into a bulk-mail platform.</p>
+    <p>RelayBridge is most relevant to modest operational mail from legacy devices and applications that need a local SMTP compatibility boundary. Review the <a href="/guides/exchange-online-smtp-auth-rate-limits/">SMTP AUTH limits guide</a> for mailbox-level constraints and the <a href="/guides/microsoft-365-smtp-options-compared/">mail-flow comparison</a> before selecting a path.</p>
+  </section>
+
+  <section id="checklist">
+    <p class="guide-kicker">Response plan</p><h2>Handle a tenant-limit event without creating another one.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Preserve the complete rejection</h3><p>Keep the enhanced code, full text, sender, recipients, timestamp, and trace identifiers.</p></div></li>
+      <li><span>02</span><div><h3>Confirm the affected counter</h3><p>Compare TERRL, mailbox limits, outbound-spam policy, and the separate MOERA-domain boundary.</p></div></li>
+      <li><span>03</span><div><h3>Pause uncontrolled retries</h3><p>Use bounded backoff and prevent duplicate fan-out while the rolling window recovers.</p></div></li>
+      <li><span>04</span><div><h3>Remove the structural cause</h3><p>Reclassify internal high-volume mail, external application mail, and ordinary operational SMTP into suitable services.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq">
+    <p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2>
+    <div class="guide-faq">
+      <details><summary>Can another mailbox avoid TERRL?</summary><p>No. TERRL is tenant-wide. A different mailbox may have its own unused mailbox quota, but the same external recipients still contribute to the tenant counter.</p></details>
+      <details><summary>Does one distribution group count as one external recipient?</summary><p>Not necessarily. Microsoft documents that external recipients are counted after group expansion for TERRL.</p></details>
+      <details><summary>Will a local queue guarantee later delivery?</summary><p>No. It can preserve work and retry eligible temporary failures. The message can still encounter authorization, recipient, spam, policy, or downstream-delivery failures.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
+    <ul class="guide-references">
+      <li><a href="https://techcommunity.microsoft.com/blog/exchange/introducing-exchange-online-tenant-outbound-email-limits/4372797">Microsoft Exchange Team: Introducing Exchange Online tenant outbound email limits</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/office365/servicedescriptions/exchange-online-service-description/exchange-online-limits">Microsoft Learn: Exchange Online limits</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/defender-office-365/outbound-spam-sending-limits-troubleshoot">Microsoft Learn: Troubleshoot outbound sending limits</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/troubleshoot/exchange/email-delivery/ndr/non-delivery-reports-in-exchange-online">Microsoft Learn: Exchange Online NDRs and SMTP errors</a></li>
+    </ul>
+  </section>
+  <section class="related-guides" aria-labelledby="related-terrl-guides"><p class="guide-kicker">Related guides</p><h2 id="related-terrl-guides">Continue from tenant capacity to mail-flow design</h2><div><a href="/guides/exchange-online-smtp-auth-rate-limits/"><strong>SMTP AUTH rate limits</strong><span>Separate mailbox submission constraints from the tenant-wide external-recipient boundary.</span></a><a href="/guides/microsoft-365-high-volume-email-printers-applications/"><strong>Microsoft 365 High Volume Email</strong><span>Evaluate the tenant-native option for high-volume internal operational mail.</span></a></div></section>
+</GuideLayout>

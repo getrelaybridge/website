@@ -12,7 +12,7 @@ const toc = [
 
 <GuideLayout
   title="Windows Server 2025 Removed SMTP Server: Replacement Options for Microsoft 365 — RelayBridge"
-  description="Plan an IIS SMTP migration from Windows Server 2025 with inventory steps and neutral Microsoft 365, Graph, local MTA, SaaS, and local bridge options."
+  description="Plan an IIS SMTP migration from Windows Server 2025 with inventory steps and neutral Exchange Edge, Microsoft 365, local MTA, SaaS, and bridge options."
   eyebrow="Windows Server migration"
   heading="Windows Server 2025 removed SMTP Server: replacement options for Microsoft 365"
   summary="Microsoft removed the legacy SMTP Server feature from Windows Server 2025 and provides no replacement inside the operating system. The right successor depends on your clients, mail-flow requirements, and operational model."
@@ -20,7 +20,7 @@ const toc = [
   image={guideImage}
   imageAlt="An obsolete Windows SMTP relay branches to modern application, local MTA, managed relay, and local bridge options that can deliver to Microsoft 365."
   imageCaption="Server 2025 removes the in-box SMTP role; the replacement should match each sender’s identity, recipient, queueing, and operational requirements."
-  verified="August 2026" verifiedISO="2026-08"
+  verified="October 2026" verifiedISO="2026-10"
 >
   <section id="answer">
     <p class="guide-kicker">Immediate answer</p>
@@ -63,6 +63,7 @@ Get-Service -Name SMTPSVC -ErrorAction SilentlyContinue</code></pre>
       <article><h3>Native OAuth in the device or application</h3><p>Prefer a vendor-supported Microsoft 365 OAuth integration when the exact product and version provide one. It removes the compatibility relay from that sender’s path.</p></article>
       <article><h3>Microsoft Graph or an application API</h3><p>For software you can rewrite, Graph <code>sendMail</code> or an appropriate service API can provide a modern application integration. Graph is not SMTP and is not a drop-in change for appliances.</p></article>
       <article><h3>Exchange Online mail-flow options</h3><p>Authenticated client submission, SMTP relay through a connector, Direct Send, and High Volume Email have different identity, recipient, network, and volume boundaries. Use the <a href="/guides/microsoft-365-smtp-options-compared/">Microsoft 365 SMTP options comparison</a> to screen them.</p></article>
+      <article><h3>Exchange Edge Transport</h3><p>Microsoft's May 2026 guidance describes a standalone Exchange Edge Transport server as a supported Microsoft option for centralizing relay from applications, fax systems, and printers while retiring IIS SMTP. It carries Exchange licensing, servicing, certificate, connector, and mail-server operations responsibilities.</p></article>
       <article><h3>Postfix or another local MTA</h3><p>An organization already comfortable operating a mail transfer agent can build a controlled local relay. That also means owning configuration, authorization, patching, queue monitoring, and upstream compatibility.</p></article>
       <article><h3>SaaS SMTP relay</h3><p>A managed relay can reduce local operations and may suit transactional mail. Review data path, privacy, sender-domain controls, availability, cost, and vendor lock-in.</p></article>
       <article><h3>A purpose-built local SMTP bridge</h3><p>A local bridge is useful when the old clients must retain SMTP but the Microsoft-facing connection needs modern authentication and managed retry behavior.</p></article>
@@ -75,6 +76,7 @@ Get-Service -Name SMTPSVC -ErrorAction SilentlyContinue</code></pre>
     <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Situation</th><th>Strong starting point</th><th>Important boundary</th></tr></thead><tbody>
       <tr><th>Rewriteable application</th><td>Graph, application API, or a current SMTP library with OAuth</td><td>Requires engineering and application identity design</td></tr>
       <tr><th>Modern device</th><td>Vendor-native Microsoft OAuth</td><td>Verify the exact model, firmware, and tenant requirements</td></tr>
+      <tr><th>Microsoft-supported centralized relay server</th><td>Standalone Exchange Edge Transport</td><td>Requires Exchange licensing, lifecycle management, connectors, certificates, and mail-server expertise</td></tr>
       <tr><th>Existing mail team</th><td>Supported Exchange path or administered local MTA</td><td>Operations and queue ownership stay with your team</td></tr>
       <tr><th>Many Windows-local legacy clients</th><td>Purpose-built local compatibility bridge</td><td>Must not become an unrestricted relay</td></tr>
       <tr><th>Cloud-managed preference</th><td>SaaS relay</td><td>Mail traverses another provider and cost scales by service</td></tr>
@@ -105,6 +107,7 @@ Get-Service -Name SMTPSVC -ErrorAction SilentlyContinue</code></pre>
     <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
     <ul class="guide-references">
       <li><a href="https://learn.microsoft.com/en-us/windows-server/get-started/removed-deprecated-features-windows-server">Microsoft Learn: Features removed or no longer developed starting with Windows Server 2025</a></li>
+      <li><a href="https://techcommunity.microsoft.com/blog/exchange/replacing-iis-smtp-virtual-server-with-exchange-edge-transport/4521241">Microsoft Exchange Team: Replacing IIS SMTP virtual server with Exchange Edge Transport</a></li>
       <li><a href="https://learn.microsoft.com/en-us/powershell/module/servermanager/get-windowsfeature?view=windowsserver2025-ps">Microsoft Learn: Get-WindowsFeature</a></li>
       <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn: How to set up a multifunction device or application to send email using Microsoft 365</a></li>
       <li><a href="https://www.postfix.org/BASIC_CONFIGURATION_README.html">Postfix official documentation: Basic configuration</a></li>

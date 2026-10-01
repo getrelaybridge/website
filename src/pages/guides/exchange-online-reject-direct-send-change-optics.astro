@@ -1,0 +1,98 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-reject-direct-send.webp';
+
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#definition', label: 'Direct Send definition' },
+  { href: '#control', label: 'RejectDirectSend' }, { href: '#report', label: 'Change Optics' },
+  { href: '#migration', label: 'Migration plan' }, { href: '#relaybridge', label: 'Where RelayBridge fits' },
+  { href: '#faq', label: 'FAQ' }, { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout
+  title="Exchange Online RejectDirectSend and Change Optics Guide — RelayBridge"
+  description="Identify and secure Exchange Online Direct Send with RejectDirectSend, the Change Optics DRS report, connector attribution, and device migration planning."
+  eyebrow="Exchange Online security"
+  heading="Secure Direct Send with RejectDirectSend and Change Optics"
+  summary="Exchange Online can now reject anonymous messages that claim one of your accepted domains but are not attributed to an authorized connector. Inventory legitimate device and application traffic before enforcing that boundary."
+  toc={toc}
+  image={guideImage}
+  imageAlt="An anonymous printer message stops at a protected gate, while an application message passes through an authorized connector into a mail cloud; a report identifies traffic before the change."
+  imageCaption="RejectDirectSend blocks the anonymous same-domain path; connector-attributed and authenticated paths remain distinct."
+  verified="October 2026" verifiedISO="2026-10"
+>
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>Discover first, authorize deliberately, then reject.</h2>
+    <p class="guide-lede"><code>RejectDirectSend</code> is an Exchange Online organization setting for rejecting anonymous messages whose SMTP envelope sender uses one of the tenant's accepted domains when the message is not attributed to an inbound connector.</p>
+    <p>That is narrower than “block every message sent directly to the tenant MX endpoint.” Ordinary internet mail from other domains and mail attributed to an authorized connector are different cases. A safe rollout begins by identifying legitimate Direct Send traffic and assigning each sender an authenticated or connector-attributed replacement.</p>
+  </section>
+
+  <section id="definition">
+    <p class="guide-kicker">Precise vocabulary</p><h2>Direct Send is not every connection to Exchange Online port 25.</h2>
+    <p>Microsoft defines Direct Send around anonymous mail that uses the organization's own accepted domain and targets recipients in that organization. The relevant sender is the P1 SMTP envelope address—not merely the visible header <code>From</code> value.</p>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Path</th><th>Identity</th><th>Effect of RejectDirectSend</th></tr></thead><tbody>
+      <tr><th>Direct Send</th><td>Anonymous; accepted-domain envelope sender; no connector attribution</td><td>Rejected when the setting is enabled</td></tr>
+      <tr><th>Connector SMTP relay</th><td>Attributed through a matching certificate or configured source IP</td><td>Not the anonymous Direct Send path when attribution succeeds</td></tr>
+      <tr><th>SMTP client submission</th><td>Authenticated submission, normally on port 587</td><td>Separate authenticated path</td></tr>
+      <tr><th>External internet sender</th><td>Another domain sending inbound mail</td><td>Not Direct Send merely because it reaches the Exchange Online endpoint</td></tr>
+    </tbody></table></div>
+    <p>Messages sent from subdomains can also be affected when the accepted-domain configuration matches subdomains. Review envelope domains and tenant accepted-domain settings before enforcement.</p>
+  </section>
+
+  <section id="control">
+    <p class="guide-kicker">Security control</p><h2>RejectDirectSend makes an implicit path explicit.</h2>
+    <p>Without this control, anonymous systems can submit messages that appear to originate from an accepted domain and target mailboxes inside the tenant. SPF, DKIM, DMARC, anti-spam signals, and transport rules remain important, but they do not provide the same tenant declaration that anonymous same-domain Direct Send is unwanted.</p>
+    <p>Microsoft documents <code>Set-OrganizationConfig -RejectDirectSend $true</code> as the organization setting. Changing it requires the appropriate Exchange organization-configuration role. Do not enable it as a blind hardening toggle: printers, applications, monitoring systems, third-party services, and forgotten workflows may currently depend on Direct Send.</p>
+    <div class="guide-callout guide-callout-boundary"><span>Connector attribution matters</span><p>An intended connector path can still be rejected if Exchange does not attribute the message to that connector. Test with message trace details and confirm the connector name rather than assuming that a configured connector matched.</p></div>
+  </section>
+
+  <section id="report">
+    <p class="guide-kicker">Change evidence</p><h2>Use the Change Optics DRS scenario as a discovery source.</h2>
+    <p>Microsoft's Change Optics Report is available in the Exchange admin center under <strong>Reports → Mail flow</strong>. The DRS scenario surfaces sample messages with the characteristics expected to be affected by RejectDirectSend. The report can be filtered and its detail data exported for investigation.</p>
+    <p>It is a change-impact aid, not a permanent complete inventory guarantee. Correlate it with message trace, Defender evidence where licensed, application ownership, firewall or flow logs, and device configuration. A quiet report cannot prove that a quarterly job or dormant emergency device does not exist.</p>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Export the DRS examples</h3><p>Group by source, envelope sender, recipient, time, and responsible system.</p></div></li>
+      <li><span>02</span><div><h3>Verify business ownership</h3><p>Do not whitelist unidentified traffic merely because it currently delivers.</p></div></li>
+      <li><span>03</span><div><h3>Choose a supported replacement</h3><p>Use native OAuth, connector attribution, an internal-only service, or a controlled compatibility bridge according to the workload.</p></div></li>
+      <li><span>04</span><div><h3>Observe the reduction</h3><p>Confirm the old anonymous path disappears before enforcing rejection.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="migration">
+    <p class="guide-kicker">Staged enforcement</p><h2>Move legitimate senders without creating broad exceptions.</h2>
+    <div class="guide-option-list">
+      <article><h3>Native modern authentication</h3><p>Prefer the vendor-supported Microsoft OAuth path when the exact device or application version provides it.</p></article>
+      <article><h3>Certificate or IP connector</h3><p>Use connector attribution when the mail server can present an accepted-domain certificate or has a suitable exclusive static public IP and outbound port 25.</p></article>
+      <article><h3>Transport-rule transition</h3><p>Where Microsoft documents it as appropriate, quarantine or redirect suspect same-domain anonymous traffic while tightly controlling explicit exceptions. Treat this as policy design, not a substitute for sender identity.</p></article>
+      <article><h3>Local compatibility service</h3><p>For legacy clients, accept only authorized local sources and create a separate authenticated Microsoft-facing connection.</p></article>
+    </div>
+    <p>Test internal and external recipients, connector attribution, sender domains, subdomains, third-party services, failure visibility, and rollback. Keep the change record and named owner for every exception.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Product boundary</p><h2>RelayBridge uses a different Microsoft-facing path.</h2>
+    <p>RelayBridge accepts SMTP from explicitly configured local clients and submits to Exchange Online through OAuth-authenticated SMTP client submission over TLS on port 587. That Microsoft-facing connection is not anonymous Direct Send and does not require an inbound connector.</p>
+    <p>This can give selected legacy senders a migration path before Direct Send is rejected. It does not discover every Direct Send dependency, configure <code>RejectDirectSend</code>, or change tenant mail-flow policy on the administrator's behalf.</p>
+  </section>
+
+  <section id="faq">
+    <p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2>
+    <div class="guide-faq">
+      <details><summary>Does RejectDirectSend block all mail sent to our MX endpoint?</summary><p>No. The control targets anonymous messages using an accepted-domain envelope sender without connector attribution. Microsoft distinguishes that from ordinary external inbound mail and properly attributed connectors.</p></details>
+      <details><summary>Is SPF enough to secure Direct Send?</summary><p>No single control should be treated as sufficient. SPF contributes sender-domain evidence, but RejectDirectSend provides an explicit tenant policy for the anonymous same-domain path.</p></details>
+      <details><summary>Can we enable the setting if Change Optics is empty?</summary><p>An empty DRS view is useful evidence but not proof that no infrequent workflow exists. Reconcile additional logs and system ownership, then use a controlled change and rollback plan.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
+    <ul class="guide-references">
+      <li><a href="https://techcommunity.microsoft.com/blog/exchange/introducing-more-control-over-direct-send-in-exchange-online/4408790">Microsoft Exchange Team: Introducing more control over Direct Send</a></li>
+      <li><a href="https://techcommunity.microsoft.com/blog/exchange/direct-send-vs-sending-directly-to-an-exchange-online-tenant/4439865">Microsoft Exchange Team: Direct Send versus sending directly to an Exchange Online tenant</a></li>
+      <li><a href="https://techcommunity.microsoft.com/blog/exchange/change-optics-report-released-into-public-preview-to-showcase-messages-impacted-/4513047">Microsoft Exchange Team: Change Optics Report</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn: Device and application mail-flow options</a></li>
+    </ul>
+  </section>
+  <section class="related-guides" aria-labelledby="related-direct-send-guides"><p class="guide-kicker">Related guides</p><h2 id="related-direct-send-guides">Move from anonymous traffic to an intentional path</h2><div><a href="/guides/microsoft-365-smtp-options-compared/"><strong>Microsoft 365 SMTP options compared</strong><span>Compare authenticated submission, connector relay, Direct Send, and HVE.</span></a><a href="/guides/microsoft-365-smtp-relay-legacy-printers/"><strong>Microsoft 365 SMTP for legacy printers</strong><span>Choose a compatible path for devices that cannot implement OAuth themselves.</span></a></div></section>
+</GuideLayout>

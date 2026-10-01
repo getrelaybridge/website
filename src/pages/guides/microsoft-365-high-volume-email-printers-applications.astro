@@ -1,0 +1,110 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-high-volume-email.webp';
+
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#boundaries', label: 'Current boundaries' },
+  { href: '#connection', label: 'Connection model' }, { href: '#compare', label: 'Compare options' },
+  { href: '#errors', label: 'Troubleshooting' }, { href: '#relaybridge', label: 'Where RelayBridge fits' },
+  { href: '#checklist', label: 'Decision checklist' }, { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout
+  title="Microsoft 365 High Volume Email for Printers and Applications — RelayBridge"
+  description="Understand Microsoft 365 High Volume Email after GA: internal-only delivery, pricing, endpoints, limits, OAuth, troubleshooting, and alternatives."
+  eyebrow="Microsoft 365 mail flow"
+  heading="Microsoft 365 High Volume Email for printers and applications"
+  summary="High Volume Email is a tenant-native Exchange Online service for large volumes of internal operational mail. Its dedicated accounts and capacity model are useful—but its internal-only recipient boundary makes it a different service from ordinary SMTP submission or relay."
+  toc={toc}
+  image={guideImage}
+  imageAlt="Printers, applications, and monitoring alerts feed a high-capacity mail channel into internal Microsoft 365 recipients, while a closed boundary separates external recipients."
+  imageCaption="HVE is designed for high-volume internal operational mail; it does not deliver to external recipients."
+  verified="October 2026" verifiedISO="2026-10"
+>
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>HVE is now generally available—and intentionally internal only.</h2>
+    <p class="guide-lede">Microsoft 365 High Volume Email became generally available in March 2026. It gives applications and devices dedicated HVE accounts for automated, transactional, and operational mail to recipients inside the same tenant without the ordinary mailbox recipient-rate and message-rate limits.</p>
+    <p>Metered billing began on June 1, 2026. Microsoft announced pricing based on expanded delivered recipients, currently documented as USD $42 per one million recipients. Pricing and availability can change, so confirm the tenant's current commerce terms before designing around it.</p>
+    <div class="guide-callout guide-callout-boundary"><span>Recipient boundary</span><p>HVE accounts cannot send to external recipients. A message containing an external address needs a different delivery path; HVE is not a general-purpose replacement for every SMTP relay.</p></div>
+  </section>
+
+  <section id="boundaries">
+    <p class="guide-kicker">Service shape</p><h2>Capacity is broad, but the service contract is narrow.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Property</th><th>Current documented HVE behavior</th><th>Design implication</th></tr></thead><tbody>
+      <tr><th>Recipients</th><td>Internal recipients in the tenant only</td><td>Split or redesign workflows that require external delivery</td></tr>
+      <tr><th>Recipients per message</th><td>Up to 50</td><td>Batch large audiences rather than relying on one giant message</td></tr>
+      <tr><th>Message size</th><td>Up to 10 MB</td><td>Large scan attachments may not fit</td></tr>
+      <tr><th>Accounts</th><td>Up to 100 HVE accounts per tenant</td><td>Assign ownership and workload boundaries deliberately</td></tr>
+      <tr><th>Message and recipient rate</th><td>No ordinary HVE message-rate or recipient-rate limit is documented</td><td>Connection, abuse, billing, and recipient boundaries still apply</td></tr>
+      <tr><th>Distribution lists</th><td>HVE accounts cannot be members of distribution lists or mail-enabled security groups</td><td>Do not design sender identity around unsupported group membership</td></tr>
+    </tbody></table></div>
+    <p>HVE is not a marketing platform. It does not provide campaign creation, engagement tracking, or permission-management tooling. Microsoft positions it for high-trust operational workloads such as payroll notifications, IT alerts, line-of-business messages, and device-driven workflows.</p>
+  </section>
+
+  <section id="connection">
+    <p class="guide-kicker">SMTP path</p><h2>The dedicated endpoint still requires capable clients.</h2>
+    <p>Microsoft documents <code>smtp.hve.mx.microsoft</code> as the recommended HVE smart host. Clients connect on TCP port 587 with TLS/STARTTLS and authenticate with HVE account credentials or an OAuth token. The older <code>smtp-hve.office365.com</code> endpoint is documented for future deprecation and should not anchor a new design.</p>
+    <div class="guide-flow" aria-label="High Volume Email submission path"><div><span>Source</span><strong>Application or device</strong><small>HVE-capable SMTP client</small></div><i aria-hidden="true">→</i><div><span>Submission</span><strong>HVE endpoint</strong><small>Port 587 · TLS · authentication</small></div><i aria-hidden="true">→</i><div><span>Recipients</span><strong>Tenant mailboxes</strong><small>Internal only</small></div></div>
+    <p>A legacy printer that cannot negotiate current TLS or use the configured authentication mechanism does not become compatible merely because the endpoint is HVE. Validate the exact model, firmware, message size, recipient pattern, and authentication method.</p>
+  </section>
+
+  <section id="compare">
+    <p class="guide-kicker">Decision matrix</p><h2>Choose by recipients and workload—not only by volume.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Need</th><th>Strong starting point</th><th>Important boundary</th></tr></thead><tbody>
+      <tr><th>High-volume internal operational mail</th><td>Microsoft 365 HVE</td><td>Internal recipients only; billing policy required</td></tr>
+      <tr><th>Normal application or mailbox submission</th><td>OAuth SMTP client submission or Microsoft Graph</td><td>Mailbox/service limits and client integration apply</td></tr>
+      <tr><th>High-volume external application mail</th><td>Azure Communication Services Email or a suitable specialist provider</td><td>Different service, identity, domain, cost, and operational model</td></tr>
+      <tr><th>Legacy device needs ordinary local SMTP</th><td>Controlled local bridge or managed relay</td><td>The upstream service must still match recipient and capacity requirements</td></tr>
+    </tbody></table></div>
+    <p>The <a href="/guides/microsoft-365-smtp-options-compared/">Microsoft 365 SMTP options comparison</a> covers client submission, connector relay, Direct Send, and HVE across identity, port, recipient, and network boundaries.</p>
+  </section>
+
+  <section id="errors">
+    <p class="guide-kicker">Operational evidence</p><h2>HVE has its own authentication and billing failure modes.</h2>
+    <p>Before diagnosing OAuth, confirm the HVE account, endpoint, TLS mode, billing policy, and tenant availability. Microsoft documents HVE-specific responses including malformed XOAUTH2 data, expired tokens, invalid API permissions, and an application that is not allowed for the HVE account.</p>
+    <div class="guide-option-list">
+      <article><h3>Authentication unsuccessful</h3><p>Check the chosen credential model, account status, token audience and lifetime, allowed application, and exact Microsoft error text.</p></article>
+      <article><h3>Billing failure</h3><p>An HVE account without a valid billing policy—or with an inactive associated subscription—cannot send once billing enforcement applies.</p></article>
+      <article><h3>External recipient</h3><p>Do not retry an unsupported external address as though the condition were transient. Route the workload through a service designed for that recipient scope.</p></article>
+    </div>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Product boundary</p><h2>RelayBridge RC1 does not use the HVE delivery endpoint.</h2>
+    <p>RelayBridge v1.0.0-rc.1 delivers to Exchange Online through OAuth-authenticated SMTP client submission. It does not currently route queued mail through HVE, manage HVE billing, or split internal and external recipients between services.</p>
+    <p>RelayBridge remains relevant when a legacy client needs a restricted local SMTP endpoint and the resulting volume and recipient pattern fit ordinary Exchange Online client submission. For high-volume internal-only traffic, evaluate HVE directly rather than inserting an unnecessary compatibility layer.</p>
+  </section>
+
+  <section id="checklist">
+    <p class="guide-kicker">Evaluation</p><h2>Confirm all five boundaries before onboarding a workload.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Recipients</h3><p>Prove that every required recipient is internal to the tenant.</p></div></li>
+      <li><span>02</span><div><h3>Message shape</h3><p>Validate recipient count, message size, attachments, and peak connection behavior.</p></div></li>
+      <li><span>03</span><div><h3>Client capability</h3><p>Confirm the recommended endpoint, port 587, STARTTLS, and the selected authentication method.</p></div></li>
+      <li><span>04</span><div><h3>Billing ownership</h3><p>Assign and test the required billing policy and associated Azure subscription.</p></div></li>
+      <li><span>05</span><div><h3>Failure routing</h3><p>Decide how unsupported recipients, billing failures, token errors, and service outages become visible to operators.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="faq">
+    <p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2>
+    <div class="guide-faq">
+      <details><summary>Can HVE send to an external customer?</summary><p>No. Microsoft's current service boundary is internal recipients within the tenant only.</p></details>
+      <details><summary>Does HVE remove every sending limit?</summary><p>No. It removes the ordinary HVE message-rate and recipient-rate limits, but retains recipient scope, message size, recipients-per-message, connection, abuse, account, and billing boundaries.</p></details>
+      <details><summary>Can every printer use HVE directly?</summary><p>No. The device still needs compatible SMTP mode, current TLS, and the selected HVE authentication capability.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
+    <ul class="guide-references">
+      <li><a href="https://techcommunity.microsoft.com/blog/microsoft_365blog/high-volume-email-is-now-available-in-exchange-online/4505302">Microsoft 365 Blog: High Volume Email is now available in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/high-volume-mails-m365">Microsoft Learn: Manage High Volume Email for Microsoft 365</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/troubleshoot-high-volume-email-m365">Microsoft Learn: Troubleshoot High Volume Email</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365">Microsoft Learn: Set up a device or application to send email</a></li>
+    </ul>
+  </section>
+  <section class="related-guides" aria-labelledby="related-hve-guides"><p class="guide-kicker">Related guides</p><h2 id="related-hve-guides">Compare the adjacent service boundaries</h2><div><a href="/guides/microsoft-365-smtp-options-compared/"><strong>Microsoft 365 SMTP options compared</strong><span>Choose by identity, recipient scope, port, network, and volume.</span></a><a href="/guides/exchange-online-tenant-external-recipient-rate-limit/"><strong>Exchange Online TERRL</strong><span>Understand the tenant-wide boundary for external recipients.</span></a></div></section>
+</GuideLayout>

@@ -1,0 +1,103 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-certificate-rotation.webp';
+
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#certificate', label: 'Certificate boundary' },
+  { href: '#monitor', label: 'Monitor expiry' }, { href: '#rotation', label: 'Rotation sequence' },
+  { href: '#verify', label: 'Verify and retire' }, { href: '#failures', label: 'Failure isolation' },
+  { href: '#relaybridge', label: 'RelayBridge procedure' }, { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout
+  title="Rotate Microsoft Entra Certificates for SMTP OAuth — RelayBridge"
+  description="Plan Microsoft Entra application certificate rotation for Exchange Online SMTP OAuth with overlap, verification, rollback, and private-key boundaries."
+  eyebrow="Application credential lifecycle"
+  heading="Rotate Microsoft Entra certificates without breaking SMTP OAuth"
+  summary="Certificate authentication removes a reusable client secret, but not credential lifecycle work. Monitor expiry, stage overlapping public credentials, verify the new private key in the running service, and retire the old credential only after evidence is complete."
+  toc={toc}
+  image={guideImage}
+  imageAlt="A local mail service maintains an uninterrupted delivery path while an old application certificate overlaps with and yields to a new verified certificate."
+  imageCaption="Safe rotation stages the new certificate beside the old one, verifies the running identity, then removes the retired credential."
+  verified="October 2026" verifiedISO="2026-10"
+>
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>Rotate before expiry and preserve an overlap window.</h2>
+    <p class="guide-lede">Microsoft's application-certificate guidance recommends registering a new public certificate while the current credential is still valid, deploying the new private key to the application, verifying the new identity, and only then removing the old credential.</p>
+    <p>An abrupt replacement turns a planned maintenance task into an authentication outage. The exact product workflow matters: use the application's supported repair or rotation process instead of manually replacing certificate references, copying private keys, or changing the Entra registration in isolation.</p>
+  </section>
+
+  <section id="certificate">
+    <p class="guide-kicker">Trust boundary</p><h2>Microsoft receives public material; the application protects the private key.</h2>
+    <p>For certificate-based client authentication, the application signs a client assertion with its private key. Microsoft Entra validates that assertion against public certificate material registered on the application. The private key should remain in the protected application environment and must never be uploaded with a PFX to the app registration.</p>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Artifact</th><th>Location</th><th>Protection objective</th></tr></thead><tbody>
+      <tr><th>Public certificate</th><td>Entra app registration and approved exports</td><td>Correct application, thumbprint, validity, and controlled credential list</td></tr>
+      <tr><th>Private key</th><td>Application's protected certificate store or key service</td><td>Non-exportability where supported and access only for the service identity</td></tr>
+      <tr><th>Certificate reference</th><td>Application configuration</td><td>Points to the intended credential without embedding private material</td></tr>
+      <tr><th>Exchange authorization</th><td>Exchange service principal and App RBAC</td><td>Remains scoped independently of which valid certificate proves the app identity</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section id="monitor">
+    <p class="guide-kicker">Early warning</p><h2>Expiration should be an observed event, not a surprise.</h2>
+    <p>Record the certificate owner, purpose, app registration, installation location, <code>NotBefore</code>, <code>NotAfter</code>, and recovery process. Alert through a channel that does not depend solely on the same SMTP path. Microsoft Entra recommendations can surface application credentials approaching expiration, subject to the tenant's licensing and feature availability.</p>
+    <p>Also monitor operational evidence: certificate presence, private-key accessibility, token-acquisition success, and the thumbprint used by recent sign-ins. A certificate can be time-valid yet unusable because it is in the wrong store, lacks a private key, or denies the service identity access.</p>
+  </section>
+
+  <section id="rotation">
+    <p class="guide-kicker">Staged handoff</p><h2>Use overlap to preserve rollback.</h2>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Create the replacement through the supported workflow</h3><p>Use an appropriate key size, provider, validity period, private-key protection, and service-store location for the application.</p></div></li>
+      <li><span>02</span><div><h3>Register only the new public certificate</h3><p>Add the public <code>.cer</code> or PEM material to the correct Entra app without deleting the working credential.</p></div></li>
+      <li><span>03</span><div><h3>Switch the application candidate</h3><p>Update the application through its supported configuration or repair flow so the runtime can access the new private key.</p></div></li>
+      <li><span>04</span><div><h3>Verify the complete path</h3><p>Prove token acquisition, Exchange authorization, TLS, XOAUTH2, sender scope, and a controlled mail transaction where the product supports one.</p></div></li>
+      <li><span>05</span><div><h3>Observe before retirement</h3><p>Keep the old credential available for the planned rollback window, then remove it from Entra and local storage through controlled cleanup.</p></div></li>
+    </ol>
+    <div class="guide-callout guide-callout-boundary"><span>Do not rotate one side only</span><p>Uploading a new public certificate without making its private key available to the running service changes nothing. Pointing the service at a new private key before Entra trusts the matching public certificate breaks token acquisition.</p></div>
+  </section>
+
+  <section id="verify">
+    <p class="guide-kicker">Proof before deletion</p><h2>Verify that the new credential—not merely either credential—was used.</h2>
+    <p>Confirm the active application configuration and safe certificate reference, then inspect Microsoft Entra sign-in evidence for the credential used by the successful token request. Exercise service restart and reboot behavior so the test does not rely on an in-memory token or certificate handle left from before the change.</p>
+    <p>After the observation window, remove the old public credential from the app registration and retire the corresponding local certificate according to the product's cleanup policy. Re-test token acquisition after removal. Preserve change records without copying private keys or sensitive identifiers into tickets or public logs.</p>
+  </section>
+
+  <section id="failures">
+    <p class="guide-kicker">Failure isolation</p><h2>An “expired certificate” symptom can occur at several layers.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Evidence</th><th>Likely boundary</th><th>Check</th></tr></thead><tbody>
+      <tr><th><code>AADSTS700027</code> with expired-key text</th><td>Client assertion signature or registered credential</td><td>Certificate validity and public credential on the correct application</td></tr>
+      <tr><th>Certificate not found</th><td>Local application configuration</td><td>Store location, thumbprint/reference, service account, and installation</td></tr>
+      <tr><th>Private key unavailable</th><td>Local key access</td><td>Private-key presence, provider, ACL, and service identity</td></tr>
+      <tr><th>Token succeeds but SMTP fails</th><td>Exchange or SMTP boundary</td><td>App RBAC, sender scope, SMTP AUTH policy, XOAUTH2, and full server response</td></tr>
+    </tbody></table></div>
+    <p>Do not weaken TLS validation, introduce a client secret, or grant broad mail permissions as a shortcut around a certificate-lifecycle error.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Released product boundary</p><h2>Use RelayBridge's Microsoft setup repair flow.</h2>
+    <p>RelayBridge v1.0.0-rc.1 creates an RSA-2048 SHA-256 certificate with a one-year default validity and places its non-exportable private key in the Local Computer personal store. The application stores a reference rather than a PFX or private-key copy.</p>
+    <p>If the certificate expires, is removed, or becomes inaccessible, follow the supported Microsoft setup repair flow described in the <a href="/docs/microsoft-365/identity/">identity and certificate documentation</a>. Do not manually substitute a client secret, export the private key, or independently delete the active Entra credential. The generic overlap model above explains the security objective; it does not override the released product procedure.</p>
+  </section>
+
+  <section id="faq">
+    <p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2>
+    <div class="guide-faq">
+      <details><summary>Should the PFX be uploaded to Entra?</summary><p>No. Register only public certificate material. The PFX contains the private key and belongs inside the protected application environment if that format is used at all.</p></details>
+      <details><summary>Does a new certificate require new Exchange RBAC?</summary><p>Normally the certificate proves the same application identity, while Exchange authorization remains attached to the application service principal. Still verify the complete effective configuration after the change.</p></details>
+      <details><summary>Can the old certificate be deleted immediately after one successful test?</summary><p>A single test may use a cached token or the wrong credential. Confirm the active reference, inspect sign-in evidence, exercise restart behavior, and retain a controlled rollback window before retirement.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/entra/msidweb/authentication/certificates">Microsoft Learn: Use certificates with Microsoft.Identity.Web</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/entra/identity-platform/how-to-add-credentials">Microsoft Learn: Add and manage application credentials</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/entra/identity/monitoring-health/recommendation-renew-expiring-application-credential">Microsoft Learn: Renew expiring application credentials</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn: Authenticate SMTP using OAuth</a></li>
+    </ul>
+  </section>
+  <section class="related-guides" aria-labelledby="related-certificate-guides"><p class="guide-kicker">Related guides</p><h2 id="related-certificate-guides">Keep identity and authorization separate</h2><div><a href="/guides/exchange-online-smtp-oauth-app-rbac/"><strong>SMTP OAuth with Application RBAC</strong><span>Constrain the certificate-backed application to its intended sender.</span></a><a href="/guides/troubleshooting-exchange-online-smtp-errors/"><strong>Exchange Online SMTP troubleshooting</strong><span>Separate token, authorization, TLS, and SMTP response failures.</span></a></div></section>
+</GuideLayout>

@@ -1,0 +1,104 @@
+---
+import GuideLayout from '../../components/GuideLayout.astro';
+import guideImage from '../../assets/page-art/guide-smtp-app-rbac.webp';
+
+const toc = [
+  { href: '#answer', label: 'Immediate answer' }, { href: '#boundaries', label: 'Three boundaries' },
+  { href: '#models', label: 'Authorization models' }, { href: '#objects', label: 'Object identities' },
+  { href: '#scope', label: 'Scoped RBAC' }, { href: '#troubleshoot', label: 'Troubleshooting' },
+  { href: '#relaybridge', label: 'RelayBridge model' }, { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+---
+
+<GuideLayout
+  title="Exchange Online SMTP OAuth with Application RBAC — RelayBridge"
+  description="Understand least-privilege SMTP.SendAsApp authorization with Exchange Application RBAC, Entra service principals, resource scopes, and app-only OAuth."
+  eyebrow="Exchange application authorization"
+  heading="Exchange Online SMTP OAuth with least-privilege Application RBAC"
+  summary="A certificate proves which application requests a token; Exchange Application RBAC determines which sender mailboxes that application may use. Keeping those boundaries separate prevents a narrow SMTP integration from becoming tenant-wide mail authority."
+  toc={toc}
+  image={guideImage}
+  imageAlt="A certificate-backed application passes through a scoped authorization gate to one highlighted sender mailbox while other mailboxes remain outside the permitted boundary."
+  imageCaption="Application identity and Exchange sender authorization are separate controls; the effective scope should include only the intended mailbox."
+  verified="October 2026" verifiedISO="2026-10"
+>
+  <section id="answer">
+    <p class="guide-kicker">Immediate answer</p><h2>Authenticate the application, then authorize only the sender it needs.</h2>
+    <p class="guide-lede">Exchange Application RBAC can grant an application the <code>Application SMTP.SendAsApp</code> role through a management role assignment paired with a resource scope. The scope defines which Exchange recipients the application is authorized to use.</p>
+    <p>This model is independent of broad application permissions granted through Microsoft Entra. Microsoft documents App RBAC as the replacement for Application Access Policies and warns that Entra application grants and Exchange RBAC grants are additive. A broad Entra grant can therefore defeat the intended narrow Exchange scope.</p>
+  </section>
+
+  <section id="boundaries">
+    <p class="guide-kicker">Authorization model</p><h2>Token, protocol, and sender answer different questions.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Boundary</th><th>Question answered</th><th>Typical evidence</th></tr></thead><tbody>
+      <tr><th>Entra application identity</th><td>Which software is requesting the token?</td><td>Tenant, client ID, service principal, and certificate-backed client assertion</td></tr>
+      <tr><th>Exchange application role</th><td>What Exchange operation may the application perform?</td><td><code>Application SMTP.SendAsApp</code> role assignment</td></tr>
+      <tr><th>Resource scope</th><td>Which sender mailbox is inside that authority?</td><td>Management scope and effective authorization test</td></tr>
+    </tbody></table></div>
+    <p>XOAUTH2 transports the resulting OAuth bearer token inside the SMTP authentication exchange. It does not create mailbox permission by itself, and a certificate uploaded to the app registration does not authorize any sender by itself.</p>
+  </section>
+
+  <section id="models">
+    <p class="guide-kicker">Do not mix models</p><h2>Microsoft documents two app-only authorization patterns.</h2>
+    <div class="guide-option-list">
+      <article><h3>Application permission plus mailbox permission</h3><p>The application receives the Exchange Online <code>SMTP.SendAsApp</code> application permission with admin consent, is registered as an Exchange service principal, and receives the required sender mailbox permission.</p></article>
+      <article><h3>Exchange Application RBAC</h3><p>The app is linked into Exchange, receives the <code>Application SMTP.SendAsApp</code> management role, and is constrained by a resource scope. Microsoft's SMTP App RBAC onboarding guidance says not to add the Entra SMTP permission for this model.</p></article>
+    </div>
+    <div class="guide-callout guide-callout-boundary"><span>Additive permissions</span><p>Do not assume a narrow RBAC assignment overrides a broad Entra application permission. Review and remove unnecessary grants through controlled change management after confirming the intended model and all consumers.</p></div>
+  </section>
+
+  <section id="objects">
+    <p class="guide-kicker">Identifier discipline</p><h2>The application ID and service-principal object ID are not interchangeable.</h2>
+    <p>The Entra app registration has an application—or client—ID. The tenant's enterprise application instance has its own service-principal object ID. Exchange's <code>New-ServicePrincipal</code> linkage requires the correct pair. Selecting the object ID from the app-registration object instead of the enterprise application is a common cause of a configuration that looks plausible but cannot authorize SMTP.</p>
+    <ol class="guide-steps">
+      <li><span>01</span><div><h3>Fix the tenant</h3><p>Confirm the single tenant in which the app, enterprise application, Exchange organization, and sender mailbox exist.</p></div></li>
+      <li><span>02</span><div><h3>Record both identifiers</h3><p>Keep the application ID and enterprise service-principal object ID labeled separately.</p></div></li>
+      <li><span>03</span><div><h3>Create or verify the Exchange reference</h3><p>Link the Entra application to the Exchange service-principal representation before assigning the role.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="scope">
+    <p class="guide-kicker">Least privilege</p><h2>Make the intended sender visible in the resource scope.</h2>
+    <p>A custom Exchange management scope can use recipient attributes or group membership to define the mailboxes an application may use. Pair that scope with exactly the application role needed for SMTP submission, then test both an intended mailbox and a mailbox that must remain outside the scope.</p>
+    <div class="guide-flow" aria-label="Exchange Application RBAC scope"><div><span>Principal</span><strong>Customer-owned application</strong><small>Certificate-backed identity</small></div><i aria-hidden="true">→</i><div><span>Role and scope</span><strong>Application SMTP.SendAsApp</strong><small>Restricted recipient filter</small></div><i aria-hidden="true">→</i><div><span>Resource</span><strong>Authorized sender</strong><small>Other mailboxes excluded</small></div></div>
+    <p>Use Exchange's service-principal authorization test to inspect the effective in-scope role for a specific mailbox. Test negative cases as deliberately as the successful sender. Propagation can take time, so distinguish a newly created assignment from an incorrectly broad or permanently failed configuration.</p>
+  </section>
+
+  <section id="troubleshoot">
+    <p class="guide-kicker">Failure isolation</p><h2>A 535 response does not identify the broken boundary by itself.</h2>
+    <div class="guide-table-wrap"><table class="guide-table"><thead><tr><th>Stage</th><th>Check</th><th>Typical mistake</th></tr></thead><tbody>
+      <tr><th>Token acquisition</th><td>Tenant, token endpoint, certificate, private-key access, and <code>https://outlook.office365.com/.default</code> resource</td><td>Wrong audience, expired certificate, or inaccessible private key</td></tr>
+      <tr><th>Exchange principal</th><td>Application ID and enterprise service-principal object ID</td><td>Using the app-registration object ID</td></tr>
+      <tr><th>Role assignment</th><td>Correct application role and management scope</td><td>Missing role, wrong app, or scope that excludes the sender</td></tr>
+      <tr><th>SMTP submission</th><td>SMTP AUTH policy, sender identity, XOAUTH2 formatting, and TLS</td><td>Protocol disabled or token submitted for a different identity</td></tr>
+    </tbody></table></div>
+    <p>Preserve the complete Exchange response and verify each layer independently. Do not respond to an authorization failure by granting tenant-wide mail permissions merely to make the test pass.</p>
+  </section>
+
+  <section id="relaybridge">
+    <p class="guide-kicker">Current implementation</p><h2>RelayBridge uses the scoped App RBAC model.</h2>
+    <p>RelayBridge v1.0.0-rc.1 uses a customer-owned single-tenant Entra application, a local non-exportable certificate, an Exchange service-principal reference, a sender group, a management scope, and one scoped <code>Application SMTP.SendAsApp</code> assignment. It does not request mailbox-reading access for delivery.</p>
+    <p>The released setup workflow verifies that the selected sender is in scope and that conflicting broad grants are absent. Use the <a href="/docs/microsoft-365/setup/">administrator setup procedure</a> for product configuration; this guide explains the underlying Microsoft authorization model and must not replace the supported wizard.</p>
+  </section>
+
+  <section id="faq">
+    <p class="guide-kicker">Clarifications</p><h2>Frequently asked questions.</h2>
+    <div class="guide-faq">
+      <details><summary>Does the certificate grant Send As permission?</summary><p>No. It authenticates the application. Exchange authorization and the scoped sender resource are separate boundaries.</p></details>
+      <details><summary>Should an App RBAC application also have SMTP.SendAsApp in Entra?</summary><p>Microsoft's SMTP App RBAC onboarding guidance says not to add that application permission for the RBAC model. Review the complete environment before removing an existing grant because other integrations may depend on it.</p></details>
+      <details><summary>Does App RBAC prevent every form of message spoofing?</summary><p>No. It constrains the application's Exchange resource authority. Local client authorization, SMTP envelope policy, header handling, device restrictions, and downstream mail controls remain separate.</p></details>
+    </div>
+  </section>
+
+  <section id="references">
+    <p class="guide-kicker">Authoritative sources</p><h2>References.</h2>
+    <ul class="guide-references">
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/smtp-app-rbac-onboarding">Microsoft Learn: SMTP onboarding to App RBAC</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/permissions-exo/application-rbac">Microsoft Learn: Role Based Access Control for Applications in Exchange Online</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth">Microsoft Learn: Authenticate SMTP using OAuth</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/powershell/module/exchangepowershell/test-serviceprincipalauthorization?view=exchange-ps">Microsoft Learn: Test-ServicePrincipalAuthorization</a></li>
+    </ul>
+  </section>
+  <section class="related-guides" aria-labelledby="related-rbac-guides"><p class="guide-kicker">Related guides</p><h2 id="related-rbac-guides">Continue from authorization to operation</h2><div><a href="/guides/exchange-online-smtp-oauth-legacy-apps/"><strong>SMTP OAuth for legacy applications</strong><span>Understand token acquisition, XOAUTH2, and the two-hop compatibility model.</span></a><a href="/guides/microsoft-entra-smtp-oauth-certificate-rotation/"><strong>Certificate rotation for SMTP OAuth</strong><span>Plan credential lifecycle without broadening Exchange permission.</span></a></div></section>
+</GuideLayout>
