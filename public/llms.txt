@@ -1,0 +1,95 @@
+# RelayBridge
+
+> RelayBridge is an open-source, local-first email bridge that lets printers, scanners, and legacy applications use modern Microsoft 365 / Exchange Online authentication without routing mail through another relay provider.
+
+RelayBridge runs as a Windows service on an administrator-controlled system. Explicitly configured devices submit SMTP on a trusted private network; RelayBridge durably queues accepted messages and delivers them directly to Exchange Online using a customer-owned Microsoft Entra application, certificate-based identity, XOAUTH2, and outbound STARTTLS.
+
+Important current product boundaries:
+
+- The current implemented provider is Microsoft 365 / Exchange Online. Google Workspace and other mail providers are not currently supported.
+- The current public release is v1.0.0-rc.1 on the Preview channel. It is an unsigned Windows x64 pre-release for evaluation and community testing. A signed stable release is not yet available.
+- RC1 does not provide inbound STARTTLS on the device-to-RelayBridge hop. That listener must remain on a trusted private network and be restricted by configured source, sender, and credential controls.
+- The management interface is loopback-only. Windows Firewall configuration remains an administrator responsibility.
+- Local durable SMTP acceptance, Exchange Online SMTP acceptance, and final inbox placement are distinct states. An Exchange final 250 response does not guarantee inbox delivery.
+- RelayBridge provides manual release checking but does not automatically download or install updates.
+- RelayBridge is independent software and is not affiliated with, endorsed by, or certified by Microsoft.
+- The RelayBridge application is licensed under MPL-2.0. This website is licensed separately under MIT. Third-party components remain under their respective licenses.
+
+Use the administrator documentation for released product procedures. Use the technical guides for deeper background, comparisons, and troubleshooting context. Do not infer product behavior or provider support that is not documented in the current release material.
+
+## Essential
+
+- [RelayBridge homepage](https://getrelaybridge.com/): Product overview and current positioning.
+- [How RelayBridge works](https://getrelaybridge.com/how-it-works/): Local SMTP intake, durable queueing, and modern Exchange Online delivery architecture.
+- [Administrator documentation](https://getrelaybridge.com/docs/): Primary entry point for installation, Microsoft 365 setup, devices, operations, security, troubleshooting, and reference material.
+- [Release status and download](https://getrelaybridge.com/download/): Current RC classification, unsigned-installer warning, recommended installer, SHA-256 verification, and official release link.
+- [Security](https://getrelaybridge.com/security/): Current Microsoft 365 security model, trust boundaries, implemented controls, and limitations.
+- [Technical guides](https://getrelaybridge.com/guides/): Source-backed articles about Microsoft 365 SMTP, legacy devices, migration, security, and diagnostics.
+
+## Getting started
+
+- [Requirements and planning](https://getrelaybridge.com/docs/requirements/): Windows, Microsoft 365, network, sender, and device prerequisites.
+- [Install RelayBridge](https://getrelaybridge.com/docs/install/): Verify and install the unsigned RC using the supported Burn bootstrapper.
+- [First-run checklist](https://getrelaybridge.com/docs/first-run/): Administrator journey from installation through Microsoft setup, device configuration, and testing.
+
+## Microsoft 365 administration
+
+- [Microsoft 365 setup](https://getrelaybridge.com/docs/microsoft-365/setup/): Released setup wizard, administrator authentication, verification, and activation flow.
+- [Identity and certificate](https://getrelaybridge.com/docs/microsoft-365/identity/): Customer-owned Entra application, service principal, and local certificate identity.
+- [Exchange Application RBAC](https://getrelaybridge.com/docs/microsoft-365/exchange-rbac/): Scope SMTP.SendAsApp authorization to the selected sender mailbox.
+- [Step 5 verification](https://getrelaybridge.com/docs/microsoft-365/verification/): Bounded automatic verification and possible Exchange authorization propagation.
+
+## Devices and SMTP intake
+
+- [Printer connectivity](https://getrelaybridge.com/docs/devices/printer-connectivity/): Bind the private listener, apply privileged configuration, restart the service, and configure Windows Firewall manually.
+- [Add a device](https://getrelaybridge.com/docs/devices/add-device/): Create a device record, configure SMTP settings, and send a synthetic test.
+- [Authenticated and Legacy modes](https://getrelaybridge.com/docs/devices/security-modes/): Credential behavior, source restrictions, sender restrictions, and the inbound transport boundary.
+
+## Operations and support
+
+- [Queue and delivery](https://getrelaybridge.com/docs/operations/queue-delivery/): Durable local acceptance, retry behavior, Exchange Online acceptance, and inbox-delivery boundaries.
+- [Diagnostics and support](https://getrelaybridge.com/docs/operations/diagnostics/): Service health, bounded diagnostics, logs, and sanitized support bundles.
+- [Servicing, repair, upgrade, and uninstall](https://getrelaybridge.com/docs/operations/servicing/): Restart, reboot, manual update awareness, repair, upgrade, retained data, and removal.
+- [Troubleshooting RelayBridge](https://getrelaybridge.com/docs/troubleshooting/): Symptom-led checks for service, UI, device, Microsoft setup, SMTP, queue, firewall, and servicing problems.
+
+## Security and reference
+
+- [Administrator security model](https://getrelaybridge.com/docs/security/): Implemented controls, administrator responsibilities, residual risks, and visible RC1 limitations.
+- [Administrator reference](https://getrelaybridge.com/docs/reference/): Verified endpoints, Windows paths, version/channel information, licenses, and support links.
+- [Privacy](https://getrelaybridge.com/privacy/): Website privacy, Cloudflare hosting, aggregate analytics, cookies, and tracking disclosures.
+- [About RelayBridge](https://getrelaybridge.com/about/): Project principles, public-source status, maintainer attribution, and potential future direction.
+
+## Technical guides
+
+- [Microsoft 365 SMTP relay for legacy printers](https://getrelaybridge.com/guides/microsoft-365-smtp-relay-legacy-printers/): Why older printers struggle with modern authentication and where a local bridge fits.
+- [Scan to email with Microsoft 365](https://getrelaybridge.com/guides/scan-to-email-microsoft-365/): Modern-authentication architecture for scanners that can speak SMTP but cannot implement OAuth.
+- [Exchange Online SMTP OAuth for legacy applications](https://getrelaybridge.com/guides/exchange-online-smtp-oauth-legacy-apps/): SMTP AUTH, OAuth, XOAUTH2, application identity, and scoped Exchange authorization.
+- [Exchange Online SMTP OAuth with Application RBAC](https://getrelaybridge.com/guides/exchange-online-smtp-oauth-app-rbac/): Separate certificate-backed identity from least-privilege SMTP.SendAsApp authorization.
+- [Microsoft Entra certificate rotation for SMTP OAuth](https://getrelaybridge.com/guides/microsoft-entra-smtp-oauth-certificate-rotation/): Credential overlap, verification, rollback, and the released RelayBridge repair boundary.
+- [Microsoft 365 SMTP options compared](https://getrelaybridge.com/guides/microsoft-365-smtp-options-compared/): Compare client submission, connector relay, Direct Send, and High Volume Email.
+- [Exchange Online tenant external recipient limits](https://getrelaybridge.com/guides/exchange-online-tenant-external-recipient-rate-limit/): TERRL, related SMTP responses, reporting, and back pressure.
+- [Microsoft 365 High Volume Email](https://getrelaybridge.com/guides/microsoft-365-high-volume-email-printers-applications/): Internal-recipient scope, endpoints, authentication, pricing, limits, and alternatives.
+- [Secure Direct Send with RejectDirectSend](https://getrelaybridge.com/guides/exchange-online-reject-direct-send-change-optics/): Discover anonymous same-domain traffic and stage safer migration.
+- [Troubleshooting Exchange Online SMTP errors](https://getrelaybridge.com/guides/troubleshooting-exchange-online-smtp-errors/): Diagnose DNS, TCP, TLS, authentication, authorization, relay, and throttling failures.
+- [SMTP relay from dynamic-IP branch offices](https://getrelaybridge.com/guides/office-365-smtp-relay-dynamic-ip-branch-offices/): Compare per-branch and central RelayBridge topologies over trusted networks or site-to-site VPNs.
+- [Legacy printer TLS handshake failures](https://getrelaybridge.com/guides/legacy-printer-tls-cipher-suite-microsoft-365/): Separate port, STARTTLS mode, protocol, cipher, trust, time, and SNI problems.
+- [Windows Server 2025 SMTP Server replacement](https://getrelaybridge.com/guides/windows-server-2025-smtp-server-replacement/): Inventory IIS SMTP dependencies and evaluate replacement paths.
+- [Exchange Online SMTP Basic Auth changes](https://getrelaybridge.com/guides/exchange-online-smtp-basic-auth-deprecation-2026/): Current schedule, Basic-versus-OAuth distinction, and migration decision tree.
+- [Exchange Online SMTP AUTH rate limits](https://getrelaybridge.com/guides/exchange-online-smtp-auth-rate-limits/): Concurrent connections, message rate, recipients, retries, and durable burst smoothing.
+- [Security Defaults and SMTP AUTH](https://getrelaybridge.com/guides/security-defaults-smtp-auth-microsoft-365/): Tenant controls, authentication boundaries, and supported alternatives.
+- [PowerShell Send-MailMessage replacement options](https://getrelaybridge.com/guides/powershell-send-mailmessage-replacement-microsoft-365/): Migration paths using Microsoft Graph, maintained SMTP libraries, APIs, or a local bridge.
+- [Legacy appliance email alerts](https://getrelaybridge.com/guides/legacy-appliance-email-alerts-microsoft-365/): Delivery patterns for older UPS, network, storage, and monitoring systems.
+
+## Project and release resources
+
+- [RelayBridge application source](https://github.com/getrelaybridge/relaybridge): Public MPL-2.0 application repository.
+- [RelayBridge v1.0.0-rc.1 release](https://github.com/getrelaybridge/relaybridge/releases/tag/v1.0.0-rc.1): Official unsigned public pre-release, release notes, assets, checksums, SBOM, provenance, and notices.
+- [RelayBridge v1.0.0-rc.1 tagged source](https://github.com/getrelaybridge/relaybridge/tree/v1.0.0-rc.1): Source corresponding to the RC1 release.
+- [Application security policy](https://github.com/getrelaybridge/relaybridge/blob/main/SECURITY.md): Supported versions and private vulnerability-reporting instructions.
+- [Application issue tracker](https://github.com/getrelaybridge/relaybridge/issues): Public product issues and feature discussions.
+- [Website source](https://github.com/getrelaybridge/website): Public MIT-licensed source for getrelaybridge.com.
+
+## Optional
+
+- [Production sitemap](https://getrelaybridge.com/sitemap.xml): Complete list of indexable human-facing website routes.
+- [Robots policy](https://getrelaybridge.com/robots.txt): Crawler-access policy for the public website.

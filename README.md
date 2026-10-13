@@ -113,3 +113,4 @@ The links below mirror every indexable route in the production sitemap.
 - [Application issue tracker](https://github.com/getrelaybridge/relaybridge/issues)
 - [Production sitemap](https://getrelaybridge.com/sitemap.xml)
 - [Robots policy](https://getrelaybridge.com/robots.txt)
+- [LLM content map](https://getrelaybridge.com/llms.txt)
